@@ -1,8 +1,10 @@
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
-builder.Services.AddOpenApi();
+builder.Services.AddApiServices();
+builder.Services.AddCatalogModuleServices();
 
 var app = builder.Build();
+app.UseSerilogRequestLogging();
 app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {

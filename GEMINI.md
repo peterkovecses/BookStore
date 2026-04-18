@@ -13,3 +13,7 @@
 - **Global Usings:** Always use Global Usings for the entire solution.
 - **Namespace Structure:** Namespaces must follow the project structure starting from the project name (e.g., `BookStore.Api...`).
 - **Architectural Integrity:** This is a modular monolith. Modules must only communicate through their `Contracts` projects.
+- **Modern .NET Features:** Use modern .NET 10 features like primary constructors and other latest language enhancements.
+- **Expression-bodied Members:** Prefer expression-bodied methods and members where applicable.
+- **Return Formatting:** If a method contains logic before the return statement, always include a blank line before the `return`.
+- **Early Return:** Prefer early returns and avoid `else` or `else if` branches to reduce nesting.

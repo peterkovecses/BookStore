@@ -1,13 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using OpenTelemetry;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
-
 namespace BookStore.ServiceDefaults;
 
 // Adds common .NET Aspire services: service discovery, resilience, health checks, and OpenTelemetry.
@@ -17,10 +7,9 @@ public static class Extensions
 {
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
+        builder.ConfigureLogging();
         builder.ConfigureOpenTelemetry();
-
         builder.AddDefaultHealthChecks();
-
         builder.Services.AddServiceDiscovery();
 
         builder.Services.ConfigureHttpClientDefaults(http =>
@@ -41,14 +30,35 @@ public static class Extensions
         return builder;
     }
 
-    public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    public static TBuilder ConfigureLogging<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
-        builder.Logging.AddOpenTelemetry(logging =>
+        builder.Services.AddSerilog((services, loggerConfiguration) =>
         {
-            logging.IncludeFormattedMessage = true;
-            logging.IncludeScopes = true;
+            loggerConfiguration
+                .ReadFrom.Configuration(builder.Configuration)
+                .ReadFrom.Services(services)
+                .Enrich.FromLogContext()
+                .Enrich.WithSpan()
+                .Enrich.With(new ActivityEventLogEnricher())
+                .WriteTo.Console()
+                .WriteTo.OpenTelemetry(options =>
+                {
+                    var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+
+                    if (!string.IsNullOrEmpty(otlpEndpoint))
+                    {
+                        options.Endpoint = otlpEndpoint;
+                    }
+
+                    options.ResourceAttributes["service.name"] = builder.Environment.ApplicationName;
+                });
         });
 
+        return builder;
+    }
+
+    public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    {
         builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
