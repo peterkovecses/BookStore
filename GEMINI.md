@@ -17,3 +17,8 @@
 - **Expression-bodied Members:** Prefer expression-bodied methods and members where applicable.
 - **Return Formatting:** If a method contains logic before the return statement, always include a blank line before the `return`.
 - **Early Return:** Prefer early returns and avoid `else` or `else if` branches to reduce nesting.
+- **High-Performance Logging:** Avoid potentially expensive operations in logging arguments (CA1873).
+    - Use `[LoggerMessage]` source generation in an `internal static partial class` (as extension methods for `ILogger`).
+    - **Location:** Place the `internal static partial class` for logging in the same file as the class using it.
+    - **Ambiguity Resolution:** When using Serilog alongside Microsoft Logging, always use `ILogger<T>` as the first parameter of the logging extension method to avoid `CS0104` ambiguity between `Microsoft.Extensions.Logging.ILogger` and `Serilog.ILogger`.
+    - If a logging parameter requires expensive evaluation (e.g., string joining, complex formatting), wrap the call in a `logger.IsEnabled(LogLevel)` check to avoid unnecessary allocations.

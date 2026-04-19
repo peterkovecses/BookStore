@@ -9,7 +9,7 @@ public sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        logger.LogError(exception, "Unhandled exception occurred: {Message}", exception.Message);
+        logger.LogUnhandledException(exception, exception.Message);
 
         var problemDetails = new ProblemDetails
         {
@@ -27,8 +27,17 @@ public sealed class GlobalExceptionHandler(
         }
 
         httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
         await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
 
         return true;
     }
+}
+
+internal static partial class GlobalExceptionHandlerLogger
+{
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "Unhandled exception occurred: {Message}")]
+    internal static partial void LogUnhandledException(this ILogger<GlobalExceptionHandler> logger, Exception exception, string message);
 }
