@@ -5,6 +5,7 @@ builder.Services.AddCatalogModuleServices();
 
 var app = builder.Build();
 app.UseSerilogRequestLogging();
+app.UseErrorHandling();
 app.MapDefaultEndpoints();
 if (app.Environment.IsDevelopment())
 {

@@ -1,6 +1,9 @@
 global using System.Diagnostics;
 global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Diagnostics;
 global using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Diagnostics.HealthChecks;
 global using Microsoft.Extensions.Hosting;
@@ -13,3 +16,4 @@ global using Serilog.Core;
 global using Serilog.Events;
 global using Serilog.Enrichers.Span;
 global using BookStore.ServiceDefaults.Logging;
+global using BookStore.ServiceDefaults.ErrorHandling;
