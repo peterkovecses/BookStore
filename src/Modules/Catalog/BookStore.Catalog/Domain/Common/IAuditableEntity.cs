@@ -1,4 +1,4 @@
-namespace BookStore.Catalog.Common;
+namespace BookStore.Catalog.Domain.Common;
 
 internal interface IAuditableEntity
 {

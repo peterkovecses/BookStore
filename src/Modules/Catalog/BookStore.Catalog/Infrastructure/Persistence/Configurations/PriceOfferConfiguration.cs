@@ -1,4 +1,4 @@
-namespace BookStore.Catalog.Persistence.Configurations;
+namespace BookStore.Catalog.Infrastructure.Persistence.Configurations;
 
 internal class PriceOfferConfiguration : IEntityTypeConfiguration<PriceOffer>
 {

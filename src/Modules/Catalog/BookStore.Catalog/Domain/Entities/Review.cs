@@ -1,4 +1,4 @@
-namespace BookStore.Catalog.Entities;
+namespace BookStore.Catalog.Domain.Entities;
 
 internal class Review : EntityBase<int>
 {
