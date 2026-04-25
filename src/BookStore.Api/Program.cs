@@ -1,7 +1,7 @@
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddApiServices();
-builder.Services.AddCatalogModuleServices();
+builder.AddCatalogModuleServices();
 
 var app = builder.Build();
 app.UseSerilogRequestLogging();
