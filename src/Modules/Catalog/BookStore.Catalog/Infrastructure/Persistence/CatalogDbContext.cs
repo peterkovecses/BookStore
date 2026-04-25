@@ -1,6 +1,8 @@
 namespace BookStore.Catalog.Infrastructure.Persistence;
 
-internal class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : DbContext(options)
+internal class CatalogDbContext(
+    DbContextOptions<CatalogDbContext> options,
+    IEnumerable<ISaveChangesInterceptor> interceptors) : DbContext(options)
 {
     public DbSet<Book> Books => Set<Book>();
     public DbSet<Author> Authors => Set<Author>();
@@ -14,5 +16,11 @@ internal class CatalogDbContext(DbContextOptions<CatalogDbContext> options) : Db
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         
         base.OnModelCreating(modelBuilder);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        optionsBuilder.AddInterceptors(interceptors);
+        base.OnConfiguring(optionsBuilder);
     }
 }

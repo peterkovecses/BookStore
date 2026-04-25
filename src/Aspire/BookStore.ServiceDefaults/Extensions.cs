@@ -28,6 +28,7 @@ public static class Extensions
         // });
 
         builder.AddErrorHandling();
+        builder.Services.AddSingleton(TimeProvider.System);
 
         return builder;
     }
