@@ -1,10 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <EmbeddedResource Include="Infrastructure\Seeding\Covers\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BookStore.Catalog.Contracts\BookStore.Catalog.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="13.2.4" />
     <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="13.2.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.7" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7" />
