@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BookStore.Catalog.Contracts\BookStore.Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Shared\BookStore.Common\BookStore.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modules\Catalog\BookStore.Catalog\BookStore.Catalog.csproj" />
-    <ProjectReference Include="..\aspire\BookStore.ServiceDefaults\BookStore.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\Modules\Catalog\BookStore.Catalog\BookStore.Catalog.csproj" />
+    <ProjectReference Include="..\..\aspire\BookStore.ServiceDefaults\BookStore.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
