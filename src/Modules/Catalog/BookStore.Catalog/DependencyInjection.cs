@@ -24,8 +24,6 @@ public static class DependencyInjection
         builder.Services.AddMediatR(config =>
         {
             config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            config.AddLoggingBehavior();
-            config.AddValidationBehavior();
         });
 
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
