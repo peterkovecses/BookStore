@@ -8,6 +8,7 @@ public static class DependencyInjection
 
         services.AddMediatR(config =>
         {
+            config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             config.AddLoggingBehavior();
             config.AddValidationBehavior();
         });

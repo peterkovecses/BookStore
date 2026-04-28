@@ -8,3 +8,4 @@ global using BookStore.Catalog.Common.Extensions;
 global using BookStore.Catalog.Infrastructure.Seeding;
 global using Serilog;
 global using BookStore.Common;
+global using System.Reflection;
