@@ -7,7 +7,10 @@ public class BookSummaryDto
     public DateTime PublishedOn { get; set; }
     public string Publisher { get; set; } = null!;
     public decimal Price { get; set; }
+
+    [JsonIgnore]
     public string? ImageName { get; set; }
+    public string? ImageUrl { get; set; }
 
     public PriceOfferDto? Promotion { get; set; }
     public IEnumerable<AuthorDto> Authors { get; set; } = null!;

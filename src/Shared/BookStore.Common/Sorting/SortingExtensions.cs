@@ -16,13 +16,8 @@ public static class SortingExtensions
         var lambda = Cache.GetOrAdd(key, k =>
         {
             var parameter = Expression.Parameter(k.Type, "entity");
-            var property = k.Type.GetProperty(k.PropertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-
-            if (property is null)
-            {
-                throw new ArgumentException($"Property '{k.PropertyName}' not found on type '{k.Type.Name}'");
-            }
-
+            var property = k.Type.GetProperty(k.PropertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance)
+                ?? throw new ArgumentException($"Property '{k.PropertyName}' not found on type '{k.Type.Name}'");
             var propertyAccess = Expression.MakeMemberAccess(parameter, property);
             
             return Expression.Lambda(propertyAccess, parameter);

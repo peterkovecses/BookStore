@@ -18,6 +18,7 @@
 - **Return Formatting:** If a method contains logic before the return statement, always include a blank line before the `return`.
 - **Early Return:** Prefer early returns and avoid `else` or `else if` branches to reduce nesting.
 - **Null Checks:** ALWAYS use `is null` instead of `== null` and `is not null` instead of `!= null`.
+    - **Exception:** Within expression trees (e.g., `Expression<Func<...>>`), use `== null` and `!= null` because the `is` pattern matching operator is not supported.
 - **High-Performance Logging:** Avoid potentially expensive operations in logging arguments (CA1873).
     - Use `[LoggerMessage]` source generation in an `internal static partial class` (as extension methods for `ILogger`).
     - **Location:** Place the `internal static partial class` for logging in the same file as the class using it.
