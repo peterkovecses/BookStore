@@ -8,4 +8,11 @@ public static class DependencyInjection
         
         return config;
     }
+
+    public static MediatRServiceConfiguration AddLoggingBehavior(this MediatRServiceConfiguration config)
+    {
+        config.AddOpenBehavior(typeof(LoggingBehavior<,>));
+
+        return config;
+    }
 }
