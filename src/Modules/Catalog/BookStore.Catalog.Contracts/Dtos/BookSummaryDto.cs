@@ -1,6 +1,6 @@
 namespace BookStore.Catalog.Contracts.Dtos;
 
-public class BookListViewDto
+public class BookSummaryDto
 {
     public int Id { get; set; }
     public string Title { get; set; } = null!;

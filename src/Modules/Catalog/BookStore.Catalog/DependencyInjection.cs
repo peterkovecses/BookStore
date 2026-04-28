@@ -14,11 +14,21 @@ public static class DependencyInjection
             options.AddInterceptors(sp.GetRequiredService<AuditableEntityInterceptor>());
         });
 
+        builder.Services.AddScoped<ICatalogDbContext>(sp => sp.GetRequiredService<CatalogDbContext>());
         builder.EnrichSqlServerDbContext<CatalogDbContext>();
         builder.AddAzureBlobServiceClient("book-covers");
         builder.Services.AddScoped<CatalogDbContextInitialiser>();
         builder.Services.AddScoped<CatalogStorageInitialiser>();
         builder.Services.AddScoped<CatalogModuleInitialiser>();
+
+        builder.Services.AddMediatR(config =>
+        {
+            config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            config.AddLoggingBehavior();
+            config.AddValidationBehavior();
+        });
+
+        builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         return builder;
     }

@@ -1,7 +1,7 @@
 namespace BookStore.Catalog.Infrastructure.Persistence;
 
 internal class CatalogDbContext(
-    DbContextOptions<CatalogDbContext> options) : DbContext(options)
+    DbContextOptions<CatalogDbContext> options) : DbContext(options), ICatalogDbContext
 {
     public DbSet<Book> Books => Set<Book>();
     public DbSet<Author> Authors => Set<Author>();
