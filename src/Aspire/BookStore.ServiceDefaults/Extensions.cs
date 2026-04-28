@@ -64,7 +64,13 @@ public static class Extensions
     public static TBuilder AddErrorHandling<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.Services.AddProblemDetails();
+        builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+        builder.Services.Configure<RouteHandlerOptions>(options =>
+        {
+            options.ThrowOnBadRequest = true;
+        });
 
         return builder;
     }

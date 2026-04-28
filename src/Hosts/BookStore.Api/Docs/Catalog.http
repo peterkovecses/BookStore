@@ -25,5 +25,5 @@ GET {{BookStore_Api_HostAddress}}/api/catalog/books?SortBy=Title
 Accept: application/json
 
 ### Custom Pagination
-GET {{BookStore_Api_HostAddress}}/api/catalog/books?PageNumber=2&PageSize=hello
+GET {{BookStore_Api_HostAddress}}/api/catalog/books?PageNumber=2&PageSize=5
 Accept: application/json
