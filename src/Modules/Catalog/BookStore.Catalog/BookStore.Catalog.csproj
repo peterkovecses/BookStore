@@ -19,6 +19,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7" />
     <PackageReference Include="MediatR" Version="14.1.0" />
+    <PackageReference Include="Kovecses.Result.AspNetCore" Version="2.9.0" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
   </ItemGroup>

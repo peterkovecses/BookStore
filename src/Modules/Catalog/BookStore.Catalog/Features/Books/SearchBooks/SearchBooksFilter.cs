@@ -12,7 +12,11 @@ internal class SearchBooksFilter : FilterBase<Book>
 
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
-            predicate = predicate.And(b => b.Title.Contains(SearchTerm) || b.Description.Contains(SearchTerm));
+            predicate = predicate.And(b => 
+                b.Title.Contains(SearchTerm) || 
+                b.Description.Contains(SearchTerm) ||
+                b.Publisher.Contains(SearchTerm) ||
+                b.AuthorsLink.Any(al => al.Author.Name.Contains(SearchTerm)));
         }
 
         if (AuthorIds.Count > 0)

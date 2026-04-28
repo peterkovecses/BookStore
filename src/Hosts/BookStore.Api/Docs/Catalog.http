@@ -1,0 +1,29 @@
+@BookStore_Api_HostAddress = https://localhost:7068
+
+### Get all books (with defaults)
+GET {{BookStore_Api_HostAddress}}/api/catalog/books
+Accept: application/json
+
+### Search by search term
+GET {{BookStore_Api_HostAddress}}/api/catalog/books?SearchTerm=martin
+Accept: application/json
+
+### Filter by Author
+GET {{BookStore_Api_HostAddress}}/api/catalog/books?AuthorIds=1&AuthorIds=2
+Accept: application/json
+
+### Filter by tags
+GET {{BookStore_Api_HostAddress}}/api/catalog/books?TagIds=Software Development&TagIds=Science Fiction
+Accept: application/json
+
+### Sorting (Descending by Price)
+GET {{BookStore_Api_HostAddress}}/api/catalog/books?SortBy=Price&IsDescending=true
+Accept: application/json
+
+### Sorting (By Title)
+GET {{BookStore_Api_HostAddress}}/api/catalog/books?SortBy=Title
+Accept: application/json
+
+### Custom Pagination
+GET {{BookStore_Api_HostAddress}}/api/catalog/books?PageNumber=2&PageSize=hello
+Accept: application/json
