@@ -1,0 +1,9 @@
+global using FluentAssertions;
+global using NSubstitute;
+global using Xunit;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Hosting;
+global using BookStore.ServiceDefaults.ErrorHandling;
+global using System.Text.Json;

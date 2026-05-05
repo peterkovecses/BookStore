@@ -41,14 +41,20 @@
 - **SUT naming:** Name the system under test `sut` (local variable) or `_sut` (private field).
 - **Variable naming:** Use `expected` for the expected value and `actual` for the result being tested.
 - **Method naming:** Use the `MethodName_WhenScenario_ShouldExpectedResult` pattern (e.g., `TryDeserialize_WhenValidJsonAndTypeIsPassed_ShouldDeserialize`).
+    - **Note:** Omit the `WhenScenario` part (e.g., `MethodName_ShouldExpectedResult`) if there is no specific scenario or condition being tested. Avoid filler like `WhenCalled`.
 - **AAA Pattern:** Always follow the **Arrange**, **Act**, **Assert** pattern. Do not include any other structural comments.
 - **Assertion Library:** Use **FluentAssertions** for all assertions.
+  - **Result Type Assertions:** When testing code that uses the `Kovecses.Result` package, always use **Kovecses.Result.FluentAssertions** for asserting `Result` objects. This package must always be in the **same version** as the `Kovecses.Result` package used by the code being tested.
+    - Example assertion methods: `.BeSuccess()`, `.BeFailure()`, `.HaveError()`, `.HaveValidationProperty()`, etc.
+    - See the package documentation for chainable fluent methods like `.HaveError(code).HaveValidationProperty("FieldName").HaveCount(expected)`.
 - **Exception Assertions:** Assert only on the exception type, not the message (e.g., `act.Should().Throw<ArgumentNullException>();`).
 - **Test Scope:** Only test classes that contain logic. Never test simple properties or plain data objects.
-- **Project Structure:** Test projects must mirror the source project structure. The root directory is `tests/` (instead of `src/`). Project and namespace naming should follow the `{ProjectName}.UnitTests` or `{ProjectName}.IntegrationTests` convention.
-- **Constructors:** Use **Primary Constructors** in test classes for injecting shared dependencies or mocks.
+- **Project Structure:** Test projects must mirror the source project structure, including the intermediate folders (e.g., `Aspire/`, `Hosts/`, `Modules/`, `Shared/`). The root directory is `tests/` (instead of `src/`). Project and namespace naming should follow the `{ProjectName}.UnitTests` or `{ProjectName}.IntegrationTests` convention.
+- **Constructors:** Use **Primary Constructors** in classes for injecting dependencies.
+    - **Exception:** Use a **Traditional Constructor** if member initialization (e.g., the SUT) requires referencing other fields or involves logic that cannot be expressed cleanly within a **Primary Constructor**.
 - **Mocking:** Use **NSubstitute** for creating mocks and stubs. Use manual fakes or stubs only in special cases where the library is insufficient.
 - **Data-Driven Tests:** Use `[Theory]` when the expected behavior applies to multiple different inputs.
+    - **Note:** If a test requires `if-else` or conditional logic within the **Assert** phase (e.g., in a `Theory`), prefer splitting it into separate **Fact** methods to keep assertions explicit and focused.
 - **xUnit v3 Features:**
     - Prefer `TheoryDataRow<...>` or Tuples over `object[]` for strongly typed theory data.
     - Use `TheoryDataRow` metadata properties (e.g., `Skip`, `Timeout`, `DisplayName`) or fluent methods (e.g., `.WithSkip(...)`) when needed.

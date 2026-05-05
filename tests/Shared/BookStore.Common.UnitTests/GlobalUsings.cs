@@ -1,0 +1,9 @@
+global using FluentAssertions;
+global using NSubstitute;
+global using Xunit;
+global using BookStore.Common.Pagination;
+global using BookStore.Common.Sorting;
+global using BookStore.Common.Validation;
+global using FluentValidation;
+global using Kovecses.Result;
+global using MediatR;
