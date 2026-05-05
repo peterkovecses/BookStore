@@ -26,7 +26,7 @@ public class ValidationBehaviorTests
         var actual = await _sut.Handle(new TestRequest(), next, TestContext.Current.CancellationToken);
 
         // Assert
-        actual.IsSuccess.Should().BeTrue();
+        actual.Should().BeSuccess();
         await next.Received(1)(TestContext.Current.CancellationToken);
     }
 
@@ -47,7 +47,7 @@ public class ValidationBehaviorTests
         var actual = await _sut.Handle(new TestRequest(), next, TestContext.Current.CancellationToken);
 
         // Assert
-        actual.IsSuccess.Should().BeTrue();
+        actual.Should().BeSuccess();
         await next.Received(1)(TestContext.Current.CancellationToken);
     }
 

@@ -45,8 +45,12 @@
 - **AAA Pattern:** Always follow the **Arrange**, **Act**, **Assert** pattern. Do not include any other structural comments.
 - **Assertion Library:** Use **FluentAssertions** for all assertions.
   - **Result Type Assertions:** When testing code that uses the `Kovecses.Result` package, always use **Kovecses.Result.FluentAssertions** for asserting `Result` objects. This package must always be in the **same version** as the `Kovecses.Result` package used by the code being tested.
-    - Example assertion methods: `.BeSuccess()`, `.BeFailure()`, `.HaveError()`, `.HaveValidationProperty()`, etc.
-    - See the package documentation for chainable fluent methods like `.HaveError(code).HaveValidationProperty("FieldName").HaveCount(expected)`.
+    - **Recommended patterns:**
+        - Use `.Should().HaveData(data => { ... })` for deep inspection. It automatically asserts success and performs a null-check on `Data`.
+        - Use `.Should().WhichData` to access and assert on the result's data directly (also performs automatic success and null-checks).
+        - Avoid manual `actual.IsSuccess.Should().BeTrue()` or `actual.Data.Should().NotBeNull()`; use the fluent API instead.
+    - **Example assertion methods:** `.BeSuccess()`, `.BeFailure()`, `.HaveError()`, `.HaveValidationProperty()`, `.HaveData(predicate)`, etc.
+    - **Chaining:** Use chainable methods like `.HaveError(code).HaveValidationProperty("FieldName").HaveCount(expected)`.
 - **Exception Assertions:** Assert only on the exception type, not the message (e.g., `act.Should().Throw<ArgumentNullException>();`).
 - **Test Scope:** Only test classes that contain logic. Never test simple properties or plain data objects.
 - **Project Structure:** Test projects must mirror the source project structure, including the intermediate folders (e.g., `Aspire/`, `Hosts/`, `Modules/`, `Shared/`). The root directory is `tests/` (instead of `src/`). Project and namespace naming should follow the `{ProjectName}.UnitTests` or `{ProjectName}.IntegrationTests` convention.

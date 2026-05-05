@@ -24,8 +24,7 @@ public class SearchBooksHandlerTests
         var actual = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        actual.Should().BeSuccess()
-            .HaveData(list => list is not null && list.Items.Count == 0);
+        actual.Should().HaveData(list => list.Items.Should().BeEmpty());
 
         _storageService.DidNotReceiveWithAnyArgs().GetPublicUrl(default!);
     }
@@ -51,8 +50,7 @@ public class SearchBooksHandlerTests
         var actual = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        actual.Should().BeSuccess()
-            .HaveData(list => list is not null && list.Items.First().ImageUrl == expectedUrl);
+        actual.Should().HaveData(list => list.Items.Should().AllSatisfy(i => i.ImageUrl.Should().Be(expectedUrl)));
     
         _storageService.Received(1).GetPublicUrl(imageName);
     }
@@ -74,9 +72,7 @@ public class SearchBooksHandlerTests
         var actual = await _sut.Handle(request, CancellationToken.None);
 
         // Assert
-        actual.Should().BeSuccess();
-        actual.Data.Should().NotBeNull();
-        actual.Data.Items.First().ImageUrl.Should().BeNull();
+        actual.Should().WhichData.Items.Should().AllSatisfy(i => i.ImageUrl.Should().BeNull());
         _storageService.DidNotReceiveWithAnyArgs().GetPublicUrl(default!);
     }
 }
