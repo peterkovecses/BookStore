@@ -1,4 +1,5 @@
 global using FluentAssertions;
+global using Kovecses.Result.FluentAssertions;
 global using NSubstitute;
 global using Xunit;
 global using BookStore.Common.Pagination;

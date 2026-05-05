@@ -1,7 +1,5 @@
 namespace BookStore.Common.UnitTests.Validation;
 
-using Kovecses.Result.FluentAssertions;
-
 public class ValidationBehaviorTests
 {
     public sealed record TestRequest : IRequest<Result>;
