@@ -14,10 +14,11 @@ internal class SearchBooksValidator : AbstractValidator<SearchBooksQuery>
             .InclusiveBetween(MinPageSize, IPagination.MaxPageSize);
 
         RuleFor(x => x.Filter)
-            .NotNull();
-            
-        RuleFor(x => x.Filter.SearchTerm)
-            .MaximumLength(MaxSearchTermLength)
-            .When(x => x.Filter.SearchTerm is not null);
+            .NotNull()
+            .DependentRules(() =>
+            {
+                RuleFor(x => x.Filter.SearchTerm)
+                    .MaximumLength(MaxSearchTermLength);
+            });
     }
 }

@@ -1,4 +1,5 @@
 global using FluentAssertions;
+global using FluentValidation.TestHelper;
 global using NSubstitute;
 global using MockQueryable.NSubstitute;
 global using Xunit;
@@ -10,3 +11,4 @@ global using BookStore.Catalog.Infrastructure.Storage;
 global using BookStore.Testing.Common.Extensions;
 global using Kovecses.Result.FluentAssertions;
 global using Azure.Storage.Blobs;
+global using BookStore.Catalog.Contracts.Dtos;
