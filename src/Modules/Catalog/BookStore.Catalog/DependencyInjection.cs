@@ -17,6 +17,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<ICatalogDbContext>(sp => sp.GetRequiredService<CatalogDbContext>());
         builder.EnrichSqlServerDbContext<CatalogDbContext>();
         builder.AddAzureBlobServiceClient("book-covers");
+        builder.Services.AddScoped<ICatalogStorageService, AzureCatalogStorageService>();
         builder.Services.AddScoped<CatalogDbContextInitialiser>();
         builder.Services.AddScoped<CatalogStorageInitialiser>();
         builder.Services.AddScoped<CatalogModuleInitialiser>();

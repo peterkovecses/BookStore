@@ -6,5 +6,6 @@ global using BookStore.Catalog.Domain.Entities;
 global using BookStore.Catalog.Common.Mappings;
 global using BookStore.Catalog.Features.Books.SearchBooks;
 global using BookStore.Catalog.Common.Interfaces;
+global using BookStore.Catalog.Infrastructure.Storage;
 global using Kovecses.Result.FluentAssertions;
 global using Azure.Storage.Blobs;

@@ -2,11 +2,9 @@ namespace BookStore.Catalog.Features.Books.SearchBooks;
 
 internal sealed class SearchBooksHandler(
     ICatalogDbContext dbContext,
-    BlobServiceClient blobServiceClient)
+    ICatalogStorageService storageService)
     : IRequestHandler<SearchBooksQuery, Result<PaginatedList<BookSummaryDto>>>
 {
-    private const string ContainerName = "book-covers";
-
     public async Task<Result<PaginatedList<BookSummaryDto>>> Handle(
         SearchBooksQuery request,
         CancellationToken cancellationToken)
@@ -28,13 +26,11 @@ internal sealed class SearchBooksHandler(
 
     private void PopulateImageUrls(IEnumerable<BookSummaryDto> books)
     {
-        var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
-
         foreach (var book in books)
         {
             if (book.ImageName is not null)
             {
-                book.ImageUrl = containerClient.GetBlobClient(book.ImageName).Uri.ToString();
+                book.ImageUrl = storageService.GetPublicUrl(book.ImageName);
             }
         }
     }
