@@ -43,7 +43,6 @@ public class CatalogWebApplicationFactory : MsSqlWebApplicationFactory<Program, 
     public override async ValueTask InitializeAsync()
     {
         await _azuriteContainer.StartAsync();
-        Environment.SetEnvironmentVariable("ConnectionStrings__book-covers", _azuriteContainer.GetConnectionString());
         
         await base.InitializeAsync();
     }
