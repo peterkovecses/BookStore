@@ -10,6 +10,8 @@ internal class SearchBooksFilter : FilterBase<Book>
     {
         var predicate = base.GetPredicate();
 
+        predicate = predicate.And(b => !b.SoftDeleted);
+
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
             predicate = predicate.And(b => 

@@ -10,6 +10,8 @@ internal static class CatalogTestSeeder
 
     private static async Task SeedDatabaseAsync(CatalogDbContext context)
     {
+        var fixedDate = new DateTime(2026, 5, 6, 0, 0, 0, DateTimeKind.Utc);
+
         var authors = new List<Author>
         {
             new() { Name = "Author 1" },
@@ -28,7 +30,7 @@ internal static class CatalogTestSeeder
             {
                 Title = "Active Book With Image",
                 Description = "Description 1",
-                PublishedOn = DateTime.UtcNow,
+                PublishedOn = fixedDate,
                 Publisher = "Publisher 1",
                 Price = 10.00m,
                 ImageName = "image1.jpg",
@@ -40,7 +42,7 @@ internal static class CatalogTestSeeder
             {
                 Title = "Active Book Without Image",
                 Description = "Description 2",
-                PublishedOn = DateTime.UtcNow,
+                PublishedOn = fixedDate,
                 Publisher = "Publisher 2",
                 Price = 20.00m,
                 ImageName = null,
@@ -52,7 +54,7 @@ internal static class CatalogTestSeeder
             {
                 Title = "Soft Deleted Book",
                 Description = "Description 3",
-                PublishedOn = DateTime.UtcNow,
+                PublishedOn = fixedDate,
                 Publisher = "Publisher 3",
                 Price = 30.00m,
                 ImageName = "image3.jpg",

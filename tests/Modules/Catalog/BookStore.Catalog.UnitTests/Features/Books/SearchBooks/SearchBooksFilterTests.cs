@@ -210,4 +210,20 @@ public class SearchBooksFilterTests
         // Assert
         actual.Should().BeTrue();
     }
+
+    [Fact]
+    public void GetPredicate_WhenBookIsSoftDeleted_ShouldNotMatch()
+    {
+        // Arrange
+        var sut = new SearchBooksFilter();
+        var book = new Book { Id = 1, SoftDeleted = true };
+
+        // Act
+        var predicate = sut.GetPredicate();
+        var compiledPredicate = predicate.Compile();
+        var actual = compiledPredicate(book);
+
+        // Assert
+        actual.Should().BeFalse();
+    }
 }
