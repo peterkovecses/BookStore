@@ -98,16 +98,34 @@ public abstract class GenericWebApplicationFactory<TMarker, TDbContext> : WebApp
         var connectionString = GetConnectionString();
         _dbConnection = new SqlConnection(connectionString);
 
-        using var scope = Services.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
-        await dbContext.Database.MigrateAsync();
-
+        await InitializeDatabaseAsync();
         await InitializeRespawnerAsync();
     }
 
     /// <summary>
-    /// Initialize the Respawner for efficient database cleanup between tests.
+    /// Seed the database with initial data before the Respawner snapshot is taken.
     /// </summary>
+    /// <param name="serviceProvider">The service provider to resolve dependencies.</param>
+    protected virtual Task SeedDataAsync(IServiceProvider serviceProvider) => Task.CompletedTask;
+
+    /// <summary>
+    /// Cleanup resources (database container).
+    /// </summary>
+    public new async ValueTask DisposeAsync()
+    {
+        await _dbContainer.DisposeAsync();
+        GC.SuppressFinalize(this);
+    }
+
+    private async Task InitializeDatabaseAsync()
+    {
+        using var scope = Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<TDbContext>();
+        await dbContext.Database.MigrateAsync();
+
+        await SeedDataAsync(scope.ServiceProvider);
+    }
+
     private async Task InitializeRespawnerAsync()
     {
         await _dbConnection.OpenAsync();
@@ -117,14 +135,5 @@ public abstract class GenericWebApplicationFactory<TMarker, TDbContext> : WebApp
             {
                 DbAdapter = DbAdapter.SqlServer
             });
-    }
-
-    /// <summary>
-    /// Cleanup resources (database container).
-    /// </summary>
-    public new async ValueTask DisposeAsync()
-    {
-        await _dbContainer.DisposeAsync();
-        GC.SuppressFinalize(this);
     }
 }
