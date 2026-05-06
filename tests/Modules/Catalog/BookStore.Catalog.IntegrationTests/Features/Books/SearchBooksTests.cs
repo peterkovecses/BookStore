@@ -5,6 +5,54 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     [Fact]
     public async Task Search_WhenNoFiltersApplied_ShouldReturnAllNonSoftDeletedBooks()
     {
+        // Arrange
+        var fixedDate = new DateTime(2026, 5, 6, 0, 0, 0, DateTimeKind.Utc);
+        
+        var authors = await ExecuteDbContextAsync(db => db.Authors.ToListAsync());
+        var tags = await ExecuteDbContextAsync(db => db.Tags.ToListAsync());
+
+        var books = new List<Book>
+        {
+            new()
+            {
+                Title = "Active Book With Image",
+                Description = "Description 1",
+                PublishedOn = fixedDate,
+                Publisher = "Publisher 1",
+                Price = 10.00m,
+                ImageName = "image1.jpg",
+                SoftDeleted = false,
+                AuthorsLink = [new BookAuthor { AuthorId = authors[0].Id, Order = 1 }],
+                Tags = [tags[0]]
+            },
+            new()
+            {
+                Title = "Active Book Without Image",
+                Description = "Description 2",
+                PublishedOn = fixedDate,
+                Publisher = "Publisher 2",
+                Price = 20.00m,
+                ImageName = null,
+                SoftDeleted = false,
+                AuthorsLink = [new BookAuthor { AuthorId = authors[1].Id, Order = 1 }],
+                Tags = [tags[1]]
+            },
+            new()
+            {
+                Title = "Soft Deleted Book",
+                Description = "Description 3",
+                PublishedOn = fixedDate,
+                Publisher = "Publisher 3",
+                Price = 30.00m,
+                ImageName = "image3.jpg",
+                SoftDeleted = true,
+                AuthorsLink = [new BookAuthor { AuthorId = authors[0].Id, Order = 1 }]
+            }
+        };
+
+        await SeedBooksAsync(books);
+        await UploadImageAsync("image1.jpg");
+
         // Act
         var response = await Client.GetAsync("/api/catalog/books", TestContext.Current.CancellationToken);
 
@@ -22,7 +70,7 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         // Book 1
         var bookWithImage = result.Items.Single(b => b.Title == "Active Book With Image");
         bookWithImage.ImageUrl.Should().NotBeNullOrWhiteSpace();
-        bookWithImage.ImageUrl.Should().Contain("book-covers/image1.jpg"); // A várt URL struktúra alapján
+        bookWithImage.ImageUrl.Should().Contain("book-covers/image1.jpg");
         bookWithImage.Price.Should().Be(10.00m);
 
         // Book 2
