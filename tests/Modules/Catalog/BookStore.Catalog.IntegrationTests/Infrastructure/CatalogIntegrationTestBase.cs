@@ -29,27 +29,26 @@ public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory fa
     }
 
     /// <summary>
-    /// Seeds books into the database, handling existing tags to prevent primary key violations.
+    /// Seeds one or more entities into the database.
     /// </summary>
-    /// <param name="books">The collection of books to seed.</param>
-    private protected async Task SeedBooksAsync(IEnumerable<Book> books)
+    /// <param name="entities">The entities to seed.</param>
+    private protected async Task SeedAsync(params object[] entities)
     {
-        await ExecuteDbContextAsync(async dbContext =>
+        await ExecuteDbContextAsync(async db =>
         {
-            foreach (var book in books)
+            foreach (var entity in entities)
             {
-                var tags = book.Tags.ToList();
-                book.Tags.Clear();
-                foreach (var tag in tags)
+                if (entity is IEnumerable<object> collection)
                 {
-                    var existingTag = await dbContext.Tags.FindAsync(tag.Id);
-                    book.Tags.Add(existingTag ?? tag);
+                    db.AddRange(collection);
                 }
-
-                dbContext.Books.Add(book);
+                else
+                {
+                    db.Add(entity);
+                }
             }
-
-            await dbContext.SaveChangesAsync();
+            
+            await db.SaveChangesAsync();
         });
     }
 

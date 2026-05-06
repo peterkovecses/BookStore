@@ -8,49 +8,50 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         // Arrange
         var fixedDate = new DateTime(2026, 5, 6, 0, 0, 0, DateTimeKind.Utc);
         
-        var authors = await ExecuteDbContextAsync(db => db.Authors.ToListAsync());
-        var tags = await ExecuteDbContextAsync(db => db.Tags.ToListAsync());
+        Author author1 = new() { Name = "Author 1" };
+        Author author2 = new() { Name = "Author 2" };
+        Tag tag1 = new() { Id = "Tag 1" };
+        Tag tag2 = new() { Id = "Tag 2" };
 
-        var books = new List<Book>
+        Book book1 = new()
         {
-            new()
-            {
-                Title = "Active Book With Image",
-                Description = "Description 1",
-                PublishedOn = fixedDate,
-                Publisher = "Publisher 1",
-                Price = 10.00m,
-                ImageName = "image1.jpg",
-                SoftDeleted = false,
-                AuthorsLink = [new BookAuthor { AuthorId = authors[0].Id, Order = 1 }],
-                Tags = [tags[0]]
-            },
-            new()
-            {
-                Title = "Active Book Without Image",
-                Description = "Description 2",
-                PublishedOn = fixedDate,
-                Publisher = "Publisher 2",
-                Price = 20.00m,
-                ImageName = null,
-                SoftDeleted = false,
-                AuthorsLink = [new BookAuthor { AuthorId = authors[1].Id, Order = 1 }],
-                Tags = [tags[1]]
-            },
-            new()
-            {
-                Title = "Soft Deleted Book",
-                Description = "Description 3",
-                PublishedOn = fixedDate,
-                Publisher = "Publisher 3",
-                Price = 30.00m,
-                ImageName = "image3.jpg",
-                SoftDeleted = true,
-                AuthorsLink = [new BookAuthor { AuthorId = authors[0].Id, Order = 1 }]
-            }
+            Title = "Active Book With Image",
+            Description = "Description 1",
+            PublishedOn = fixedDate,
+            Publisher = "Publisher 1",
+            Price = 10.00m,
+            ImageName = "image1.jpg",
+            SoftDeleted = false,
+            AuthorsLink = [new BookAuthor { Author = author1, Order = 1 }],
+            Tags = [tag1]
         };
 
-        await SeedBooksAsync(books);
+        Book book2 = new()
+        {
+            Title = "Active Book Without Image",
+            Description = "Description 2",
+            PublishedOn = fixedDate,
+            Publisher = "Publisher 2",
+            Price = 20.00m,
+            ImageName = null,
+            SoftDeleted = false,
+            AuthorsLink = [new BookAuthor { Author = author2, Order = 1 }],
+            Tags = [tag2]
+        };
+
+        Book book3 = new()
+        {
+            Title = "Soft Deleted Book",
+            Description = "Description 3",
+            PublishedOn = fixedDate,
+            Publisher = "Publisher 3",
+            Price = 30.00m,
+            ImageName = "image3.jpg",
+            SoftDeleted = true,
+            AuthorsLink = [new BookAuthor { Author = author1, Order = 1 }]
+        };
+
+        await SeedAsync(author1, author2, tag1, tag2, book1, book2, book3);
         await UploadImageAsync("image1.jpg");
 
         // Act
@@ -83,8 +84,8 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     public async Task Search_WhenSearchTermMatchesTitle_ShouldReturnMatchingBooks()
     {
         // Arrange
-        var books = new List<Book>
-        {
+        Book[] books =
+        [
             new()
             {
                 Title = "Domain Driven Design",
@@ -106,9 +107,9 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
                 Publisher = "Publisher 2",
                 Price = 40.00m
             }
-        };
+        ];
 
-        await SeedBooksAsync(books);
+        await SeedAsync(books);
 
         // Act
         var response = await Client.GetAsync("/api/catalog/books?SearchTerm=Domain", TestContext.Current.CancellationToken);
@@ -128,32 +129,31 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     public async Task Search_WhenAuthorFilterApplied_ShouldReturnOnlyMatchingBooks()
     {
         // Arrange
-        var authors = await ExecuteDbContextAsync(db => db.Authors.ToListAsync());
+        Author author1 = new() { Name = "Author 1" };
+        Author author2 = new() { Name = "Author 2" };
         
-        var books = new List<Book>
+        Book book1 = new()
         {
-            new()
-            {
-                Title = "Book by Author 1",
-                Description = "Description",
-                Publisher = "Publisher",
-                Price = 10.00m,
-                AuthorsLink = [new BookAuthor { AuthorId = authors[0].Id, Order = 1 }]
-            },
-            new()
-            {
-                Title = "Book by Author 2",
-                Description = "Description",
-                Publisher = "Publisher",
-                Price = 20.00m,
-                AuthorsLink = [new BookAuthor { AuthorId = authors[1].Id, Order = 1 }]
-            }
+            Title = "Book by Author 1",
+            Description = "Description",
+            Publisher = "Publisher",
+            Price = 10.00m,
+            AuthorsLink = [new BookAuthor { Author = author1, Order = 1 }]
         };
 
-        await SeedBooksAsync(books);
+        Book book2 = new()
+        {
+            Title = "Book by Author 2",
+            Description = "Description",
+            Publisher = "Publisher",
+            Price = 20.00m,
+            AuthorsLink = [new BookAuthor { Author = author2, Order = 1 }]
+        };
+
+        await SeedAsync(author1, author2, book1, book2);
 
         // Act
-        var response = await Client.GetAsync($"/api/catalog/books?AuthorIds={authors[0].Id}", TestContext.Current.CancellationToken);
+        var response = await Client.GetAsync($"/api/catalog/books?AuthorIds={author1.Id}", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -168,32 +168,31 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     public async Task Search_WhenTagFilterApplied_ShouldReturnOnlyMatchingBooks()
     {
         // Arrange
-        var tags = await ExecuteDbContextAsync(db => db.Tags.ToListAsync());
+        Tag tag1 = new() { Id = "Tag 1" };
+        Tag tag2 = new() { Id = "Tag 2" };
         
-        var books = new List<Book>
+        Book book1 = new()
         {
-            new()
-            {
-                Title = "Book with Tag 1",
-                Description = "Description",
-                Publisher = "Publisher",
-                Price = 10.00m,
-                Tags = [tags[0]]
-            },
-            new()
-            {
-                Title = "Book with Tag 2",
-                Description = "Description",
-                Publisher = "Publisher",
-                Price = 20.00m,
-                Tags = [tags[1]]
-            }
+            Title = "Book with Tag 1",
+            Description = "Description",
+            Publisher = "Publisher",
+            Price = 10.00m,
+            Tags = [tag1]
         };
 
-        await SeedBooksAsync(books);
+        Book book2 = new()
+        {
+            Title = "Book with Tag 2",
+            Description = "Description",
+            Publisher = "Publisher",
+            Price = 20.00m,
+            Tags = [tag2]
+        };
+
+        await SeedAsync(tag1, tag2, book1, book2);
 
         // Act
-        var response = await Client.GetAsync($"/api/catalog/books?TagIds={tags[0].Id}", TestContext.Current.CancellationToken);
+        var response = await Client.GetAsync($"/api/catalog/books?TagIds={tag1.Id}", TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);

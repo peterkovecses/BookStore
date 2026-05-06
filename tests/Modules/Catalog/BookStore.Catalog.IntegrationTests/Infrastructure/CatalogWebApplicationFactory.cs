@@ -29,15 +29,9 @@ public class CatalogWebApplicationFactory : MsSqlWebApplicationFactory<Program, 
         var dbContext = serviceProvider.GetRequiredService<CatalogDbContext>();
         await dbContext.Database.MigrateAsync();
 
-        await SeedDataAsync(serviceProvider);
-    }
-
-    protected override async Task SeedDataAsync(IServiceProvider serviceProvider)
-    {
-        var dbContext = serviceProvider.GetRequiredService<CatalogDbContext>();
         var blobServiceClient = serviceProvider.GetRequiredService<BlobServiceClient>();
-        
-        await CatalogTestSeeder.SeedAsync(dbContext, blobServiceClient);
+        var containerClient = blobServiceClient.GetBlobContainerClient("book-covers");
+        await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
     }
 
     public override async ValueTask InitializeAsync()
