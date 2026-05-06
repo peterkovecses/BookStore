@@ -19,11 +19,6 @@ public class CatalogWebApplicationFactory : MsSqlWebApplicationFactory<Program, 
             options.UseSqlServer(GetConnectionString()));
     }
 
-    protected override void ConfigureCustomServices(IServiceCollection services)
-    {
-        // No mocks here anymore, using real Azurite
-    }
-
     protected override async Task InitializeDatabaseAsync(IServiceProvider serviceProvider)
     {
         var dbContext = serviceProvider.GetRequiredService<CatalogDbContext>();

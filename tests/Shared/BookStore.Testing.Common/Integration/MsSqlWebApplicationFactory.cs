@@ -23,10 +23,7 @@ public abstract class MsSqlWebApplicationFactory<TMarker, TDbContext> : BaseWebA
         
         builder.UseSetting("ConnectionStrings:BookStoreDb", GetConnectionString());
         
-        builder.ConfigureTestServices(services =>
-        {
-            ConfigureDatabase(services);
-        });
+        builder.ConfigureTestServices(ConfigureDatabase);
     }
 
     /// <summary>
