@@ -58,13 +58,12 @@ public abstract class MsSqlWebApplicationFactory<TMarker, TDbContext> : BaseWebA
     /// </summary>
     public override async ValueTask InitializeAsync()
     {
-        await base.InitializeAsync();
         await _dbContainer.StartAsync();
         
         var connectionString = GetConnectionString();
-        Environment.SetEnvironmentVariable("ConnectionStrings__BookStoreDb", connectionString);
-        
         _dbConnection = new SqlConnection(connectionString);
+
+        await base.InitializeAsync();
 
         using var scope = Services.CreateScope();
         await InitializeDatabaseAsync(scope.ServiceProvider);
