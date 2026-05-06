@@ -91,10 +91,19 @@ public abstract class MsSqlWebApplicationFactory<TMarker, TDbContext> : BaseWebA
     protected virtual Task SeedDataAsync(IServiceProvider serviceProvider) => Task.CompletedTask;
 
     /// <summary>
-    /// Cleanup resources (database container).
+    /// Cleanup resources (database container and connection).
     /// </summary>
     public override async ValueTask DisposeAsync()
     {
+        if (_dbConnection is not null)
+        {
+            if (_dbConnection.State == ConnectionState.Open)
+            {
+                await _dbConnection.CloseAsync();
+            }
+            _dbConnection.Dispose();
+        }
+
         await _dbContainer.DisposeAsync();
         await base.DisposeAsync();
     }
