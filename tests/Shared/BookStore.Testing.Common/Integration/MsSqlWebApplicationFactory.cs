@@ -40,13 +40,16 @@ public abstract class MsSqlWebApplicationFactory<TMarker, TDbContext> : BaseWebA
     protected string GetConnectionString() => _dbContainer.GetConnectionString();
 
     /// <summary>
-    /// Resets the database to a clean state for the next test.
+    /// Resets the database to a clean state and re-seeds it for the next test.
     /// </summary>
     public async Task ResetDatabaseAsync()
     {
         if (_respawner is not null)
         {
             await _respawner.ResetAsync(_dbConnection);
+
+            using var scope = Services.CreateScope();
+            await SeedDataAsync(scope.ServiceProvider);
         }
     }
 
