@@ -1,0 +1,14 @@
+global using System.Net;
+global using System.Net.Http.Json;
+global using BookStore.Catalog.Infrastructure.Persistence;
+global using BookStore.Common.Pagination;
+global using Microsoft.Extensions.DependencyInjection;
+global using BookStore.Catalog.Domain.Entities;
+global using BookStore.Catalog.Contracts.Dtos;
+global using Azure.Storage.Blobs;
+global using Azure.Storage.Blobs.Models;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.AspNetCore.Hosting;
+global using Microsoft.Extensions.DependencyInjection.Extensions;
+global using BookStore.Catalog.IntegrationTests.Infrastructure;
+global using Testcontainers.Azurite;
