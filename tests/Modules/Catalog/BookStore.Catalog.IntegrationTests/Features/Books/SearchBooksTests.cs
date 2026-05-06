@@ -13,43 +13,34 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         Tag tag1 = new() { Id = "Tag 1" };
         Tag tag2 = new() { Id = "Tag 2" };
 
-        Book book1 = new()
-        {
-            Title = "Active Book With Image",
-            Description = "Description 1",
-            PublishedOn = fixedDate,
-            Publisher = "Publisher 1",
-            Price = 10.00m,
-            ImageName = "image1.jpg",
-            SoftDeleted = false,
-            AuthorsLink = [new BookAuthor { Author = author1, Order = 1 }],
-            Tags = [tag1]
-        };
+        Book book1 = CreateBook(
+            title: "Active Book With Image",
+            description: "Description 1",
+            publishedOn: fixedDate,
+            publisher: "Publisher 1",
+            price: 10.00m,
+            imageName: "image1.jpg",
+            author: author1,
+            tags: tag1);
 
-        Book book2 = new()
-        {
-            Title = "Active Book Without Image",
-            Description = "Description 2",
-            PublishedOn = fixedDate,
-            Publisher = "Publisher 2",
-            Price = 20.00m,
-            ImageName = null,
-            SoftDeleted = false,
-            AuthorsLink = [new BookAuthor { Author = author2, Order = 1 }],
-            Tags = [tag2]
-        };
+        Book book2 = CreateBook(
+            title: "Active Book Without Image",
+            description: "Description 2",
+            publishedOn: fixedDate,
+            publisher: "Publisher 2",
+            price: 20.00m,
+            author: author2,
+            tags: tag2);
 
-        Book book3 = new()
-        {
-            Title = "Soft Deleted Book",
-            Description = "Description 3",
-            PublishedOn = fixedDate,
-            Publisher = "Publisher 3",
-            Price = 30.00m,
-            ImageName = "image3.jpg",
-            SoftDeleted = true,
-            AuthorsLink = [new BookAuthor { Author = author1, Order = 1 }]
-        };
+        Book book3 = CreateBook(
+            title: "Soft Deleted Book",
+            description: "Description 3",
+            publishedOn: fixedDate,
+            publisher: "Publisher 3",
+            price: 30.00m,
+            imageName: "image3.jpg",
+            softDeleted: true,
+            author: author1);
 
         await SeedAsync(author1, author2, tag1, tag2, book1, book2, book3);
         await UploadImageAsync("image1.jpg");
@@ -71,7 +62,7 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         // Book 1
         var bookWithImage = result.Items.Single(b => b.Title == "Active Book With Image");
         bookWithImage.ImageUrl.Should().NotBeNullOrWhiteSpace();
-        bookWithImage.ImageUrl.Should().Contain("book-covers/image1.jpg");
+        bookWithImage.ImageUrl.Should().Contain(CatalogTestConstants.BookCoversContainerName + "/image1.jpg");
         bookWithImage.Price.Should().Be(10.00m);
 
         // Book 2
@@ -86,27 +77,9 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         // Arrange
         Book[] books =
         [
-            new()
-            {
-                Title = "Domain Driven Design",
-                Description = "A great book",
-                Publisher = "Publisher 1",
-                Price = 50.00m
-            },
-            new()
-            {
-                Title = "Domain Analysis",
-                Description = "Deep dive",
-                Publisher = "Publisher 1",
-                Price = 45.00m
-            },
-            new()
-            {
-                Title = "Clean Code",
-                Description = "Essential reading",
-                Publisher = "Publisher 2",
-                Price = 40.00m
-            }
+            CreateBook(title: "Domain Driven Design", publisher: "Publisher 1", price: 50.00m),
+            CreateBook(title: "Domain Analysis", publisher: "Publisher 1", price: 45.00m),
+            CreateBook(title: "Clean Code", publisher: "Publisher 2", price: 40.00m)
         ];
 
         await SeedAsync(books);
@@ -132,23 +105,8 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         Author author1 = new() { Name = "Author 1" };
         Author author2 = new() { Name = "Author 2" };
         
-        Book book1 = new()
-        {
-            Title = "Book by Author 1",
-            Description = "Description",
-            Publisher = "Publisher",
-            Price = 10.00m,
-            AuthorsLink = [new BookAuthor { Author = author1, Order = 1 }]
-        };
-
-        Book book2 = new()
-        {
-            Title = "Book by Author 2",
-            Description = "Description",
-            Publisher = "Publisher",
-            Price = 20.00m,
-            AuthorsLink = [new BookAuthor { Author = author2, Order = 1 }]
-        };
+        Book book1 = CreateBook(title: "Book by Author 1", author: author1);
+        Book book2 = CreateBook(title: "Book by Author 2", author: author2);
 
         await SeedAsync(author1, author2, book1, book2);
 
@@ -171,23 +129,8 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         Tag tag1 = new() { Id = "Tag 1" };
         Tag tag2 = new() { Id = "Tag 2" };
         
-        Book book1 = new()
-        {
-            Title = "Book with Tag 1",
-            Description = "Description",
-            Publisher = "Publisher",
-            Price = 10.00m,
-            Tags = [tag1]
-        };
-
-        Book book2 = new()
-        {
-            Title = "Book with Tag 2",
-            Description = "Description",
-            Publisher = "Publisher",
-            Price = 20.00m,
-            Tags = [tag2]
-        };
+        Book book1 = CreateBook(title: "Book with Tag 1", tags: tag1);
+        Book book2 = CreateBook(title: "Book with Tag 2", tags: tag2);
 
         await SeedAsync(tag1, tag2, book1, book2);
 

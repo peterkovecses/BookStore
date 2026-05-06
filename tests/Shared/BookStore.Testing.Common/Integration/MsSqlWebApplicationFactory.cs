@@ -6,7 +6,7 @@ namespace BookStore.Testing.Common.Integration;
 /// </summary>
 /// <typeparam name="TMarker">Assembly marker interface for API project identification</typeparam>
 /// <typeparam name="TDbContext">The DbContext type to use for this API</typeparam>
-public abstract class MsSqlWebApplicationFactory<TMarker, TDbContext> : BaseWebApplicationFactory<TMarker>
+public abstract class MsSqlWebApplicationFactory<TMarker, TDbContext> : BaseWebApplicationFactory<TMarker>, IDatabaseResettable
     where TMarker : class
     where TDbContext : DbContext
 {
@@ -40,16 +40,13 @@ public abstract class MsSqlWebApplicationFactory<TMarker, TDbContext> : BaseWebA
     protected string GetConnectionString() => _dbContainer.GetConnectionString();
 
     /// <summary>
-    /// Resets the database to a clean state and re-seeds it for the next test.
+    /// Resets the database to a clean state for the next test.
     /// </summary>
-    public async Task ResetDatabaseAsync()
+    public virtual async Task ResetDatabaseAsync()
     {
         if (_respawner is not null)
         {
             await _respawner.ResetAsync(_dbConnection);
-
-            using var scope = Services.CreateScope();
-            await SeedDataAsync(scope.ServiceProvider);
         }
     }
 
@@ -72,22 +69,14 @@ public abstract class MsSqlWebApplicationFactory<TMarker, TDbContext> : BaseWebA
     }
 
     /// <summary>
-    /// Initializes the database by applying migrations and seeding initial data.
+    /// Initializes the database by applying migrations.
     /// </summary>
     /// <param name="serviceProvider">The service provider to resolve dependencies.</param>
     protected virtual async Task InitializeDatabaseAsync(IServiceProvider serviceProvider)
     {
         var dbContext = serviceProvider.GetRequiredService<TDbContext>();
         await dbContext.Database.MigrateAsync();
-
-        await SeedDataAsync(serviceProvider);
     }
-
-    /// <summary>
-    /// Seed the database with initial data before the Respawner snapshot is taken.
-    /// </summary>
-    /// <param name="serviceProvider">The service provider to resolve dependencies.</param>
-    protected virtual Task SeedDataAsync(IServiceProvider serviceProvider) => Task.CompletedTask;
 
     /// <summary>
     /// Cleanup resources (database container and connection).

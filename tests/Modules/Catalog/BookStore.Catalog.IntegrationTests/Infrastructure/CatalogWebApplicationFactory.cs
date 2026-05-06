@@ -29,9 +29,33 @@ public class CatalogWebApplicationFactory : MsSqlWebApplicationFactory<Program, 
         var dbContext = serviceProvider.GetRequiredService<CatalogDbContext>();
         await dbContext.Database.MigrateAsync();
 
+        await EnsureContainersExistAsync(serviceProvider);
+    }
+
+    public override async Task ResetDatabaseAsync()
+    {
+        await base.ResetDatabaseAsync();
+
+        using var scope = Services.CreateScope();
+        await ClearContainersAsync(scope.ServiceProvider);
+    }
+
+    private static async Task EnsureContainersExistAsync(IServiceProvider serviceProvider)
+    {
         var blobServiceClient = serviceProvider.GetRequiredService<BlobServiceClient>();
-        var containerClient = blobServiceClient.GetBlobContainerClient("book-covers");
+        var containerClient = blobServiceClient.GetBlobContainerClient(CatalogTestConstants.BookCoversContainerName);
         await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
+    }
+
+    private static async Task ClearContainersAsync(IServiceProvider serviceProvider)
+    {
+        var blobServiceClient = serviceProvider.GetRequiredService<BlobServiceClient>();
+        var containerClient = blobServiceClient.GetBlobContainerClient(CatalogTestConstants.BookCoversContainerName);
+        
+        await foreach (var blobItem in containerClient.GetBlobsAsync())
+        {
+            await containerClient.DeleteBlobAsync(blobItem.Name);
+        }
     }
 
     public override async ValueTask InitializeAsync()

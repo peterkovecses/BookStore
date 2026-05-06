@@ -1,8 +1,8 @@
 namespace BookStore.Catalog.IntegrationTests.Infrastructure;
 
 [Collection("Catalog")]
-public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory factory) 
-    : GenericIntegrationTestBase<CatalogWebApplicationFactory>(factory)
+public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory factory)
+    : IntegrationTestBase<Program, CatalogWebApplicationFactory>(factory)
 {
     /// <summary>
     /// Executes an action with a scoped CatalogDbContext.
@@ -25,6 +25,7 @@ public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory fa
     {
         using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
+        
         return await action(dbContext);
     }
 
@@ -47,9 +48,48 @@ public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory fa
                     db.Add(entity);
                 }
             }
-            
+
             await db.SaveChangesAsync();
+            db.ChangeTracker.Clear();
         });
+    }
+
+    /// <summary>
+    /// Creates a book with default values for testing.
+    /// </summary>
+    private protected static Book CreateBook(
+        string title = "Default Title",
+        string description = "Default Description",
+        string publisher = "Default Publisher",
+        decimal price = 10.00m,
+        bool softDeleted = false,
+        string? imageName = null,
+        DateTime? publishedOn = null,
+        Author? author = null,
+        params Tag[] tags)
+    {
+        var book = new Book
+        {
+            Title = title,
+            Description = description,
+            Publisher = publisher,
+            Price = price,
+            SoftDeleted = softDeleted,
+            ImageName = imageName,
+            PublishedOn = publishedOn ?? new DateTime(2026, 5, 6, 0, 0, 0, DateTimeKind.Utc)
+        };
+
+        if (author is not null)
+        {
+            book.AuthorsLink = [new BookAuthor { Author = author, Order = 1 }];
+        }
+
+        if (tags.Length > 0)
+        {
+            book.Tags = [.. tags];
+        }
+
+        return book;
     }
 
     /// <summary>
@@ -59,9 +99,9 @@ public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory fa
     private protected async Task UploadImageAsync(string imageName)
     {
         var blobServiceClient = Factory.Services.GetRequiredService<BlobServiceClient>();
-        var containerClient = blobServiceClient.GetBlobContainerClient("book-covers");
+        var containerClient = blobServiceClient.GetBlobContainerClient(CatalogTestConstants.BookCoversContainerName);
         var dummyImageContent = new BinaryData([0x89, 0x50, 0x4E, 0x47]);
-        
+
         await containerClient.GetBlobClient(imageName).UploadAsync(dummyImageContent.ToStream(), overwrite: true);
     }
 }
