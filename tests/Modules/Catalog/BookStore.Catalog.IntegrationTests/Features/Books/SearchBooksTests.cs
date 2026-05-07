@@ -82,7 +82,7 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         // Arrange
         Author author1 = new() { Name = "UniqueAuthor" };
         Author author2 = new() { Name = "Another Author" };
-        
+
         Book[] books =
         [
             CreateBook(title: "Domain Driven Design", publisher: "Publisher 1"),
@@ -335,5 +335,40 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         // Reviews
         bookDto.ReviewCount.Should().Be(2);
         bookDto.AverageRating.Should().Be(4.5);
+    }
+
+    [Theory]
+    [InlineData("PageNumber", 0)]
+    [InlineData("PageNumber", -1)]
+    [InlineData("PageSize", 0)]
+    [InlineData("PageSize", 101)]
+    public async Task Search_WhenPaginationParametersAreInvalid_ShouldReturnBadRequest(string parameterName, int value)
+    {
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books?{parameterName}={value}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestContext.Current.CancellationToken);
+        problemDetails.Should().NotBeNull();
+        problemDetails.Errors.Should().ContainKey(parameterName);
+    }
+
+    [Fact]
+    public async Task Search_WhenSearchTermIsTooLong_ShouldReturnBadRequest()
+    {
+        // Arrange
+        string longSearchTerm = new('a', 101);
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books?SearchTerm={longSearchTerm}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestContext.Current.CancellationToken);
+        problemDetails.Should().NotBeNull();
+        problemDetails.Errors.Should().ContainKey("Filter.SearchTerm");
     }
 }

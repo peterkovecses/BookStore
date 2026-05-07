@@ -7,6 +7,7 @@ global using BookStore.Catalog.Domain.Entities;
 global using BookStore.Catalog.Contracts.Dtos;
 global using Azure.Storage.Blobs;
 global using Azure.Storage.Blobs.Models;
+global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.Extensions.DependencyInjection.Extensions;
