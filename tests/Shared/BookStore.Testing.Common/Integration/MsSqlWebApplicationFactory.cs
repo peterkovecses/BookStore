@@ -11,7 +11,6 @@ public abstract class MsSqlWebApplicationFactory<TMarker, TDbContext> : BaseWebA
     where TDbContext : DbContext
 {
     private readonly MsSqlContainer _dbContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
-        .WithPassword("Super_secret_password_123@")
         .Build();
 
     private DbConnection _dbConnection = null!;
