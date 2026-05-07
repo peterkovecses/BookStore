@@ -371,4 +371,40 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         problemDetails.Should().NotBeNull();
         problemDetails.Errors.Should().ContainKey("Filter.SearchTerm");
     }
+
+    [Fact]
+    public async Task Search_WhenSortByIsInvalid_ShouldReturnBadRequest()
+    {
+        // Act
+        var response = await Client.GetAsync("/api/catalog/books?SortBy=InvalidProperty", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestContext.Current.CancellationToken);
+        problemDetails.Should().NotBeNull();
+        problemDetails.Errors.Should().ContainKey("SortBy");
+    }
+
+    [Fact]
+    public async Task Search_WhenMultipleParametersAreInvalid_ShouldReturnBadRequestWithAllErrors()
+    {
+        // Arrange
+        int invalidPageNumber = 0;
+        int invalidPageSize = -1;
+        string longSearchTerm = new('a', 101);
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books?PageNumber={invalidPageNumber}&PageSize={invalidPageSize}&SearchTerm={longSearchTerm}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestContext.Current.CancellationToken);
+        problemDetails.Should().NotBeNull();
+        problemDetails.Errors.Should().HaveCount(3);
+        problemDetails.Errors.Should().ContainKey("PageNumber");
+        problemDetails.Errors.Should().ContainKey("PageSize");
+        problemDetails.Errors.Should().ContainKey("Filter.SearchTerm");
+    }
 }
