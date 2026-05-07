@@ -32,7 +32,7 @@ public class CatalogWebApplicationFactory : MsSqlWebApplicationFactory<Program, 
         await base.ResetDatabaseAsync();
 
         using var scope = Services.CreateScope();
-        await ClearContainersAsync(scope.ServiceProvider);
+        await ClearStorageAsync(scope.ServiceProvider);
     }
 
     private static async Task EnsureContainersExistAsync(IServiceProvider serviceProvider)
@@ -42,7 +42,7 @@ public class CatalogWebApplicationFactory : MsSqlWebApplicationFactory<Program, 
         await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
     }
 
-    private static async Task ClearContainersAsync(IServiceProvider serviceProvider)
+    private static async Task ClearStorageAsync(IServiceProvider serviceProvider)
     {
         var blobServiceClient = serviceProvider.GetRequiredService<BlobServiceClient>();
         var containerClient = blobServiceClient.GetBlobContainerClient(CatalogTestConstants.BookCoversContainerName);
