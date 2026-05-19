@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Aspire\BookStore.ServiceDefaults\BookStore.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\src\Shared\BookStore.ServiceDefaults\BookStore.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
