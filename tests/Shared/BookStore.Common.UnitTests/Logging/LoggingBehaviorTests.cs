@@ -23,7 +23,7 @@ public class LoggingBehaviorTests
         var request = new TestRequest();
         var next = Substitute.For<RequestHandlerDelegate<Result>>();
         var expected = Result.Success();
-        next(Arg.Any<CancellationToken>()).Returns(expected);
+        next().Returns(expected);
 
         // Act
         var actual = await _sut.Handle(request, next, CancellationToken.None);
@@ -47,7 +47,7 @@ public class LoggingBehaviorTests
         var next = Substitute.For<RequestHandlerDelegate<Result>>();
         var error = Error.Failure("Test.Error", "Test message");
         var expected = Result.Failure(error);
-        next(Arg.Any<CancellationToken>()).Returns(expected);
+        next().Returns(expected);
 
         // Act
         var actual = await _sut.Handle(request, next, CancellationToken.None);

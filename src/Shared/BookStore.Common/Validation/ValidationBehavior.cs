@@ -14,7 +14,7 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
 
         if (validationMetadata.Count == 0)
         {
-            return await next(cancellationToken);
+            return await next();
         }
 
         return CreateAggregatedFailureResponse(validationMetadata);

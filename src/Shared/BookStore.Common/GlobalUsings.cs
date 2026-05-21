@@ -1,6 +1,6 @@
 global using Kovecses.Result;
 global using FluentValidation;
-global using MediatR;
+global using Kovecses.Requests;
 global using Microsoft.Extensions.DependencyInjection;
 global using BookStore.Common.Validation;
 global using Microsoft.Extensions.Logging;

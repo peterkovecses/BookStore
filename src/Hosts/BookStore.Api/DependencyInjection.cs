@@ -6,12 +6,9 @@ public static class DependencyInjection
     {
         services.AddOpenApi();
 
-        services.AddMediatR(config =>
-        {
-            config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            config.AddLoggingBehavior();
-            config.AddValidationBehavior();
-        });
+        services.AddRequests(Assembly.GetExecutingAssembly())
+            .AddLoggingBehavior()
+            .AddValidationBehavior();
 
         return services;
     }

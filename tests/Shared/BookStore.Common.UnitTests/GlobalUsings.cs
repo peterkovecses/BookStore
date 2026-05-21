@@ -7,4 +7,4 @@ global using BookStore.Common.Sorting;
 global using BookStore.Common.Validation;
 global using FluentValidation;
 global using Kovecses.Result;
-global using MediatR;
+global using Kovecses.Requests;

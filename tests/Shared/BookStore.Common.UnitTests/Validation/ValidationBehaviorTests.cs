@@ -18,14 +18,14 @@ public class ValidationBehaviorTests
         // Arrange
         var next = Substitute.For<RequestHandlerDelegate<Result>>();
         var expected = Result.Success();
-        next(Arg.Any<CancellationToken>()).Returns(expected);
+        next().Returns(expected);
 
         // Act
         var actual = await _sut.Handle(new TestRequest(), next, TestContext.Current.CancellationToken);
 
         // Assert
         actual.Should().BeSuccess();
-        await next.Received(1)(TestContext.Current.CancellationToken);
+        await next.Received(1)();
     }
 
     [Fact]
@@ -39,14 +39,14 @@ public class ValidationBehaviorTests
 
         var next = Substitute.For<RequestHandlerDelegate<Result>>();
         var expected = Result.Success();
-        next(Arg.Any<CancellationToken>()).Returns(expected);
+        next().Returns(expected);
 
         // Act
         var actual = await _sut.Handle(new TestRequest(), next, TestContext.Current.CancellationToken);
 
         // Assert
         actual.Should().BeSuccess();
-        await next.Received(1)(TestContext.Current.CancellationToken);
+        await next.Received(1)();
     }
 
     [Fact]
@@ -78,6 +78,6 @@ public class ValidationBehaviorTests
                 .HaveValidationProperty("Property2")
                     .HaveCount(1);
 
-        await next.DidNotReceive()(Arg.Any<CancellationToken>());
+        await next.DidNotReceive()();
     }
 }

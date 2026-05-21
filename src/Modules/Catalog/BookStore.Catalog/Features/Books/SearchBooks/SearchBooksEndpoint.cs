@@ -13,7 +13,7 @@ internal static class SearchBooksEndpoint
 
     private static async Task<IResult> HandleAsync(
         [AsParameters] SearchBooksRequest request,
-        ISender sender,
+        IRequestHandler<SearchBooksQuery, Result<PaginatedList<BookSummaryDto>>> handler,
         CancellationToken cancellationToken)
     {
         var query = new SearchBooksQuery(
@@ -28,7 +28,7 @@ internal static class SearchBooksEndpoint
             request.SortBy,
             request.IsDescending);
 
-        return await sender.Send(query, cancellationToken)
+        return await handler.Handle(query, cancellationToken)
             .ToMinimalApiResultAsync();
     }
 }

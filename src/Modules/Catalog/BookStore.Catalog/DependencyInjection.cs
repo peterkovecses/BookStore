@@ -22,10 +22,9 @@ public static class DependencyInjection
         builder.Services.AddScoped<CatalogStorageInitialiser>();
         builder.Services.AddScoped<CatalogModuleInitialiser>();
 
-        builder.Services.AddMediatR(config =>
-        {
-            config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-        });
+        builder.Services.AddRequests(Assembly.GetExecutingAssembly())
+            .AddLoggingBehavior()
+            .AddValidationBehavior();
 
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly(), includeInternalTypes: true);
 

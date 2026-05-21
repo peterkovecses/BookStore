@@ -2,17 +2,17 @@ namespace BookStore.Common;
 
 public static class DependencyInjection
 {
-    public static MediatRServiceConfiguration AddValidationBehavior(this MediatRServiceConfiguration config)
+    public static IRequestsBuilder AddValidationBehavior(this IRequestsBuilder builder)
     {
-        config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+        builder.AddGlobalBehavior(typeof(ValidationBehavior<,>));
         
-        return config;
+        return builder;
     }
 
-    public static MediatRServiceConfiguration AddLoggingBehavior(this MediatRServiceConfiguration config)
+    public static IRequestsBuilder AddLoggingBehavior(this IRequestsBuilder builder)
     {
-        config.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        builder.AddGlobalBehavior(typeof(LoggingBehavior<,>));
 
-        return config;
+        return builder;
     }
 }
