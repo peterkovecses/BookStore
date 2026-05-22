@@ -1,10 +1,12 @@
-global using FluentAssertions;
-global using Kovecses.Result.FluentAssertions;
-global using NSubstitute;
-global using Xunit;
 global using BookStore.Common.Pagination;
 global using BookStore.Common.Sorting;
 global using BookStore.Common.Validation;
+global using BookStore.Common.Logging;
+global using FluentAssertions;
 global using FluentValidation;
 global using Kovecses.Result;
+global using Kovecses.Result.FluentAssertions;
 global using Kovecses.Requests;
+global using NSubstitute;
+global using Xunit;
+global using Microsoft.Extensions.Logging;

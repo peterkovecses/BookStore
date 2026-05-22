@@ -28,7 +28,7 @@ internal static class SearchBooksEndpoint
             request.SortBy,
             request.IsDescending);
 
-        return await handler.Handle(query, cancellationToken)
+        return await handler.HandleAsync(query, cancellationToken)
             .ToMinimalApiResultAsync();
     }
 }

@@ -23,6 +23,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<CatalogModuleInitialiser>();
 
         builder.Services.AddRequests(Assembly.GetExecutingAssembly())
+            .AddOpenTelemetry()
             .AddLoggingBehavior()
             .AddValidationBehavior();
 

@@ -1,8 +1,5 @@
 namespace BookStore.Common.UnitTests.Logging;
 
-using Microsoft.Extensions.Logging;
-using BookStore.Common.Logging;
-
 public class LoggingBehaviorTests
 {
     public sealed record TestRequest : IRequest<Result>;
@@ -26,7 +23,7 @@ public class LoggingBehaviorTests
         next().Returns(expected);
 
         // Act
-        var actual = await _sut.Handle(request, next, CancellationToken.None);
+        var actual = await _sut.HandleAsync(request, next, CancellationToken.None);
 
         // Assert
         actual.Should().BeSuccess();
@@ -50,7 +47,7 @@ public class LoggingBehaviorTests
         next().Returns(expected);
 
         // Act
-        var actual = await _sut.Handle(request, next, CancellationToken.None);
+        var actual = await _sut.HandleAsync(request, next, CancellationToken.None);
 
         // Assert
         actual.Should().BeFailure();

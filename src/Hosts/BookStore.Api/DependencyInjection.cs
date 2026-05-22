@@ -6,10 +6,6 @@ public static class DependencyInjection
     {
         services.AddOpenApi();
 
-        services.AddRequests(Assembly.GetExecutingAssembly())
-            .AddLoggingBehavior()
-            .AddValidationBehavior();
-
         return services;
     }
 }

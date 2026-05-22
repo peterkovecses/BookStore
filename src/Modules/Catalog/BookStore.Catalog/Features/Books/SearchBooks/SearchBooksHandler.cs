@@ -5,7 +5,7 @@ internal sealed class SearchBooksHandler(
     ICatalogStorageService storageService)
     : IRequestHandler<SearchBooksQuery, Result<PaginatedList<BookSummaryDto>>>
 {
-    public async Task<Result<PaginatedList<BookSummaryDto>>> Handle(
+    public async Task<Result<PaginatedList<BookSummaryDto>>> HandleAsync(
         SearchBooksQuery request,
         CancellationToken cancellationToken)
     {

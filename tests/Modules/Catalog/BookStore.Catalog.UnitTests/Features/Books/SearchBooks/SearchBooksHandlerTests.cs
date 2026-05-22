@@ -20,7 +20,7 @@ public class SearchBooksHandlerTests
         var request = new SearchBooksQuery(new SearchBooksFilter(), 1, 10, null, false);
 
         // Act
-        var actual = await _sut.Handle(request, CancellationToken.None);
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
 
         // Assert
         actual.ShouldBePaginatedSuccess()
@@ -52,7 +52,7 @@ public class SearchBooksHandlerTests
         var request = new SearchBooksQuery(new SearchBooksFilter(), 1, 10, null, false);
 
         // Act
-        var actual = await _sut.Handle(request, CancellationToken.None);
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
 
         // Assert
         actual.ShouldBePaginatedSuccess()
@@ -75,7 +75,7 @@ public class SearchBooksHandlerTests
         var request = new SearchBooksQuery(new SearchBooksFilter(), 1, 10, null, false);
 
         // Act
-        var actual = await _sut.Handle(request, CancellationToken.None);
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
 
         // Assert
         actual.ShouldBePaginatedSuccess()
@@ -102,7 +102,7 @@ public class SearchBooksHandlerTests
         var request = new SearchBooksQuery(new SearchBooksFilter { SearchTerm = searchTerm }, 1, 10, null, false);
 
         // Act
-        var actual = await _sut.Handle(request, CancellationToken.None);
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
 
         // Assert
         actual.ShouldBePaginatedSuccess()
@@ -130,7 +130,7 @@ public class SearchBooksHandlerTests
         var request = new SearchBooksQuery(new SearchBooksFilter { AuthorIds = [authorId] }, 1, 10, null, false);
 
         // Act
-        var actual = await _sut.Handle(request, CancellationToken.None);
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
 
         // Assert
         actual.ShouldBePaginatedSuccess()
@@ -154,7 +154,7 @@ public class SearchBooksHandlerTests
         var request = new SearchBooksQuery(new SearchBooksFilter { TagIds = [tagId] }, 1, 10, null, false);
 
         // Act
-        var actual = await _sut.Handle(request, CancellationToken.None);
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
 
         // Assert
         actual.ShouldBePaginatedSuccess()
@@ -178,7 +178,7 @@ public class SearchBooksHandlerTests
         var request = new SearchBooksQuery(new SearchBooksFilter(), 1, 10, "Title", true);
 
         // Act
-        var actual = await _sut.Handle(request, CancellationToken.None);
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
 
         // Assert
         actual.ShouldBePaginatedSuccess()
@@ -203,7 +203,7 @@ public class SearchBooksHandlerTests
         var request = new SearchBooksQuery(new SearchBooksFilter(), 2, 5, "Title", false);
 
         // Act
-        var actual = await _sut.Handle(request, CancellationToken.None);
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
 
         // Assert
         actual.ShouldBePaginatedSuccess()

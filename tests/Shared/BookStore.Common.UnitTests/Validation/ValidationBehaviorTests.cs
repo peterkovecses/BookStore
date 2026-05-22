@@ -21,7 +21,7 @@ public class ValidationBehaviorTests
         next().Returns(expected);
 
         // Act
-        var actual = await _sut.Handle(new TestRequest(), next, TestContext.Current.CancellationToken);
+        var actual = await _sut.HandleAsync(new TestRequest(), next, TestContext.Current.CancellationToken);
 
         // Assert
         actual.Should().BeSuccess();
@@ -42,7 +42,7 @@ public class ValidationBehaviorTests
         next().Returns(expected);
 
         // Act
-        var actual = await _sut.Handle(new TestRequest(), next, TestContext.Current.CancellationToken);
+        var actual = await _sut.HandleAsync(new TestRequest(), next, TestContext.Current.CancellationToken);
 
         // Assert
         actual.Should().BeSuccess();
@@ -68,7 +68,7 @@ public class ValidationBehaviorTests
         var next = Substitute.For<RequestHandlerDelegate<Result>>();
 
         // Act
-        var actual = await _sut.Handle(new TestRequest(), next, TestContext.Current.CancellationToken);
+        var actual = await _sut.HandleAsync(new TestRequest(), next, TestContext.Current.CancellationToken);
 
         // Assert
         actual.Should().BeFailure()
