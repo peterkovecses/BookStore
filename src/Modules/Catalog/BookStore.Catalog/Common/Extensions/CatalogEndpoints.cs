@@ -8,6 +8,7 @@ public static class CatalogEndpoints
             .WithTags("Catalog");
 
         SearchBooksEndpoint.MapEndpoint(catalogGroup);
+        GetBookDetailsEndpoint.MapEndpoint(catalogGroup);
 
         return app;
     }

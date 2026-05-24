@@ -27,3 +27,11 @@ Accept: application/json
 ### Custom Pagination
 GET {{BookStore_Api_HostAddress}}/api/catalog/books?PageNumber=2&PageSize=5
 Accept: application/json
+
+### Get book by ID
+GET {{BookStore_Api_HostAddress}}/api/catalog/books/1
+Accept: application/json
+
+### Get book by ID (Not Found)
+GET {{BookStore_Api_HostAddress}}/api/catalog/books/999
+Accept: application/json

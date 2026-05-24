@@ -1,6 +1,6 @@
 namespace BookStore.Catalog.Contracts.Dtos;
 
-public class BookDto
+public class BookDetailsDto
 {
     public int Id { get; set; }
     public string Title { get; set; } = null!;
@@ -8,7 +8,10 @@ public class BookDto
     public DateTime PublishedOn { get; set; }
     public string Publisher { get; set; } = null!;
     public decimal Price { get; set; }
+
+    [JsonIgnore]
     public string? ImageName { get; set; }
+    public string? ImageUrl { get; set; }
     public bool SoftDeleted { get; set; }
 
     public PriceOfferDto? Promotion { get; set; }
