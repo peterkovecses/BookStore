@@ -43,6 +43,7 @@
 - **Method naming:** Use the `MethodName_WhenScenario_ShouldExpectedResult` pattern (e.g., `TryDeserialize_WhenValidJsonAndTypeIsPassed_ShouldDeserialize`).
     - **Note:** Omit the `WhenScenario` part (e.g., `MethodName_ShouldExpectedResult`) if there is no specific scenario or condition being tested. Avoid filler like `WhenCalled`.
 - **AAA Pattern:** Always follow the **Arrange**, **Act**, **Assert** pattern. Do not include any other structural comments.
+- **Constants in Arrange:** ALWAYS use constants or well-named variables for magic strings, numbers, or other literal values within the **Arrange** phase.
 - **Assertion Library:** Use **FluentAssertions** for all assertions.
   - **Result Type Assertions:** When testing code that uses the `Kovecses.Result` package, always use **Kovecses.Result.FluentAssertions** for asserting `Result` objects. This package must always be in the **same version** as the `Kovecses.Result` package used by the code being tested.
     - **Recommended patterns:**

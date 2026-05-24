@@ -15,9 +15,11 @@ public class SearchBooksHandlerTests
     public async Task Handle_WhenNoBooks_ShouldReturnEmptyList()
     {
         // Arrange
+        const int pageNumber = 1;
+        const int pageSize = 10;
         var mockDbSet = new List<Book>().BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
-        var request = new SearchBooksQuery(new SearchBooksFilter(), 1, 10, null, false);
+        var request = new SearchBooksQuery(new SearchBooksFilter(), pageNumber, pageSize, null, false);
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -33,6 +35,10 @@ public class SearchBooksHandlerTests
     public async Task Handle_WhenMultipleBooksHaveImages_ShouldPopulateImageUrls()
     {
         // Arrange
+        const int bookId1 = 1;
+        const int bookId2 = 2;
+        const int pageNumber = 1;
+        const int pageSize = 10;
         var imageName1 = "cover1.jpg";
         var expectedUrl1 = "https://cdn.com/cover1.jpg";
         var imageName2 = "cover2.jpg";
@@ -40,8 +46,8 @@ public class SearchBooksHandlerTests
         
         var books = new List<Book>
         {
-            new() { Id = 1, Title = "Book 1", ImageName = imageName1 },
-            new() { Id = 2, Title = "Book 2", ImageName = imageName2 }
+            new() { Id = bookId1, Title = "Book 1", ImageName = imageName1 },
+            new() { Id = bookId2, Title = "Book 2", ImageName = imageName2 }
         };
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
@@ -49,7 +55,7 @@ public class SearchBooksHandlerTests
         _storageService.GetPublicUrl(imageName1).Returns(expectedUrl1);
         _storageService.GetPublicUrl(imageName2).Returns(expectedUrl2);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter(), 1, 10, null, false);
+        var request = new SearchBooksQuery(new SearchBooksFilter(), pageNumber, pageSize, null, false);
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -69,10 +75,13 @@ public class SearchBooksHandlerTests
     public async Task Handle_WhenBooksHaveNoImages_ShouldNotCallStorageService()
     {
         // Arrange
-        var mockDbSet = new List<Book> { new() { Id = 1, Title = "Book 1", ImageName = null } }.BuildMockDbSet();
+        const int bookId = 1;
+        const int pageNumber = 1;
+        const int pageSize = 10;
+        var mockDbSet = new List<Book> { new() { Id = bookId, Title = "Book 1", ImageName = null } }.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter(), 1, 10, null, false);
+        var request = new SearchBooksQuery(new SearchBooksFilter(), pageNumber, pageSize, null, false);
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -88,6 +97,8 @@ public class SearchBooksHandlerTests
     public async Task Handle_WhenFilteredBySearchTerm_ShouldReturnMatchingBooks()
     {
         // Arrange
+        const int pageNumber = 1;
+        const int pageSize = 10;
         var searchTerm = "Domain";
         var books = new List<Book>
         {
@@ -99,7 +110,7 @@ public class SearchBooksHandlerTests
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter { SearchTerm = searchTerm }, 1, 10, null, false);
+        var request = new SearchBooksQuery(new SearchBooksFilter { SearchTerm = searchTerm }, pageNumber, pageSize, null, false);
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -118,16 +129,19 @@ public class SearchBooksHandlerTests
     public async Task Handle_WhenFilteredByAuthorIds_ShouldReturnMatchingBooks()
     {
         // Arrange
-        var authorId = 1;
+        const int authorId = 1;
+        const int otherAuthorId = 2;
+        const int pageNumber = 1;
+        const int pageSize = 10;
         var books = new List<Book>
         {
             new() { Id = 1, Title = "Book 1", AuthorsLink = [new() { AuthorId = authorId, Author = new() { Name = "A1" } }] },
-            new() { Id = 2, Title = "Book 2", AuthorsLink = [new() { AuthorId = 2, Author = new() { Name = "A2" } }] }
+            new() { Id = 2, Title = "Book 2", AuthorsLink = [new() { AuthorId = otherAuthorId, Author = new() { Name = "A2" } }] }
         };
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter { AuthorIds = [authorId] }, 1, 10, null, false);
+        var request = new SearchBooksQuery(new SearchBooksFilter { AuthorIds = [authorId] }, pageNumber, pageSize, null, false);
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -142,16 +156,19 @@ public class SearchBooksHandlerTests
     public async Task Handle_WhenFilteredByTagIds_ShouldReturnMatchingBooks()
     {
         // Arrange
+        const int pageNumber = 1;
+        const int pageSize = 10;
         var tagId = "tag-1";
+        var otherTagId = "tag-2";
         var books = new List<Book>
         {
             new() { Id = 1, Title = "Book 1", Tags = [new() { Id = tagId }], AuthorsLink = [], Reviews = [] },
-            new() { Id = 2, Title = "Book 2", Tags = [new() { Id = "tag-2" }], AuthorsLink = [], Reviews = [] }
+            new() { Id = 2, Title = "Book 2", Tags = [new() { Id = otherTagId }], AuthorsLink = [], Reviews = [] }
         };
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter { TagIds = [tagId] }, 1, 10, null, false);
+        var request = new SearchBooksQuery(new SearchBooksFilter { TagIds = [tagId] }, pageNumber, pageSize, null, false);
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -166,6 +183,9 @@ public class SearchBooksHandlerTests
     public async Task Handle_WhenSortedByTitleDescending_ShouldSortCorrectly()
     {
         // Arrange
+        const int pageNumber = 1;
+        const int pageSize = 10;
+        const string sortBy = "Title";
         var books = new List<Book>
         {
             new() { Id = 1, Title = "A" },
@@ -175,7 +195,7 @@ public class SearchBooksHandlerTests
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter(), 1, 10, "Title", true);
+        var request = new SearchBooksQuery(new SearchBooksFilter(), pageNumber, pageSize, sortBy, true);
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -194,22 +214,26 @@ public class SearchBooksHandlerTests
     public async Task Handle_WhenSecondPageRequested_ShouldReturnCorrectPage()
     {
         // Arrange
-        var books = Enumerable.Range(1, 15)
+        const int totalBooks = 15;
+        const int pageNumber = 2;
+        const int pageSize = 5;
+        const string sortBy = "Title";
+        var books = Enumerable.Range(1, totalBooks)
             .Select(i => new Book { Id = i, Title = $"Book {i:D2}" })
             .ToList();
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter(), 2, 5, "Title", false);
+        var request = new SearchBooksQuery(new SearchBooksFilter(), pageNumber, pageSize, sortBy, false);
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
 
         // Assert
         actual.ShouldBePaginatedSuccess()
-            .HavePageNumber(2)
-            .HaveCount(5)
-            .HaveTotalCount(15)
+            .HavePageNumber(pageNumber)
+            .HaveCount(pageSize)
+            .HaveTotalCount(totalBooks)
             .SatisfyRespectively(
                 b => b.Title.Should().Be("Book 06"),
                 b => b.Title.Should().Be("Book 07"),

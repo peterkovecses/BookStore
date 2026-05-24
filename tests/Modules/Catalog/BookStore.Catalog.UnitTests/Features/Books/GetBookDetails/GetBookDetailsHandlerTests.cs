@@ -112,10 +112,11 @@ public class GetBookDetailsHandlerTests
     public async Task HandleAsync_WhenBookDoesNotExist_ShouldReturnNotFound()
     {
         // Arrange
+        const int nonExistentBookId = 999;
         var mockDbSet = new List<Book>().BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
 
-        var request = new GetBookDetailsQuery(999);
+        var request = new GetBookDetailsQuery(nonExistentBookId);
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);

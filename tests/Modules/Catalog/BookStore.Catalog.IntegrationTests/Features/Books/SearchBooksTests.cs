@@ -7,43 +7,55 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     {
         // Arrange
         var fixedDate = new DateTime(2026, 5, 6, 0, 0, 0, DateTimeKind.Utc);
+        const string authorName1 = "Author 1";
+        const string authorName2 = "Author 2";
+        const string tagName1 = "Tag 1";
+        const string tagName2 = "Tag 2";
+        const string bookTitleWithImage = "Active Book With Image";
+        const string bookTitleWithoutImage = "Active Book Without Image";
+        const string bookTitleSoftDeleted = "Soft Deleted Book";
+        const string imageName1 = "image1.jpg";
+        const string imageName3 = "image3.jpg";
+        const decimal bookPrice1 = 10.00m;
+        const decimal bookPrice2 = 20.00m;
+        const decimal bookPrice3 = 30.00m;
 
-        Author author1 = new() { Name = "Author 1" };
-        Author author2 = new() { Name = "Author 2" };
-        Tag tag1 = new() { Id = "Tag 1" };
-        Tag tag2 = new() { Id = "Tag 2" };
+        Author author1 = new() { Name = authorName1 };
+        Author author2 = new() { Name = authorName2 };
+        Tag tag1 = new() { Id = tagName1 };
+        Tag tag2 = new() { Id = tagName2 };
 
         Book book1 = CreateBook(
-            title: "Active Book With Image",
+            title: bookTitleWithImage,
             description: "Description 1",
             publishedOn: fixedDate,
             publisher: "Publisher 1",
-            price: 10.00m,
-            imageName: "image1.jpg",
+            price: bookPrice1,
+            imageName: imageName1,
             authors: [author1],
             tags: [tag1]);
 
         Book book2 = CreateBook(
-            title: "Active Book Without Image",
+            title: bookTitleWithoutImage,
             description: "Description 2",
             publishedOn: fixedDate,
             publisher: "Publisher 2",
-            price: 20.00m,
+            price: bookPrice2,
             authors: [author2],
             tags: [tag2]);
 
         Book book3 = CreateBook(
-            title: "Soft Deleted Book",
+            title: bookTitleSoftDeleted,
             description: "Description 3",
             publishedOn: fixedDate,
             publisher: "Publisher 3",
-            price: 30.00m,
-            imageName: "image3.jpg",
+            price: bookPrice3,
+            imageName: imageName3,
             softDeleted: true,
             authors: [author1]);
 
         await SeedAsync(author1, author2, tag1, tag2, book1, book2, book3);
-        await UploadImageAsync("image1.jpg");
+        await UploadImageAsync(imageName1);
 
         // Act
         var response = await Client.GetAsync("/api/catalog/books", TestContext.Current.CancellationToken);
@@ -57,18 +69,18 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         result.TotalCount.Should().Be(2);
         result.Items.Should().HaveCount(2);
 
-        result.Items.Should().NotContain(b => b.Title == "Soft Deleted Book");
+        result.Items.Should().NotContain(b => b.Title == bookTitleSoftDeleted);
 
         // Book 1
-        var bookWithImage = result.Items.Single(b => b.Title == "Active Book With Image");
+        var bookWithImage = result.Items.Single(b => b.Title == bookTitleWithImage);
         bookWithImage.ImageUrl.Should().NotBeNullOrWhiteSpace();
-        bookWithImage.ImageUrl.Should().Contain(CatalogTestConstants.BookCoversContainerName + "/image1.jpg");
-        bookWithImage.Price.Should().Be(10.00m);
+        bookWithImage.ImageUrl.Should().Contain(CatalogTestConstants.BookCoversContainerName + "/" + imageName1);
+        bookWithImage.Price.Should().Be(bookPrice1);
 
         // Book 2
-        var bookWithoutImage = result.Items.Single(b => b.Title == "Active Book Without Image");
+        var bookWithoutImage = result.Items.Single(b => b.Title == bookTitleWithoutImage);
         bookWithoutImage.ImageUrl.Should().BeNull();
-        bookWithoutImage.Price.Should().Be(20.00m);
+        bookWithoutImage.Price.Should().Be(bookPrice2);
     }
 
     [Theory]
@@ -122,11 +134,16 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     public async Task Search_WhenAuthorFilterApplied_ShouldReturnOnlyMatchingBooks()
     {
         // Arrange
-        Author author1 = new() { Name = "Author 1" };
-        Author author2 = new() { Name = "Author 2" };
+        const string authorName1 = "Author 1";
+        const string authorName2 = "Author 2";
+        const string bookTitle1 = "Book by Author 1";
+        const string bookTitle2 = "Book by Author 2";
 
-        Book book1 = CreateBook(title: "Book by Author 1", authors: [author1]);
-        Book book2 = CreateBook(title: "Book by Author 2", authors: [author2]);
+        Author author1 = new() { Name = authorName1 };
+        Author author2 = new() { Name = authorName2 };
+
+        Book book1 = CreateBook(title: bookTitle1, authors: [author1]);
+        Book book2 = CreateBook(title: bookTitle2, authors: [author2]);
 
         await SeedAsync(author1, author2, book1, book2);
 
@@ -139,18 +156,23 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
         result.Should().NotBeNull();
         result.TotalCount.Should().Be(1);
-        result.Items.Should().ContainSingle(b => b.Title == "Book by Author 1");
+        result.Items.Should().ContainSingle(b => b.Title == bookTitle1);
     }
 
     [Fact]
     public async Task Search_WhenTagFilterApplied_ShouldReturnOnlyMatchingBooks()
     {
         // Arrange
-        Tag tag1 = new() { Id = "Tag 1" };
-        Tag tag2 = new() { Id = "Tag 2" };
+        const string tagId1 = "Tag 1";
+        const string tagId2 = "Tag 2";
+        const string bookTitle1 = "Book with Tag 1";
+        const string bookTitle2 = "Book with Tag 2";
 
-        Book book1 = CreateBook(title: "Book with Tag 1", tags: [tag1]);
-        Book book2 = CreateBook(title: "Book with Tag 2", tags: [tag2]);
+        Tag tag1 = new() { Id = tagId1 };
+        Tag tag2 = new() { Id = tagId2 };
+
+        Book book1 = CreateBook(title: bookTitle1, tags: [tag1]);
+        Book book2 = CreateBook(title: bookTitle2, tags: [tag2]);
 
         await SeedAsync(tag1, tag2, book1, book2);
 
@@ -163,24 +185,34 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
         result.Should().NotBeNull();
         result.TotalCount.Should().Be(1);
-        result.Items.Should().ContainSingle(b => b.Title == "Book with Tag 1");
+        result.Items.Should().ContainSingle(b => b.Title == bookTitle1);
     }
 
     [Fact]
     public async Task Search_WhenMultipleAuthorsAndTagsApplied_ShouldReturnMatchingBooks()
     {
         // Arrange
-        Author author1 = new() { Name = "Author 1" };
-        Author author2 = new() { Name = "Author 2" };
-        Author author3 = new() { Name = "Author 3" };
+        const string authorName1 = "Author 1";
+        const string authorName2 = "Author 2";
+        const string authorName3 = "Author 3";
+        const string tagId1 = "Tag 1";
+        const string tagId2 = "Tag 2";
+        const string tagId3 = "Tag 3";
+        const string bookTitle1 = "Book 1";
+        const string bookTitle2 = "Book 2";
+        const string bookTitle3 = "Book 3";
 
-        Tag tag1 = new() { Id = "Tag 1" };
-        Tag tag2 = new() { Id = "Tag 2" };
-        Tag tag3 = new() { Id = "Tag 3" };
+        Author author1 = new() { Name = authorName1 };
+        Author author2 = new() { Name = authorName2 };
+        Author author3 = new() { Name = authorName3 };
 
-        Book book1 = CreateBook(title: "Book 1", authors: [author1], tags: [tag1]);
-        Book book2 = CreateBook(title: "Book 2", authors: [author2], tags: [tag2]);
-        Book book3 = CreateBook(title: "Book 3", authors: [author3], tags: [tag3]);
+        Tag tag1 = new() { Id = tagId1 };
+        Tag tag2 = new() { Id = tagId2 };
+        Tag tag3 = new() { Id = tagId3 };
+
+        Book book1 = CreateBook(title: bookTitle1, authors: [author1], tags: [tag1]);
+        Book book2 = CreateBook(title: bookTitle2, authors: [author2], tags: [tag2]);
+        Book book3 = CreateBook(title: bookTitle3, authors: [author3], tags: [tag3]);
 
         await SeedAsync(author1, author2, author3, tag1, tag2, tag3, book1, book2, book3);
 
@@ -194,20 +226,26 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         result.Should().NotBeNull();
         result.TotalCount.Should().Be(2);
         result.Items.Should().HaveCount(2);
-        result.Items.Should().Contain(b => b.Title == "Book 1");
-        result.Items.Should().Contain(b => b.Title == "Book 2");
+        result.Items.Should().Contain(b => b.Title == bookTitle1);
+        result.Items.Should().Contain(b => b.Title == bookTitle2);
     }
 
     [Fact]
     public async Task Search_WhenAllFiltersApplied_ShouldReturnOnlyMatchingBooks()
     {
         // Arrange
-        Author author1 = new() { Name = "Author 1" };
-        Tag tag1 = new() { Id = "Tag 1" };
+        const string authorName1 = "Author 1";
+        const string tagId1 = "Tag 1";
+        const string bookTitleTarget = "Target Book";
+        const string bookTitleWrongAuthor = "Target Book but wrong author";
+        const string bookTitleWrongTag = "Target Book but wrong tag";
 
-        Book book1 = CreateBook(title: "Target Book", authors: [author1], tags: [tag1]);
-        Book book2 = CreateBook(title: "Target Book but wrong author", tags: [tag1]);
-        Book book3 = CreateBook(title: "Target Book but wrong tag", authors: [author1]);
+        Author author1 = new() { Name = authorName1 };
+        Tag tag1 = new() { Id = tagId1 };
+
+        Book book1 = CreateBook(title: bookTitleTarget, authors: [author1], tags: [tag1]);
+        Book book2 = CreateBook(title: bookTitleWrongAuthor, tags: [tag1]);
+        Book book3 = CreateBook(title: bookTitleWrongTag, authors: [author1]);
 
         await SeedAsync(author1, tag1, book1, book2, book3);
 
@@ -220,7 +258,7 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
         result.Should().NotBeNull();
         result.TotalCount.Should().Be(1);
-        result.Items.Should().ContainSingle(b => b.Title == "Target Book");
+        result.Items.Should().ContainSingle(b => b.Title == bookTitleTarget);
     }
 
     [Fact]
@@ -231,9 +269,10 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         const int pageNumber = 2;
         const int pageSize = 3;
         const int expectedTotalPages = 4;
-        string[] expectedTitles = ["Book 04", "Book 05", "Book 06"];
+        const string bookTitlePrefix = "Book ";
+        string[] expectedTitles = [$"{bookTitlePrefix}04", $"{bookTitlePrefix}05", $"{bookTitlePrefix}06"];
 
-        Book[] books = [.. Enumerable.Range(1, totalBooks).Select(i => CreateBook(title: $"Book {i:D2}"))];
+        Book[] books = [.. Enumerable.Range(1, totalBooks).Select(i => CreateBook(title: $"{bookTitlePrefix}{i:D2}"))];
 
         await SeedAsync(books);
 
@@ -259,11 +298,15 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     public async Task Search_WhenSortingApplied_ShouldReturnBooksInCorrectOrder(string sortBy, bool isDescending, string[] expectedOrder)
     {
         // Arrange
+        const decimal price1 = 20.00m;
+        const decimal price2 = 10.00m;
+        const decimal price3 = 30.00m;
+
         Book[] books =
         [
-            CreateBook(title: "A Book", price: 20.00m),
-            CreateBook(title: "B Book", price: 10.00m),
-            CreateBook(title: "C Book", price: 30.00m)
+            CreateBook(title: "A Book", price: price1),
+            CreateBook(title: "B Book", price: price2),
+            CreateBook(title: "C Book", price: price3)
         ];
 
         await SeedAsync(books);
@@ -283,21 +326,36 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     public async Task Search_ShouldReturnCorrectCalculatedAndLinkedData()
     {
         // Arrange
-        Author author1 = new() { Name = "Author 1" };
-        Author author2 = new() { Name = "Author 2" };
-        Tag tag1 = new() { Id = "Tag 1" };
-        Tag tag2 = new() { Id = "Tag 2" };
+        const string authorName1 = "Author 1";
+        const string authorName2 = "Author 2";
+        const string tagName1 = "Tag 1";
+        const string tagName2 = "Tag 2";
+        const string bookTitle = "Calculated Data Book";
+        const decimal bookPrice = 100.00m;
+        const decimal promotionPrice = 80.00m;
+        const string promotionText = "Sale!";
+        const int reviewStars1 = 4;
+        const int reviewStars2 = 5;
+        const string reviewVoter1 = "Voter 1";
+        const string reviewVoter2 = "Voter 2";
+        const double expectedAverageRating = 4.5;
+        const int expectedReviewCount = 2;
+
+        Author author1 = new() { Name = authorName1 };
+        Author author2 = new() { Name = authorName2 };
+        Tag tag1 = new() { Id = tagName1 };
+        Tag tag2 = new() { Id = tagName2 };
 
         Book book = CreateBook(
-            title: "Calculated Data Book",
-            price: 100.00m,
+            title: bookTitle,
+            price: bookPrice,
             authors: [author1, author2],
             tags: [tag1, tag2],
-            promotion: new PriceOffer { NewPrice = 80.00m, Text = "Sale!" },
+            promotion: new PriceOffer { NewPrice = promotionPrice, Text = promotionText },
             reviews:
             [
-                new Review { Stars = 4, Comment = "Good", Voter = "Voter 1" },
-                new Review { Stars = 5, Comment = "Great", Voter = "Voter 2" }
+                new Review { Stars = reviewStars1, Comment = "Good", Voter = reviewVoter1 },
+                new Review { Stars = reviewStars2, Comment = "Great", Voter = reviewVoter2 }
             ]);
 
         await SeedAsync(author1, author2, tag1, tag2, book);
@@ -316,20 +374,20 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
 
         // Authors and Tags
         bookDto.Authors.Should().HaveCount(2);
-        bookDto.Authors.Should().Contain(a => a.Name == "Author 1");
-        bookDto.Authors.Should().Contain(a => a.Name == "Author 2");
+        bookDto.Authors.Should().Contain(a => a.Name == authorName1);
+        bookDto.Authors.Should().Contain(a => a.Name == authorName2);
         bookDto.Tags.Should().HaveCount(2);
-        bookDto.Tags.Should().Contain(t => t.Id == "Tag 1");
-        bookDto.Tags.Should().Contain(t => t.Id == "Tag 2");
+        bookDto.Tags.Should().Contain(t => t.Id == tagName1);
+        bookDto.Tags.Should().Contain(t => t.Id == tagName2);
 
         // Promotion
         bookDto.Promotion.Should().NotBeNull();
-        bookDto.Promotion!.NewPrice.Should().Be(80.00m);
-        bookDto.Promotion.Text.Should().Be("Sale!");
+        bookDto.Promotion!.NewPrice.Should().Be(promotionPrice);
+        bookDto.Promotion.Text.Should().Be(promotionText);
 
         // Reviews
-        bookDto.ReviewCount.Should().Be(2);
-        bookDto.AverageRating.Should().Be(4.5);
+        bookDto.ReviewCount.Should().Be(expectedReviewCount);
+        bookDto.AverageRating.Should().Be(expectedAverageRating);
     }
 
     [Theory]
@@ -385,9 +443,10 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     public async Task Search_WhenMultipleParametersAreInvalid_ShouldReturnBadRequestWithAllErrors()
     {
         // Arrange
-        int invalidPageNumber = 0;
-        int invalidPageSize = -1;
-        string longSearchTerm = new('a', 101);
+        const int invalidPageNumber = 0;
+        const int invalidPageSize = -1;
+        const int longSearchTermLength = 101;
+        string longSearchTerm = new('a', longSearchTermLength);
 
         // Act
         var response = await Client.GetAsync($"/api/catalog/books?PageNumber={invalidPageNumber}&PageSize={invalidPageSize}&SearchTerm={longSearchTerm}", TestContext.Current.CancellationToken);
