@@ -42,11 +42,9 @@ public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory fa
                 if (entity is IEnumerable<object> collection)
                 {
                     db.AddRange(collection);
+                    continue;
                 }
-                else
-                {
-                    db.Add(entity);
-                }
+                db.Add(entity);
             }
 
             await db.SaveChangesAsync();
@@ -65,8 +63,10 @@ public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory fa
         bool softDeleted = false,
         string? imageName = null,
         DateTime? publishedOn = null,
-        Author? author = null,
-        params Tag[] tags)
+        IEnumerable<Author>? authors = null,
+        IEnumerable<Tag>? tags = null,
+        PriceOffer? promotion = null,
+        IEnumerable<Review>? reviews = null)
     {
         var book = new Book
         {
@@ -76,17 +76,23 @@ public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory fa
             Price = price,
             SoftDeleted = softDeleted,
             ImageName = imageName,
-            PublishedOn = publishedOn ?? new DateTime(2026, 5, 6, 0, 0, 0, DateTimeKind.Utc)
+            PublishedOn = publishedOn ?? new DateTime(2026, 5, 6, 0, 0, 0, DateTimeKind.Utc),
+            Promotion = promotion
         };
 
-        if (author is not null)
+        if (authors is not null)
         {
-            book.AuthorsLink = [new BookAuthor { Author = author, Order = 1 }];
+            book.AuthorsLink = [.. authors.Select((a, index) => new BookAuthor { Author = a, Order = (byte)(index + 1) })];
         }
 
-        if (tags.Length > 0)
+        if (tags is not null)
         {
             book.Tags = [.. tags];
+        }
+
+        if (reviews is not null)
+        {
+            book.Reviews = [.. reviews];
         }
 
         return book;
