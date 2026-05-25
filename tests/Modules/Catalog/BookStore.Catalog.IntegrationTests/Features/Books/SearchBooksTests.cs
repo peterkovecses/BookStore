@@ -394,7 +394,7 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     [InlineData("PageNumber", 0)]
     [InlineData("PageNumber", -1)]
     [InlineData("PageSize", 0)]
-    [InlineData("PageSize", 101)]
+    [InlineData("PageSize", IPagination.MaxPageSize + 1)]
     public async Task Search_WhenPaginationParametersAreInvalid_ShouldReturnBadRequest(string parameterName, int value)
     {
         // Act

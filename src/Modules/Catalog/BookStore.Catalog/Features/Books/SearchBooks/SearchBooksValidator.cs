@@ -13,15 +13,18 @@ internal class SearchBooksValidator : AbstractValidator<SearchBooksQuery>
 
     public SearchBooksValidator()
     {
-        RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo(IPagination.MinPageNumber);
+        RuleFor(x => x.Pagination.PageNumber)
+            .GreaterThanOrEqualTo(IPagination.MinPageNumber)
+            .OverridePropertyName(nameof(IPagination.PageNumber));
 
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(MinPageSize, IPagination.MaxPageSize);
+        RuleFor(x => x.Pagination.PageSize)
+            .InclusiveBetween(MinPageSize, IPagination.MaxPageSize)
+            .OverridePropertyName(nameof(IPagination.PageSize));
 
-        RuleFor(x => x.SortBy)
+        RuleFor(x => x.Sorting.SortBy)
             .Must(x => x is null || AllowedSortProperties.Contains(x))
-            .WithMessage(InvalidSortByMessage);
+            .WithMessage(InvalidSortByMessage)
+            .OverridePropertyName(nameof(ISorting.SortBy));
 
         RuleFor(x => x.Filter)
             .NotNull()

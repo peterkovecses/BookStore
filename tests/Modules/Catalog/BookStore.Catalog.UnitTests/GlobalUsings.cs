@@ -10,6 +10,8 @@ global using BookStore.Catalog.Features.Books.SearchBooks;
 global using BookStore.Catalog.Features.Books.GetBookDetails;
 global using BookStore.Catalog.Common.Interfaces;
 global using BookStore.Catalog.Infrastructure.Storage;
+global using BookStore.Common.Pagination;
+global using BookStore.Common.Sorting;
 global using BookStore.Testing.Common.Extensions;
 global using Kovecses.Result.FluentAssertions;
 global using Azure.Storage.Blobs;

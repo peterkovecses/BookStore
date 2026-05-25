@@ -24,6 +24,8 @@ global using BookStore.Common.Sorting;
 global using BookStore.Common.Filtering;
 global using BookStore.Catalog.Features.Books.SearchBooks;
 global using BookStore.Catalog.Features.Books.GetBookDetails;
+global using BookStore.Catalog.Features.Books.GetBookSearchFilters;
+global using Microsoft.Extensions.Caching.Memory;
 global using FluentValidation;
 global using BookStore.Catalog.Contracts.Dtos;
 global using Kovecses.Result;

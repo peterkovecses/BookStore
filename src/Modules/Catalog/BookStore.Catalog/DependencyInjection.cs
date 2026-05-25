@@ -22,6 +22,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<CatalogStorageInitialiser>();
         builder.Services.AddScoped<CatalogModuleInitialiser>();
 
+        builder.Services.AddMemoryCache();
+
         builder.Services.AddRequests(Assembly.GetExecutingAssembly())
             .AddOpenTelemetry()
             .AddLoggingBehavior()

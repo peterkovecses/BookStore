@@ -2,9 +2,10 @@ namespace BookStore.Common.Pagination;
 
 public interface IPagination
 {
-    public const int MinPageNumber = 1;
-    public const int MaxPageSize = 100;
+    const int MinPageNumber = 1;
+    const int MaxPageSize = 5000;
+    const int DefaultPageSize = 15;
 
-    int PageNumber { get; init; }
-    int PageSize { get; init; }
+    int PageNumber { get; }
+    int PageSize { get; }
 }

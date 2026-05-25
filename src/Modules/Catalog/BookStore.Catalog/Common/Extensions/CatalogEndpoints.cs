@@ -9,6 +9,7 @@ public static class CatalogEndpoints
 
         SearchBooksEndpoint.MapEndpoint(catalogGroup);
         GetBookDetailsEndpoint.MapEndpoint(catalogGroup);
+        GetBookSearchFiltersEndpoint.MapEndpoint(catalogGroup);
 
         return app;
     }

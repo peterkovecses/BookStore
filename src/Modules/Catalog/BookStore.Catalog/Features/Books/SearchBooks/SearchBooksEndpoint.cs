@@ -2,14 +2,12 @@ namespace BookStore.Catalog.Features.Books.SearchBooks;
 
 internal static class SearchBooksEndpoint
 {
-    internal static void MapEndpoint(IEndpointRouteBuilder app)
-    {
+    internal static void MapEndpoint(IEndpointRouteBuilder app) =>
         app.MapGet("books", HandleAsync)
             .WithName("SearchBooks")
             .WithDescription("Searches for books with filtering, sorting, and pagination.")
             .Produces<PaginatedList<BookSummaryDto>>()
             .ProducesValidationProblem();
-    }
 
     private static async Task<IResult> HandleAsync(
         [AsParameters] SearchBooksRequest request,
@@ -23,10 +21,8 @@ internal static class SearchBooksEndpoint
                 AuthorIds = request.AuthorIds?.ToHashSet() ?? [],
                 TagIds = request.TagIds?.ToHashSet() ?? []
             },
-            request.PageNumber,
-            request.PageSize,
-            request.SortBy,
-            request.IsDescending);
+            new PaginationParams(request.PageNumber, request.PageSize),
+            new SortingParams(request.SortBy, request.IsDescending));
 
         return await handler.HandleAsync(query, cancellationToken)
             .ToMinimalApiResultAsync();
