@@ -19,7 +19,7 @@ public class SearchBooksHandlerTests
         const int pageSize = 10;
         var mockDbSet = new List<Book>().BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
-        var request = new SearchBooksQuery(new SearchBooksFilter(), new PaginationParams(pageNumber, pageSize), new SortingParams(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, pageSize), ISorting.Create(null, false));
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -55,7 +55,7 @@ public class SearchBooksHandlerTests
         _storageService.GetPublicUrl(imageName1).Returns(expectedUrl1);
         _storageService.GetPublicUrl(imageName2).Returns(expectedUrl2);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter(), new PaginationParams(pageNumber, pageSize), new SortingParams(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, pageSize), ISorting.Create(null, false));
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -81,7 +81,7 @@ public class SearchBooksHandlerTests
         var mockDbSet = new List<Book> { new() { Id = bookId, Title = "Book 1", ImageName = null } }.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter(), new PaginationParams(pageNumber, pageSize), new SortingParams(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, pageSize), ISorting.Create(null, false));
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -110,7 +110,7 @@ public class SearchBooksHandlerTests
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter { SearchTerm = searchTerm }, new PaginationParams(pageNumber, pageSize), new SortingParams(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter { SearchTerm = searchTerm }, IPagination.Create(pageNumber, pageSize), ISorting.Create(null, false));
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -141,7 +141,7 @@ public class SearchBooksHandlerTests
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter { AuthorIds = [authorId] }, new PaginationParams(pageNumber, pageSize), new SortingParams(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter { AuthorIds = [authorId] }, IPagination.Create(pageNumber, pageSize), ISorting.Create(null, false));
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -168,7 +168,7 @@ public class SearchBooksHandlerTests
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter { TagIds = [tagId] }, new PaginationParams(pageNumber, pageSize), new SortingParams(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter { TagIds = [tagId] }, IPagination.Create(pageNumber, pageSize), ISorting.Create(null, false));
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -195,7 +195,7 @@ public class SearchBooksHandlerTests
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter(), new PaginationParams(pageNumber, pageSize), new SortingParams(sortBy, true));
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, pageSize), ISorting.Create(sortBy, true));
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -224,7 +224,7 @@ public class SearchBooksHandlerTests
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter(), new PaginationParams(pageNumber, pageSize), new SortingParams(sortBy, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, pageSize), ISorting.Create(sortBy, false));
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);

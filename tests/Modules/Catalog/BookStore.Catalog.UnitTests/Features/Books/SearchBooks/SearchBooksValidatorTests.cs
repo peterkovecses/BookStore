@@ -8,7 +8,7 @@ public class SearchBooksValidatorTests
     public void Validate_WhenValidRequest_ShouldNotHaveAnyErrors()
     {
         // Arrange
-        var request = new SearchBooksQuery(new SearchBooksFilter(), new PaginationParams(1, 15), new SortingParams(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Default, ISorting.Create(null, false));
 
         // Act
         var actual = _sut.TestValidate(request);
@@ -23,13 +23,13 @@ public class SearchBooksValidatorTests
     public void Validate_WhenPageNumberIsInvalid_ShouldHaveError(int pageNumber)
     {
         // Arrange
-        var request = new SearchBooksQuery(new SearchBooksFilter(), new PaginationParams(pageNumber, 10), new SortingParams(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, 10), ISorting.Create(null, false));
 
         // Act
         var actual = _sut.TestValidate(request);
 
         // Assert
-        actual.ShouldHaveValidationErrorFor(query => query.Pagination.PageNumber);
+        actual.ShouldHaveValidationErrorFor(nameof(SearchBooksQuery.Pagination.PageNumber));
     }
 
     [Theory]
@@ -38,20 +38,20 @@ public class SearchBooksValidatorTests
     public void Validate_WhenPageSizeIsInvalid_ShouldHaveError(int pageSize)
     {
         // Arrange
-        var request = new SearchBooksQuery(new SearchBooksFilter(), new PaginationParams(1, pageSize), new SortingParams(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(1, pageSize), ISorting.Create(null, false));
 
         // Act
         var actual = _sut.TestValidate(request);
 
         // Assert
-        actual.ShouldHaveValidationErrorFor(query => query.Pagination.PageSize);
+        actual.ShouldHaveValidationErrorFor(nameof(SearchBooksQuery.Pagination.PageSize));
     }
 
     [Fact]
     public void Validate_WhenFilterIsNull_ShouldHaveError()
     {
         // Arrange
-        var request = new SearchBooksQuery(null!, new PaginationParams(1, 15), new SortingParams(null, false));
+        var request = new SearchBooksQuery(null!, IPagination.Default, ISorting.Create(null, false));
 
         // Act
         var actual = _sut.TestValidate(request);
@@ -64,12 +64,12 @@ public class SearchBooksValidatorTests
     public void Validate_WhenSearchTermTooLong_ShouldHaveError()
     {
         // Arrange
-        var request = new SearchBooksQuery(new SearchBooksFilter { SearchTerm = new string('a', 101) }, new PaginationParams(1, 15), new SortingParams(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter { SearchTerm = new string('a', 101) }, IPagination.Default, ISorting.Create(null, false));
 
         // Act
         var actual = _sut.TestValidate(request);
 
         // Assert
-        actual.ShouldHaveValidationErrorFor(query => query.Filter.SearchTerm);
+        actual.ShouldHaveValidationErrorFor(nameof(SearchBooksFilter.SearchTerm));
     }
 }

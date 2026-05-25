@@ -39,3 +39,15 @@ Accept: application/json
 ### Get book search filters
 GET {{BookStore_Api_HostAddress}}/api/catalog/books/filters
 Accept: application/json
+
+### Validation Error: Invalid Pagination
+GET {{BookStore_Api_HostAddress}}/api/catalog/books?PageNumber=0&PageSize=5001
+Accept: application/json
+
+### Validation Error: Invalid SortBy
+GET {{BookStore_Api_HostAddress}}/api/catalog/books?SortBy=InvalidField
+Accept: application/json
+
+### Validation Error: Search term too long
+GET {{BookStore_Api_HostAddress}}/api/catalog/books?SearchTerm=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+Accept: application/json

@@ -28,7 +28,7 @@ internal sealed class GetBookSearchFiltersHandler(
             .Select(tag => tag.Id)
             .ToListAsync(cancellationToken);
 
-        var authorSorting = new SortingParams(nameof(Author.Name), false);
+        var authorSorting = ISorting.Create(nameof(Author.Name), false);
 
         var authors = await dbContext.Authors
             .AsNoTracking()

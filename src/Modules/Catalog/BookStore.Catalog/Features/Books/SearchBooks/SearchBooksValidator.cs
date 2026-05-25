@@ -31,7 +31,8 @@ internal class SearchBooksValidator : AbstractValidator<SearchBooksQuery>
             .DependentRules(() =>
             {
                 RuleFor(x => x.Filter.SearchTerm)
-                    .MaximumLength(MaxSearchTermLength);
+                    .MaximumLength(MaxSearchTermLength)
+                    .OverridePropertyName(nameof(SearchBooksFilter.SearchTerm));
             });
     }
 }

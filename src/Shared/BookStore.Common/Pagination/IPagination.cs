@@ -8,4 +8,10 @@ public interface IPagination
 
     int PageNumber { get; }
     int PageSize { get; }
+
+    static IPagination Create(int pageNumber, int pageSize) => new ImmutablePagination(pageNumber, pageSize);
+    static IPagination Default => Create(MinPageNumber, DefaultPageSize);
+    static IPagination NoPagination() => Create(MinPageNumber, MaxPageSize);
+
+    private record ImmutablePagination(int PageNumber, int PageSize) : IPagination;
 }

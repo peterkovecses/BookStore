@@ -21,8 +21,8 @@ internal static class SearchBooksEndpoint
                 AuthorIds = request.AuthorIds?.ToHashSet() ?? [],
                 TagIds = request.TagIds?.ToHashSet() ?? []
             },
-            new PaginationParams(request.PageNumber, request.PageSize),
-            new SortingParams(request.SortBy, request.IsDescending));
+            IPagination.Create(request.PageNumber, request.PageSize),
+            ISorting.Create(request.SortBy, request.IsDescending));
 
         return await handler.HandleAsync(query, cancellationToken)
             .ToMinimalApiResultAsync();

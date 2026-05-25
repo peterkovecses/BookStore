@@ -422,7 +422,7 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
 
         var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestContext.Current.CancellationToken);
         problemDetails.Should().NotBeNull();
-        problemDetails.Errors.Should().ContainKey("Filter.SearchTerm");
+        problemDetails.Errors.Should().ContainKey(nameof(SearchBooksQuery.Filter.SearchTerm));
     }
 
     [Fact]
@@ -436,7 +436,7 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
 
         var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestContext.Current.CancellationToken);
         problemDetails.Should().NotBeNull();
-        problemDetails.Errors.Should().ContainKey("SortBy");
+        problemDetails.Errors.Should().ContainKey(nameof(SearchBooksQuery.Sorting.SortBy));
     }
 
     [Fact]
@@ -457,8 +457,8 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestContext.Current.CancellationToken);
         problemDetails.Should().NotBeNull();
         problemDetails.Errors.Should().HaveCount(3);
-        problemDetails.Errors.Should().ContainKey("PageNumber");
-        problemDetails.Errors.Should().ContainKey("PageSize");
-        problemDetails.Errors.Should().ContainKey("Filter.SearchTerm");
+        problemDetails.Errors.Should().ContainKey(nameof(SearchBooksQuery.Pagination.PageNumber));
+        problemDetails.Errors.Should().ContainKey(nameof(SearchBooksQuery.Pagination.PageSize));
+        problemDetails.Errors.Should().ContainKey(nameof(SearchBooksQuery.Filter.SearchTerm));
     }
 }
