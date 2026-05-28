@@ -12,10 +12,14 @@ var sql = builder.AddSqlServer("sqlserver")
 
 var bookStoreDb = sql.AddDatabase("BookStoreDb");
 
-builder.AddProject<Projects.BookStore_Api>("bookstore-api")
+var bookStoreApi = builder.AddProject<Projects.BookStore_Api>("bookstore-api")
     .WithReference(blobs)
     .WithReference(bookStoreDb)
     .WaitFor(blobs)
     .WaitFor(bookStoreDb);
+
+builder.AddProject<Projects.BookStore_UI>("bookstore-ui")
+    .WithReference(bookStoreApi)
+    .WaitFor(bookStoreApi);
 
 builder.Build().Run();
