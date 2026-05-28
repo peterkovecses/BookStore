@@ -1,20 +1,16 @@
 global using System.Net;
 global using System.Net.Http.Json;
-global using System.Net.Http.Headers;
-global using System.Globalization;
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.AspNetCore.Components.Web;
 global using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 global using Microsoft.AspNetCore.WebUtilities;
-global using Microsoft.Extensions.Http.Resilience;
 global using Kovecses.Result;
 global using BookStore.Common.Pagination;
 global using BookStore.Common.Sorting;
-global using BookStore.Common.Filtering;
 global using BookStore.Catalog.Contracts.Dtos;
+global using BookStore.UI.Features.Books.Models;
 global using BookStore.UI.Common.Clients;
 global using BookStore.UI.Common.Models;
-global using BookStore.UI.Common.Extensions;
 global using BookStore.UI.Common.Constants;
 global using BookStore.UI;
 

@@ -3,13 +3,9 @@ namespace BookStore.UI.Common.Clients;
 public interface IBookStoreApiClient
 {
     Task<Result<PaginatedList<BookSummaryDto>>> SearchBooksAsync(
-        string? searchTerm,
-        int[]? authorIds,
-        string[]? tagIds,
-        int pageNumber,
-        int pageSize,
-        string? sortBy,
-        bool isDescending,
+        BookSearchParameters searchParameters,
+        IPagination pagination,
+        ISorting sorting,
         CancellationToken cancellationToken);
 
     Task<Result<BookDetailsDto>> GetBookDetailsAsync(int id, CancellationToken cancellationToken);

@@ -59,6 +59,7 @@
     - Grid/List view of books.
     - Integration with `SearchBooks` API.
     - Debounced filter application.
+    - **Validation:** Implement client-side validation for pagination and search parameters.
 - [ ] Implement `Features/Books/Pages/BookDetails`.
 
 ### Phase 4: Validation
