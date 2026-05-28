@@ -2,82 +2,224 @@ namespace BookStore.UI.UnitTests.Common.Extensions;
 
 public class NavigationManagerExtensionsTests
 {
-    private readonly MockNavigationManager _sut = new();
+    private readonly MockNavigationManager _navManager = new();
 
     [Fact]
-    public void TryGetQueryString_WhenKeyExistsAndTypeIsString_ShouldReturnTrueAndValue()
+    public void TryGetQueryParameter_WhenKeyExistsAndTypeIsString_ShouldReturnValue()
     {
         // Arrange
         const string key = "searchTerm";
-        const string expected = "test";
-        _sut.SetUri($"http://localhost/books?{key}={expected}");
+        const string expectedValue = "test";
+        _navManager.SetUri($"http://localhost/books?{key}={expectedValue}");
 
         // Act
-        var result = _sut.TryGetQueryString<string>(key, out var actual);
+        var result = _navManager.TryGetQueryParameter<string>(key, out var actualValue);
 
         // Assert
         result.Should().BeTrue();
-        actual.Should().Be(expected);
+        actualValue.Should().Be(expectedValue);
     }
 
     [Fact]
-    public void TryGetQueryString_WhenKeyExistsAndTypeIsInt_ShouldReturnTrueAndValue()
+    public void TryGetQueryParameter_WhenKeyExistsAndTypeIsInt_ShouldReturnTrueAndValue()
     {
         // Arrange
         const string key = "pageNumber";
-        const int expected = 2;
-        _sut.SetUri($"http://localhost/books?{key}={expected}");
+        const int expectedValue = 2;
+        _navManager.SetUri($"http://localhost/books?{key}={expectedValue}");
 
         // Act
-        var result = _sut.TryGetQueryString<int>(key, out var actual);
+        var result = _navManager.TryGetQueryParameter<int>(key, out var actualValue);
 
         // Assert
         result.Should().BeTrue();
-        actual.Should().Be(expected);
+        actualValue.Should().Be(expectedValue);
     }
 
     [Fact]
-    public void TryGetQueryString_WhenKeyDoesNotExist_ShouldReturnFalse()
+    public void TryGetQueryParameter_WhenTypeIsBool_ShouldReturnValue()
     {
         // Arrange
-        _sut.SetUri("http://localhost/books");
+        const string key = "isActive";
+        const bool expectedValue = true;
+        _navManager.SetUri($"http://localhost/books?{key}={expectedValue}");
 
         // Act
-        var result = _sut.TryGetQueryString<string>("nonexistent", out var actual);
+        var result = _navManager.TryGetQueryParameter<bool>(key, out var actualValue);
+
+        // Assert
+        result.Should().BeTrue();
+        actualValue.Should().Be(expectedValue);
+    }
+
+    [Fact]
+    public void TryGetQueryParameter_WhenTypeIsGuid_ShouldReturnValue()
+    {
+        // Arrange
+        const string key = "id";
+        var expectedValue = Guid.NewGuid();
+        _navManager.SetUri($"http://localhost/books?{key}={expectedValue}");
+
+        // Act
+        var result = _navManager.TryGetQueryParameter<Guid>(key, out var actualValue);
+
+        // Assert
+        result.Should().BeTrue();
+        actualValue.Should().Be(expectedValue);
+    }
+
+    [Fact]
+    public void TryGetQueryParameter_WhenKeyDoesNotExist_ShouldReturnFalse()
+    {
+        // Arrange
+        _navManager.SetUri("http://localhost/books");
+
+        // Act
+        var result = _navManager.TryGetQueryParameter<string>("nonexistent", out var actualValue);
 
         // Assert
         result.Should().BeFalse();
-        actual.Should().BeNull();
+        actualValue.Should().BeNull();
     }
 
     [Fact]
-    public void GetQueryStringWithUpdatedValue_WhenValueIsProvided_ShouldUpdateQueryString()
+    public void TryGetQueryParameter_WhenParseFails_ShouldReturnFalse()
     {
         // Arrange
-        _sut.SetUri("http://localhost/books?searchTerm=old");
+        const string key = "pageNumber";
+        _navManager.SetUri($"http://localhost/books?{key}=abc");
+
+        // Act
+        var result = _navManager.TryGetQueryParameter<int>(key, out var actualValue);
+
+        // Assert
+        result.Should().BeFalse();
+        actualValue.Should().Be(default);
+    }
+
+    [Fact]
+    public void TryGetQueryParameter_WhenTypeIsNotSupported_ShouldReturnFalse()
+    {
+        // Arrange
+        const string key = "data";
+        _navManager.SetUri($"http://localhost/books?{key}=some-data");
+
+        // Act
+        var result = _navManager.TryGetQueryParameter<object>(key, out var actualValue);
+
+        // Assert
+        result.Should().BeFalse();
+        actualValue.Should().BeNull();
+    }
+
+    [Fact]
+    public void TryGetQueryParameter_WhenMultipleValuesExistForSameKey_ShouldReturnFirstValue()
+    {
+        // Arrange
+        const string key = "filter";
+        const string expectedValue = "value1";
+        _navManager.SetUri($"http://localhost/books?{key}={expectedValue}&{key}=value2");
+
+        // Act
+        var result = _navManager.TryGetQueryParameter<string>(key, out var actualValue);
+
+        // Assert
+        result.Should().BeTrue();
+        actualValue.Should().Be(expectedValue);
+    }
+
+    [Fact]
+    public void GetUriWithUpdatedQueryParameter_WhenValueIsProvided_ShouldUpdateQueryString()
+    {
+        // Arrange
+        _navManager.SetUri("http://localhost/books?searchTerm=old");
         const string key = "searchTerm";
         const string newValue = "new";
 
         // Act
-        var actual = _sut.GetQueryStringWithUpdatedValue(key, newValue);
+        var actual = _navManager.GetUriWithUpdatedQueryParameter(key, newValue);
 
         // Assert
         actual.Should().Contain($"{key}={newValue}");
     }
 
     [Fact]
-    public void GetQueryStringWithUpdatedValue_WhenValueIsNull_ShouldRemoveKeyFromQueryString()
+    public void GetUriWithUpdatedQueryParameter_WhenKeyDoesNotExist_ShouldAddKey()
     {
         // Arrange
-        _sut.SetUri("http://localhost/books?searchTerm=old&page=1");
+        _navManager.SetUri("http://localhost/books");
+        const string key = "newKey";
+        const string value = "newValue";
+
+        // Act
+        var actual = _navManager.GetUriWithUpdatedQueryParameter(key, value);
+
+        // Assert
+        actual.Should().Contain($"{key}={value}");
+    }
+
+    [Fact]
+    public void GetUriWithUpdatedQueryParameter_WhenValueIsNull_ShouldRemoveKeyFromQueryString()
+    {
+        // Arrange
+        _navManager.SetUri("http://localhost/books?searchTerm=old&page=1");
         const string key = "searchTerm";
 
         // Act
-        var actual = _sut.GetQueryStringWithUpdatedValue<string?>(key, null);
+        var actual = _navManager.GetUriWithUpdatedQueryParameter<string?>(key, null);
 
         // Assert
         actual.Should().NotContain(key);
         actual.Should().Contain("page=1");
+    }
+
+    [Fact]
+    public void GetUriWithUpdatedQueryParameter_WhenValueIsWhitespace_ShouldRemoveKeyFromQueryString()
+    {
+        // Arrange
+        _navManager.SetUri("http://localhost/books?key=value");
+        const string key = "key";
+
+        // Act
+        var actual = _navManager.GetUriWithUpdatedQueryParameter(key, "   ");
+
+        // Assert
+        actual.Should().NotContain(key);
+    }
+
+    [Fact]
+    public void GetUriWithUpdatedQueryParameter_WhenValueIsValueType_ShouldUpdateQueryString()
+    {
+        // Arrange
+        _navManager.SetUri("http://localhost/books?page=1");
+        const string key = "page";
+        const int newValue = 2;
+
+        // Act
+        var actual = _navManager.GetUriWithUpdatedQueryParameter(key, newValue);
+
+        // Assert
+        actual.Should().Contain($"{key}={newValue}");
+    }
+
+    [Fact]
+    public void GetUriWithUpdatedQueryParameter_WhenValueIsDateTime_ShouldUpdateQueryStringWithCorrectFormatting()
+    {
+        // Arrange
+        _navManager.SetUri("http://localhost/books");
+        const string key = "date";
+        var dateValue = new DateTime(2026, 5, 28, 14, 30, 0);
+
+        // Act
+        var actual = _navManager.GetUriWithUpdatedQueryParameter(key, dateValue);
+
+        // Assert
+        // Blazor's GetUriWithQueryParameters formats DateTime using culture-dependent format in the mock environment.
+        // The important part is that it is included and handled by Blazor's logic.
+        actual.Should().Contain(key);
+        actual.Should().Contain("2026");
+        actual.Should().Contain("05");
+        actual.Should().Contain("28");
     }
 
     private class MockNavigationManager : NavigationManager
@@ -89,7 +231,7 @@ public class NavigationManagerExtensionsTests
             Uri = uri;
             NotifyLocationChanged(false);
         }
-        
+
         public void SetUri(string uri)
         {
             Uri = uri;

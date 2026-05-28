@@ -3,8 +3,8 @@ namespace BookStore.UI.UnitTests.Common.Clients;
 public class BookStoreApiClientTests
 {
     private readonly IHttpClientFactory _httpClientFactory = Substitute.For<IHttpClientFactory>();
-    private readonly HttpClient _httpClient;
     private readonly MockHttpMessageHandler _httpMessageHandler = new();
+    private readonly HttpClient _httpClient;
     private readonly BookStoreApiClient _sut;
 
     public BookStoreApiClientTests()
@@ -26,7 +26,7 @@ public class BookStoreApiClientTests
 
         // Assert
         actual.Should().BeSuccess()
-            .HaveData(d => d.Should().BeEquivalentTo(expected));
+            .HaveData(x => x.Should().BeEquivalentTo(expected));
     }
 
     [Fact]
