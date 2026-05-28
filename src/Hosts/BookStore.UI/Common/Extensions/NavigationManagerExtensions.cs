@@ -37,18 +37,12 @@ public static class NavigationManagerExtensions
 
     public static string GetQueryStringWithUpdatedValue<T>(this NavigationManager navigationManager, string key, T value)
     {
-        var uri = navigationManager.ToAbsoluteUri(navigationManager.Uri);
-        
-        var queryParameters = QueryHelpers.ParseQuery(uri.Query)
-            .ToDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value.ToString());
+        var stringValue = value?.ToString();
+        object? finalValue = string.IsNullOrWhiteSpace(stringValue) ? null : stringValue;
 
-        queryParameters.Remove(key);
-
-        if (value is not null && !string.IsNullOrWhiteSpace(value.ToString()))
+        return navigationManager.GetUriWithQueryParameters(new Dictionary<string, object?>
         {
-            queryParameters[key] = value.ToString();
-        }
-
-        return navigationManager.GetUriWithQueryParameters(queryParameters);
+            { key, finalValue }
+        });
     }
 }

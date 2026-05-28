@@ -1,0 +1,13 @@
+global using FluentAssertions;
+global using NSubstitute;
+global using Kovecses.Result.FluentAssertions;
+global using BookStore.UI.Common.Clients;
+global using BookStore.UI.Common.Models;
+global using BookStore.UI.Common.Constants;
+global using BookStore.UI.Common.Extensions;
+global using BookStore.UI.Features.Books.Models;
+global using BookStore.Catalog.Contracts.Dtos;
+global using BookStore.Common.Pagination;
+global using System.Net;
+global using System.Net.Http.Json;
+global using Microsoft.AspNetCore.Components;
