@@ -1,86 +1,58 @@
 namespace BookStore.UI.Common.Clients;
 
-public class BookStoreApiClient(IHttpClientFactory httpClientFactory) : IBookStoreApiClient
+public class BookStoreApiClient(HttpClient httpClient) : IBookStoreApiClient
 {
-    private readonly HttpClient _httpClient = httpClientFactory.CreateClient("bookstore-api");
-
     public async Task<Result<PaginatedList<BookSummaryDto>>> SearchBooksAsync(
         BookSearchParameters searchParameters,
         IPagination pagination,
         ISorting sorting,
         CancellationToken cancellationToken)
     {
-        var query = new Dictionary<string, string?>();
+        var query = new List<KeyValuePair<string, string?>>();
 
         if (!string.IsNullOrWhiteSpace(searchParameters.SearchTerm))
         {
-            query.Add("searchTerm", searchParameters.SearchTerm);
+            query.Add(new("searchTerm", searchParameters.SearchTerm));
         }
 
         if (searchParameters.AuthorIds.Count > 0)
         {
-            foreach (var id in searchParameters.AuthorIds) query.Add("authorIds", id.ToString());
+            query.AddRange(searchParameters.AuthorIds.Select(id => new KeyValuePair<string, string?>("authorIds", id.ToString())));
         }
 
         if (searchParameters.TagIds.Count > 0)
         {
-            foreach (var id in searchParameters.TagIds) query.Add("tagIds", id);
+            query.AddRange(searchParameters.TagIds.Select(id => new KeyValuePair<string, string?>("tagIds", id)));
         }
 
-        query.Add("pageNumber", pagination.PageNumber.ToString());
-        query.Add("pageSize", pagination.PageSize.ToString());
-        if (!string.IsNullOrWhiteSpace(sorting.SortBy)) query.Add("sortBy", sorting.SortBy);
-        query.Add("isDescending", sorting.IsDescending.ToString().ToLower());
+        query.Add(new("pageNumber", pagination.PageNumber.ToString()));
+        query.Add(new("pageSize", pagination.PageSize.ToString()));
+
+        if (!string.IsNullOrWhiteSpace(sorting.SortBy))
+        {
+            query.Add(new("sortBy", sorting.SortBy));
+        }
+
+        query.Add(new("isDescending", sorting.IsDescending.ToString().ToLower()));
 
         var uri = QueryHelpers.AddQueryString("books", query);
 
-        return await _httpClient.GetAsync(uri, cancellationToken).ToResultAsync<PaginatedList<BookSummaryDto>>(cancellationToken);
+        using var response = await httpClient.GetAsync(uri, cancellationToken);
+
+        return await response.ToResultAsync<PaginatedList<BookSummaryDto>>(cancellationToken);
     }
 
-
-    public async Task<Result<BookDetailsDto>> GetBookDetailsAsync(int id, CancellationToken cancellationToken) 
-        => await _httpClient.GetAsync($"books/{id}", cancellationToken).ToResultAsync<BookDetailsDto>(cancellationToken);
-
-    public async Task<Result<BookSearchFiltersDto>> GetSearchFiltersAsync(CancellationToken cancellationToken) 
-        => await _httpClient.GetAsync("books/filters", cancellationToken).ToResultAsync<BookSearchFiltersDto>(cancellationToken);
-}
-
-public static class HttpResponseMessageExtensions
-{
-    public static async Task<Result<T>> ToResultAsync<T>(this Task<HttpResponseMessage> responseTask, CancellationToken cancellationToken)
+    public async Task<Result<BookDetailsDto>> GetBookDetailsAsync(int id, CancellationToken cancellationToken)
     {
-        try
-        {
-            var response = await responseTask;
+        using var response = await httpClient.GetAsync($"books/{id}", cancellationToken);
 
-            if (response.IsSuccessStatusCode)
-            {
-                var data = await response.Content.ReadFromJsonAsync<T>(cancellationToken);
+        return await response.ToResultAsync<BookDetailsDto>(cancellationToken);
+    }
 
-                return data is not null ? Result.Success(data) : Result.Failure<T>(UIErrors.EmptyResponse());
-            }
+    public async Task<Result<BookSearchFiltersDto>> GetSearchFiltersAsync(CancellationToken cancellationToken)
+    {
+        using var response = await httpClient.GetAsync("books/filters", cancellationToken);
 
-            if (response.StatusCode == HttpStatusCode.BadRequest)
-            {
-                var validationProblem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(cancellationToken);
-                if (validationProblem?.Errors is not null)
-                {
-                    var metadata = validationProblem.Errors.ToDictionary(
-                        kvp => kvp.Key,
-                        kvp => (object)kvp.Value);
-
-                    return Result.Failure<T>(UIErrors.Validation(metadata));
-                }
-            }
-
-            var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
-            var errorMessage = problem?.Detail ?? problem?.Title ?? $"API call failed with status code {response.StatusCode}";
-            
-            return Result.Failure<T>(UIErrors.ApiError(errorMessage));
-        }
-        catch (Exception ex)
-        {
-            return Result.Failure<T>(UIErrors.Exception(ex.Message));
-        }
+        return await response.ToResultAsync<BookSearchFiltersDto>(cancellationToken);
     }
 }

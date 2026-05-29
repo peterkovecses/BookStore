@@ -13,5 +13,6 @@ global using BookStore.UI.Features.Books.Models;
 global using BookStore.UI.Common.Clients;
 global using BookStore.UI.Common.Models;
 global using BookStore.UI.Common.Constants;
+global using BookStore.UI.Common.Extensions;
 global using BookStore.UI;
 

@@ -10,4 +10,5 @@ global using BookStore.Catalog.Contracts.Dtos;
 global using BookStore.Common.Pagination;
 global using System.Net;
 global using System.Net.Http.Json;
+global using System.Text;
 global using Microsoft.AspNetCore.Components;
