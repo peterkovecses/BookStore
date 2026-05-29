@@ -25,9 +25,11 @@ public static class HttpResponseMessageExtensions
 
             if (response.StatusCode == HttpStatusCode.BadRequest)
             {
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
                 try
                 {
-                    var validationProblem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(cancellationToken);
+                    var validationProblem = JsonSerializer.Deserialize<ValidationProblemDetails>(content, JsonSerializerOptions.Web);
 
                     if (validationProblem?.Errors is not null)
                     {
@@ -42,23 +44,39 @@ public static class HttpResponseMessageExtensions
                 {
                     // Fallback to generic error if validation problem parsing fails
                 }
+
+                string? errorMessage = null;
+
+                try
+                {
+                    var problem = JsonSerializer.Deserialize<ProblemDetails>(content, JsonSerializerOptions.Web);
+                    errorMessage = problem?.Detail ?? problem?.Title;
+                }
+                catch
+                {
+                    // Fallback to status code message if problem details parsing fails
+                }
+
+                errorMessage ??= $"API call failed with status code {response.StatusCode}";
+
+                return Result.Failure<T>(UIErrors.ApiError(errorMessage));
             }
 
-            string? errorMessage = null;
+            string? genericErrorMessage = null;
 
             try
             {
                 var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken);
-                errorMessage = problem?.Detail ?? problem?.Title;
+                genericErrorMessage = problem?.Detail ?? problem?.Title;
             }
             catch
             {
                 // Fallback to status code message if problem details parsing fails
             }
 
-            errorMessage ??= $"API call failed with status code {response.StatusCode}";
+            genericErrorMessage ??= $"API call failed with status code {response.StatusCode}";
 
-            return Result.Failure<T>(UIErrors.ApiError(errorMessage));
+            return Result.Failure<T>(UIErrors.ApiError(genericErrorMessage));
         }
         catch (Exception ex)
         {
