@@ -18,12 +18,12 @@ public abstract class ListComponentBase<TItem, TFilter> : CustomComponentBase
     /// <summary>
     /// Gets or sets the pagination state.
     /// </summary>
-    protected UIPagination Pagination { get; set; } = new();
+    protected PaginationParameters Pagination { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the sorting state.
     /// </summary>
-    protected UISorting Sorting { get; set; } = new();
+    protected SortingParameters Sorting { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the paginated list of items.
