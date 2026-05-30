@@ -44,7 +44,8 @@
     private void ClearSearch()
     {
         SearchTerm = string.Empty;
-        _debouncer.Debounce(() => InvokeAsync(() => OnSearch.InvokeAsync(string.Empty)), 0);
+        _debouncer.Cancel();
+        OnSearch.InvokeAsync(string.Empty);
     }
 
     public void Dispose()

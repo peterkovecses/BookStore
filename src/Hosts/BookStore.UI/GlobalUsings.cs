@@ -18,3 +18,4 @@ global using BookStore.UI.Common.Constants;
 global using BookStore.UI.Common.Extensions;
 global using BookStore.UI.Common.Services;
 global using BookStore.UI.Common.Utils;
+global using BookStore.UI;

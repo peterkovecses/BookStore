@@ -30,6 +30,15 @@ public sealed class Debouncer : IDisposable
         _timer.Start();
     }
 
+    /// <summary>
+    /// Cancels any pending debounced action.
+    /// </summary>
+    public void Cancel()
+    {
+        _timer.Stop();
+        _action = null;
+    }
+
     private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
     {
         _action?.Invoke();
