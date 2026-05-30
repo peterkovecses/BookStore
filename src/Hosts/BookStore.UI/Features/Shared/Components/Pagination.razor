@@ -1,0 +1,110 @@
+<div class="row mt-2 mb-3">
+    <div class="col-md-6">
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <li class="page-item @DisableWhenCurrentIsFirstPage" @onclick="() => NavigateToPage(CurrentPage - 1)">
+                    <button class="page-link" aria-label="Previous" disabled="@IsFirstPage">Previous</button>
+                </li>
+                @{
+                    if (RequiresDisplayFirstPageSeparately)
+                    {
+                        <li class="page-item" @onclick="() => NavigateToPage(1)">
+                            <button class="page-link">1</button>
+                        </li>
+                        if (RequiresGapBeforeFirstDisplayedPage)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                    }
+
+                    for (int i = FirstDisplayedPage; i <= LastDisplayedPage; i++)
+                    {
+                        var pageNumber = i;
+                        <li class="page-item @(CurrentPage == pageNumber ? "active" : "")" @onclick="() => NavigateToPage(pageNumber)">
+                            <button class="page-link">@pageNumber</button>
+                        </li>
+                    }
+
+                    if (RequiresDisplayLastPageSeparately)
+                    {
+                        if (RequiresGapAfterLastDisplayedPage)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                        <li class="page-item @(CurrentPage == TotalPages ? "active" : "")" @onclick="() => NavigateToPage(TotalPages)">
+                            <button class="page-link">@TotalPages</button>
+                        </li>
+                    }
+                }
+                <li class="page-item @DisableWhenCurrentIsLastPage" @onclick="() => NavigateToPage(CurrentPage + 1)">
+                    <button class="page-link" aria-label="Next" disabled="@IsLastPage">Next</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <div class="col-md-6 d-flex align-items-center justify-content-md-end">
+        <div class="d-flex align-items-center mb-3">
+            <label class="me-2 text-nowrap" for="pageSizeSelect">Page size:</label>
+            <select class="form-select w-auto" id="pageSizeSelect" value="@PageSize" @onchange="OnPageSizeChangedHandler">
+                @foreach (var size in PageSizes)
+                {
+                    <option value="@size">@size</option>
+                }
+            </select>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] 
+    public int CurrentPage { get; set; }
+
+    [Parameter]
+    public List<int> PageSizes { get; set; } = [15, 25, 50, 100];
+
+    [Parameter] 
+    public int PageSize { get; set; }
+
+    [Parameter] 
+    public int TotalItems { get; set; }
+
+    [Parameter] 
+    public EventCallback<int> OnPageChanged { get; set; }
+
+    [Parameter] 
+    public EventCallback<int> OnPageSizeChanged { get; set; }
+
+    private int TotalPages => (int)Math.Ceiling(TotalItems / (double)PageSize);
+    private int DisplayedPages => Math.Min(TotalPages, 5);
+    private int FirstDisplayedPage => Math.Max(1, Math.Min(TotalPages - DisplayedPages + 1, CurrentPage - DisplayedPages / 2));
+    private int LastDisplayedPage => FirstDisplayedPage + DisplayedPages - 1;
+
+    private void OnPageSizeChangedHandler(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var size))
+        {
+            OnPageSizeChanged.InvokeAsync(size);
+        }
+    }
+
+    private void NavigateToPage(int pageNumber)
+    {
+        if (pageNumber >= 1 && pageNumber <= TotalPages && pageNumber != CurrentPage)
+        {
+            OnPageChanged.InvokeAsync(pageNumber);
+        }
+    }
+
+    private string DisableWhenCurrentIsFirstPage => CurrentPage == 1 ? "disabled" : "";
+    private string DisableWhenCurrentIsLastPage => CurrentPage >= TotalPages ? "disabled" : "";
+    private bool IsFirstPage => CurrentPage == 1;
+    private bool IsLastPage => CurrentPage >= TotalPages;
+    private bool RequiresDisplayFirstPageSeparately => FirstDisplayedPage != 1;
+    private bool RequiresDisplayLastPageSeparately => LastDisplayedPage != TotalPages;
+    private bool RequiresGapBeforeFirstDisplayedPage => FirstDisplayedPage > 2;
+    private bool RequiresGapAfterLastDisplayedPage => LastDisplayedPage < TotalPages - 1;
+}

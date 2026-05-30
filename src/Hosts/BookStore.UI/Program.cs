@@ -4,6 +4,8 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddServiceDiscovery();
 
+builder.Services.AddScoped<NotificationService>();
+
 builder.Services.AddHttpClient<IBookStoreApiClient, BookStoreApiClient>(client => 
 {
     client.BaseAddress = new("https://bookstore-api");

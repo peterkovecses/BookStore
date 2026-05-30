@@ -1,6 +1,9 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">BookStore.UI</a>
+        <a class="navbar-brand d-flex align-items-center" href="">
+            <i class="bi bi-book-fill me-2 fs-4"></i>
+            <span class="fw-bold">BookStore</span>
+        </a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -11,17 +14,18 @@
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <i class="bi bi-house-door-fill me-2"></i> Home
             </NavLink>
         </div>
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+            <NavLink class="nav-link" href="books">
+                <i class="bi bi-collection-fill me-2"></i> Books
             </NavLink>
         </div>
+        <hr class="mx-3 text-white-50" />
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
+            <NavLink class="nav-link text-white-50 small" href="about">
+                <i class="bi bi-info-circle-fill me-2"></i> About
             </NavLink>
         </div>
     </nav>

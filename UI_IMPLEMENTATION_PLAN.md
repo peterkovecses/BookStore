@@ -42,16 +42,16 @@
 ## Implementation Checklist
 
 ### Phase 1: Project Setup & Infrastructure
-- [ ] Create `BookStore.Web` (Blazor WASM) in `src/Hosts/`.
-- [ ] Add project to `BookStore.sln` and `BookStore.AppHost`.
-- [ ] Configure `GlobalUsings.cs` and coding standards.
-- [ ] Implement `IBookStoreApiClient` with REST-to-Result mapping logic.
-- [ ] Create `Common/Extensions/NavigationManagerExtensions` for QueryString parsing.
+- [x] Create `BookStore.Web` (Blazor WASM) in `src/Hosts/`.
+- [x] Add project to `BookStore.sln` and `BookStore.AppHost`.
+- [x] Configure `GlobalUsings.cs` and coding standards.
+- [x] Implement `IBookStoreApiClient` with REST-to-Result mapping logic.
+- [x] Create `Common/Extensions/NavigationManagerExtensions` for QueryString parsing.
 
 ### Phase 2: Core Abstractions & Layout
-- [ ] Implement `Features/Shared/BaseComponents` (`CustomComponentBase`, `ListComponentBase`).
-- [ ] Implement `Features/Shared/Components` (`Pagination`, `RatingStars`, `SearchBox`).
-- [ ] Implement `MainLayout` with responsive Navbar and **Central Search**.
+- [x] Implement `Features/Shared/BaseComponents` (`CustomComponentBase`, `ListComponentBase`).
+- [x] Implement `Features/Shared/Components` (`Pagination`, `RatingStars`, `SearchBox`).
+- [x] Implement `MainLayout` with responsive Navbar and **Central Search**.
 
 ### Phase 3: Book Feature
 - [ ] Implement `Features/Books/Pages/BookList`:

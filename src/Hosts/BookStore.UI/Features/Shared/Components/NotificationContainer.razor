@@ -1,0 +1,69 @@
+<div class="notification-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+    @foreach (var notification in _notifications)
+    {
+        <div class="alert @(notification.IsSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show shadow-sm" role="alert" @key="notification.Id">
+            <div class="d-flex align-items-center">
+                @if (notification.IsSuccess)
+                {
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                }
+                else
+                {
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                }
+                <div>@notification.Message</div>
+            </div>
+            <button type="button" class="btn-close" aria-label="Close" @onclick="() => RemoveNotification(notification)"></button>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly List<Notification> _notifications = new();
+
+    [Inject]
+    public NotificationService NotificationService { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        NotificationService.OnNotificationAdded += AddNotification;
+        NotificationService.OnNotificationsCleared += ClearNotifications;
+    }
+
+    private void AddNotification(Notification notification)
+    {
+        _notifications.Add(notification);
+        StateHasChanged();
+
+        if (notification.AutoHide)
+        {
+            _ = AutoHideNotificationAsync(notification);
+        }
+    }
+
+    private async Task AutoHideNotificationAsync(Notification notification)
+    {
+        await Task.Delay(5000);
+        RemoveNotification(notification);
+    }
+
+    private void RemoveNotification(Notification notification)
+    {
+        if (_notifications.Remove(notification))
+        {
+            StateHasChanged();
+        }
+    }
+
+    private void ClearNotifications()
+    {
+        _notifications.Clear();
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NotificationService.OnNotificationAdded -= AddNotification;
+        NotificationService.OnNotificationsCleared -= ClearNotifications;
+    }
+}
