@@ -2,6 +2,7 @@ global using System.Net;
 global using System.Net.Http.Json;
 global using System.Text.Json;
 global using System.ComponentModel;
+global using System.Timers;
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.AspNetCore.Components.Web;
 global using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -16,5 +17,4 @@ global using BookStore.UI.Common.Models;
 global using BookStore.UI.Common.Constants;
 global using BookStore.UI.Common.Extensions;
 global using BookStore.UI.Common.Services;
-global using BookStore.UI;
-
+global using BookStore.UI.Common.Utils;

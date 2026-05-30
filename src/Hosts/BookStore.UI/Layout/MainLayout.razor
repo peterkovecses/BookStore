@@ -10,7 +10,7 @@
             <div class="container-fluid d-flex align-items-center">
                 <div class="flex-grow-1 d-flex justify-content-center mx-4">
                     <div style="max-width: 600px; width: 100%;">
-                        <BookStore.UI.Features.Shared.Components.SearchBox 
+                        <SearchBox 
                             Placeholder="Search for books, authors or tags..." 
                             OnSearch="HandleGlobalSearch" />
                     </div>
@@ -24,7 +24,7 @@
         </div>
 
         <article class="content px-4 py-4">
-            <BookStore.UI.Features.Shared.Components.NotificationContainer />
+            <NotificationContainer />
             @Body
         </article>
     </main>

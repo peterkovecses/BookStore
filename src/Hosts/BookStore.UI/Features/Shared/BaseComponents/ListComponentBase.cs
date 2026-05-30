@@ -8,7 +8,7 @@ namespace BookStore.UI.Features.Shared.BaseComponents;
 public abstract class ListComponentBase<TItem, TFilter> : CustomComponentBase
     where TFilter : class, new()
 {
-    private System.Timers.Timer? _debounceTimer;
+    private readonly Debouncer _debouncer = new();
 
     /// <summary>
     /// Gets or sets the filter object.
@@ -109,23 +109,13 @@ public abstract class ListComponentBase<TItem, TFilter> : CustomComponentBase
     /// <param name="milliseconds">The debounce period in milliseconds.</param>
     protected void Debounce(Action action, int milliseconds = 300)
     {
-        _debounceTimer?.Stop();
-        _debounceTimer?.Dispose();
-
-        _debounceTimer = new System.Timers.Timer(milliseconds);
-        _debounceTimer.Elapsed += (s, e) => 
-        {
-            _debounceTimer.Stop();
-            _ = InvokeAsync(action);
-        };
-        _debounceTimer.Start();
+        _debouncer.Debounce(() => InvokeAsync(action), milliseconds);
     }
 
     /// <inheritdoc />
     public override void Dispose()
     {
-        _debounceTimer?.Stop();
-        _debounceTimer?.Dispose();
+        _debouncer.Dispose();
         base.Dispose();
     }
 }

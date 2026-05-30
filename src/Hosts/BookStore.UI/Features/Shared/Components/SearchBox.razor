@@ -1,3 +1,5 @@
+@implements IDisposable
+
 <div class="input-group @Class">
     <span class="input-group-text bg-white border-end-0">
         <i class="bi bi-search text-muted"></i>
@@ -16,7 +18,7 @@
 </div>
 
 @code {
-    private System.Timers.Timer? _debounceTimer;
+    private readonly Debouncer _debouncer = new();
 
     [Parameter]
     public string? SearchTerm { get; set; }
@@ -36,29 +38,17 @@
     private void OnInput(ChangeEventArgs e)
     {
         SearchTerm = e.Value?.ToString();
-        
-        _debounceTimer?.Stop();
-        _debounceTimer?.Dispose();
-
-        _debounceTimer = new System.Timers.Timer(DebounceMilliseconds);
-        _debounceTimer.Elapsed += (s, args) => 
-        {
-            _debounceTimer.Stop();
-            InvokeAsync(() => OnSearch.InvokeAsync(SearchTerm ?? string.Empty));
-        };
-        _debounceTimer.Start();
+        _debouncer.Debounce(() => InvokeAsync(() => OnSearch.InvokeAsync(SearchTerm ?? string.Empty)), DebounceMilliseconds);
     }
 
     private void ClearSearch()
     {
         SearchTerm = string.Empty;
-        _debounceTimer?.Stop();
-        OnSearch.InvokeAsync(string.Empty);
+        _debouncer.Debounce(() => InvokeAsync(() => OnSearch.InvokeAsync(string.Empty)), 0);
     }
 
     public void Dispose()
     {
-        _debounceTimer?.Stop();
-        _debounceTimer?.Dispose();
+        _debouncer.Dispose();
     }
 }

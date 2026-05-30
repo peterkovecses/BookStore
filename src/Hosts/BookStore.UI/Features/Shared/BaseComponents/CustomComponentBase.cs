@@ -8,10 +8,10 @@ public abstract class CustomComponentBase : ComponentBase, IDisposable
     private CancellationTokenSource? _cancellationTokenSource;
 
     [Inject]
-    protected NavigationManager NavigationManager { get; set; } = default!;
+    protected NavigationManager NavigationManager { get; init; } = default!;
 
     [Inject]
-    protected NotificationService NotificationService { get; set; } = default!;
+    protected NotificationService NotificationService { get; init; } = default!;
 
     /// <summary>
     /// Gets or sets a value indicating whether the component is currently loading data.
