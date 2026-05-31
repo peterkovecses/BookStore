@@ -222,6 +222,66 @@ public class NavigationManagerExtensionsTests
         actual.Should().Contain("28");
     }
 
+    [Fact]
+    public void TryGetQueryParameters_WhenMultipleValidValuesExist_ShouldReturnTrueAndList()
+    {
+        // Arrange
+        const string key = "ids";
+        _navManager.SetUri($"http://localhost/books?{key}=1&{key}=2&{key}=3");
+
+        // Act
+        var result = _navManager.TryGetQueryParameters<int>(key, out var actualValues);
+
+        // Assert
+        result.Should().BeTrue();
+        actualValues.Should().HaveCount(3).And.ContainInOrder(1, 2, 3);
+    }
+
+    [Fact]
+    public void TryGetQueryParameters_WhenMixedValidAndInvalidValuesExist_ShouldReturnOnlyValidValues()
+    {
+        // Arrange
+        const string key = "ids";
+        _navManager.SetUri($"http://localhost/books?{key}=1&{key}=abc&{key}=3");
+
+        // Act
+        var result = _navManager.TryGetQueryParameters<int>(key, out var actualValues);
+
+        // Assert
+        result.Should().BeTrue();
+        actualValues.Should().HaveCount(2).And.ContainInOrder(1, 3);
+    }
+
+    [Fact]
+    public void TryGetQueryParameters_WhenKeyExistsButNoValuesAreValid_ShouldReturnFalseAndEmptyList()
+    {
+        // Arrange
+        const string key = "ids";
+        _navManager.SetUri($"http://localhost/books?{key}=abc&{key}=def");
+
+        // Act
+        var result = _navManager.TryGetQueryParameters<int>(key, out var actualValues);
+
+        // Assert
+        result.Should().BeFalse();
+        actualValues.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void TryGetQueryParameters_WhenTypeIsNotSupported_ShouldReturnFalse()
+    {
+        // Arrange
+        const string key = "data";
+        _navManager.SetUri($"http://localhost/books?{key}=val1&{key}=val2");
+
+        // Act
+        var result = _navManager.TryGetQueryParameters<object>(key, out var actualValues);
+
+        // Assert
+        result.Should().BeFalse();
+        actualValues.Should().BeEmpty();
+    }
+
     private class MockNavigationManager : NavigationManager
     {
         public MockNavigationManager() => Initialize("http://localhost/", "http://localhost/");

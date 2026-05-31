@@ -1,0 +1,84 @@
+@page "/books"
+@inherits ListComponentBase<BookSummaryDto, BookSearchParameters>
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        <BookSearchFilter Filter="@Filter" OnFilterChanged="OnFilterChanged" />
+    </div>
+
+    <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-0">Explore Books</h4>
+                @if (Items is not null)
+                {
+                    <span class="text-muted small">Showing @Items.Items.Count() of @Items.TotalCount results</span>
+                }
+            </div>
+
+            <div class="d-flex align-items-center">
+                <label class="me-2 text-muted small text-nowrap" for="sortSelect">Sort by:</label>
+                <select class="form-select form-select-sm w-auto rounded-pill" id="sortSelect" @bind="Sorting.SortBy" @bind:after="OnFilterChanged">
+                    <option value="Title">Title</option>
+                    <option value="PublishedOn">Newest</option>
+                    <option value="Price">Price</option>
+                    <option value="AverageRating">Top Rated</option>
+                </select>
+                <button class="btn btn-sm btn-light ms-2 rounded-circle" @onclick="ToggleSortDirection">
+                    <i class="bi @(Sorting.IsDescending ? "bi-sort-down" : "bi-sort-up")"></i>
+                </button>
+            </div>
+        </div>
+
+        @if (Loading && Items is null)
+        {
+            <div class="row g-4">
+                @for (int i = 0; i < 6; i++)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card h-100 border-0 shadow-sm placeholder-glow">
+                            <div class="placeholder w-100" style="height: 250px;"></div>
+                            <div class="card-body p-4">
+                                <div class="placeholder col-4 mb-2"></div>
+                                <h5 class="placeholder col-8 mb-2"></h5>
+                                <div class="placeholder col-6 mb-3"></div>
+                                <div class="placeholder col-12"></div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else if (Items is not null && Items.Items.Any())
+        {
+            <div class="row g-4">
+                @foreach (var book in Items.Items)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <BookCard Book="@book" />
+                    </div>
+                }
+            </div>
+
+            <div class="mt-5">
+                <Pagination 
+                    CurrentPage="@Pagination.PageNumber" 
+                    PageSize="@Pagination.PageSize" 
+                    TotalItems="@Items.TotalCount" 
+                    OnPageChanged="OnPageChanged" 
+                    OnPageSizeChanged="OnPageSizeChanged" />
+            </div>
+        }
+        else if (!Loading)
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-search text-muted opacity-25" style="font-size: 5rem;"></i>
+                <h5 class="mt-4 fw-bold">No books found</h5>
+                <p class="text-muted">Try adjusting your filters or search term.</p>
+                <button class="btn btn-primary rounded-pill mt-2" @onclick="() => { Filter.Clear(); UpdateUrl(); }">
+                    Clear all filters
+                </button>
+            </div>
+        }
+    </div>
+</div>

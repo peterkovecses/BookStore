@@ -54,13 +54,13 @@
 - [x] Implement `MainLayout` with responsive Navbar and **Central Search**.
 
 ### Phase 3: Book Feature
-- [ ] Implement `Features/Books/Pages/BookList`:
-    - Sidebar with `SearchBooksFilter` (Genres, Authors).
-    - Grid/List view of books.
-    - Integration with `SearchBooks` API.
-    - Debounced filter application.
-    - **Validation:** Implement client-side validation for pagination and search parameters.
-- [ ] Implement `Features/Books/Pages/BookDetails`.
+- [x] Implement `Features/Books/Pages/BookList`:
+    - [x] Sidebar with `SearchBooksFilter` (Genres, Authors).
+    - [x] Grid/List view of books.
+    - [x] Integration with `SearchBooks` API.
+    - [x] Debounced filter application.
+    - [x] **Validation:** Implement client-side validation for pagination and search parameters.
+- [x] Implement `Features/Books/Pages/BookDetails`.
 
 ### Phase 4: Validation
 - [ ] Full responsiveness check.

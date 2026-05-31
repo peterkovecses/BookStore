@@ -5,14 +5,7 @@
     {
         <div class="alert @(notification.IsSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show shadow-sm" role="alert" @key="notification.Id">
             <div class="d-flex align-items-center">
-                @if (notification.IsSuccess)
-                {
-                    <i class="bi bi-check-circle-fill me-2"></i>
-                }
-                else
-                {
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                }
+                <i class="bi @(notification.IsSuccess ? "bi-check-circle-fill" : "bi-exclamation-triangle-fill") me-2"></i>
                 <div>@notification.Message</div>
             </div>
             <button type="button" class="btn-close" aria-label="Close" @onclick="() => RemoveNotification(notification)"></button>
@@ -31,13 +24,16 @@
 
     private void AddNotification(Notification notification)
     {
-        _notifications.Add(notification);
-        StateHasChanged();
-
-        if (notification.AutoHide)
+        InvokeAsync(() =>
         {
-            _ = AutoHideNotificationAsync(notification);
-        }
+            _notifications.Add(notification);
+            StateHasChanged();
+
+            if (notification.AutoHide)
+            {
+                _ = AutoHideNotificationAsync(notification);
+            }
+        });
     }
 
     private async Task AutoHideNotificationAsync(Notification notification)
@@ -55,16 +51,22 @@
 
     private void RemoveNotification(Notification notification)
     {
-        if (_notifications.Remove(notification))
+        InvokeAsync(() =>
         {
-            StateHasChanged();
-        }
+            if (_notifications.Remove(notification))
+            {
+                StateHasChanged();
+            }
+        });
     }
 
     private void ClearNotifications()
     {
-        _notifications.Clear();
-        StateHasChanged();
+        InvokeAsync(() =>
+        {
+            _notifications.Clear();
+            StateHasChanged();
+        });
     }
 
     public override void Dispose()

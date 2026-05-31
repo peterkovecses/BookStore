@@ -1,0 +1,126 @@
+@inherits CustomComponentBase
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-4">Filters</h5>
+
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Search</label>
+            <SearchBox 
+                SearchTerm="@Filter.SearchTerm" 
+                Placeholder="Title, publisher..." 
+                OnSearch="HandleSearch" />
+        </div>
+
+        @if (_filters is not null)
+        {
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Authors</label>
+                <div class="d-flex flex-column gap-2 overflow-auto" style="max-height: 200px;">
+                    @foreach (var author in _filters.Authors)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                                   id="author-@author.Id" 
+                                   checked="@Filter.AuthorIds.Contains(author.Id)"
+                                   @onchange="e => ToggleAuthor(author.Id, (bool)(e.Value ?? false))" />
+                            <label class="form-check-label" for="author-@author.Id">
+                                @author.Name
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Tags</label>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var tag in _filters.TagIds)
+                    {
+                        <button type="button" 
+                                class="btn btn-sm @(Filter.TagIds.Contains(tag) ? "btn-primary" : "btn-outline-secondary") rounded-pill"
+                                @onclick="() => ToggleTag(tag)">
+                            @tag
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+        else if (Loading)
+        {
+            <div class="text-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+
+        <div class="d-grid gap-2 mt-4">
+            <button class="btn btn-outline-danger btn-sm rounded-pill" @onclick="ClearFilters">
+                <i class="bi bi-trash me-2"></i>Clear Filters
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public BookSearchParameters Filter { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback OnFilterChanged { get; set; }
+
+    [Inject]
+    private IBookStoreApiClient ApiClient { get; init; } = default!;
+
+    private BookSearchFiltersDto? _filters;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Loading = true;
+        var result = await ApiClient.GetSearchFiltersAsync(CancellationToken);
+        if (result.IsSuccess)
+        {
+            _filters = result.Data;
+        }
+        Loading = false;
+    }
+
+    private async Task HandleSearch(string searchTerm)
+    {
+        Filter.SearchTerm = searchTerm;
+        await OnFilterChanged.InvokeAsync();
+    }
+
+    private async Task ToggleAuthor(int authorId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            Filter.AuthorIds.Add(authorId);
+            await OnFilterChanged.InvokeAsync();
+            return;
+        }
+
+        Filter.AuthorIds.Remove(authorId);
+        await OnFilterChanged.InvokeAsync();
+    }
+
+    private async Task ToggleTag(string tagId)
+    {
+        if (Filter.TagIds.Contains(tagId))
+        {
+            Filter.TagIds.Remove(tagId);
+            await OnFilterChanged.InvokeAsync();
+            return;
+        }
+
+        Filter.TagIds.Add(tagId);
+        await OnFilterChanged.InvokeAsync();
+    }
+
+    private async Task ClearFilters()
+    {
+        Filter.Clear();
+        await OnFilterChanged.InvokeAsync();
+    }
+}

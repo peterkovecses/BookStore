@@ -34,7 +34,6 @@ public abstract class ListComponentBase<TItem, TFilter> : CustomComponentBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        SyncStateWithUrl();
     }
 
     /// <summary>
@@ -47,25 +46,19 @@ public abstract class ListComponentBase<TItem, TFilter> : CustomComponentBase
     /// </summary>
     protected virtual void SyncStateWithUrl()
     {
-        if (NavigationManager.TryGetQueryParameter<int>("page", out var page) && page > 0)
-        {
-            Pagination.PageNumber = page;
-        }
+        Pagination.PageNumber = NavigationManager.TryGetQueryParameter<int>("page", out var page) && page > 0 
+            ? page 
+            : IPagination.MinPageNumber;
 
-        if (NavigationManager.TryGetQueryParameter<int>("pageSize", out var pageSize) && pageSize > 0)
-        {
-            Pagination.PageSize = pageSize;
-        }
+        Pagination.PageSize = NavigationManager.TryGetQueryParameter<int>("pageSize", out var pageSize) && pageSize > 0 
+            ? pageSize 
+            : IPagination.DefaultPageSize;
 
-        if (NavigationManager.TryGetQueryParameter<string>("sortBy", out var sortBy))
-        {
-            Sorting.SortBy = sortBy;
-        }
+        Sorting.SortBy = NavigationManager.TryGetQueryParameter<string>("sortBy", out var sortBy) 
+            ? sortBy 
+            : null;
 
-        if (NavigationManager.TryGetQueryParameter<bool>("desc", out var desc))
-        {
-            Sorting.IsDescending = desc;
-        }
+        Sorting.IsDescending = NavigationManager.TryGetQueryParameter<bool>("desc", out var desc) && desc;
 
         SyncFilterWithUrl();
     }

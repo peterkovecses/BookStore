@@ -1,0 +1,67 @@
+@if (Book is null)
+{
+    return;
+}
+
+<div class="card h-100 border-0 shadow-sm hover-shadow transition">
+    <div class="position-relative overflow-hidden" style="height: 250px; background-color: #f8f9fa;">
+        @if (!string.IsNullOrEmpty(Book.ImageUrl))
+        {
+            <img src="@Book.ImageUrl" class="card-img-top h-100 w-100 object-fit-contain p-3" alt="@Book.Title" />
+        }
+        else
+        {
+            <div class="d-flex align-items-center justify-content-center h-100">
+                <i class="bi bi-book text-secondary opacity-25" style="font-size: 5rem;"></i>
+            </div>
+        }
+        
+        @if (Book.Promotion is not null)
+        {
+            <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge bg-danger rounded-pill shadow-sm">
+                    Sale
+                </span>
+            </div>
+        }
+    </div>
+    
+    <div class="card-body d-flex flex-column p-4">
+        <div class="mb-2">
+            @foreach (var tag in Book.Tags.Take(3))
+            {
+                <span class="badge bg-light text-secondary rounded-pill me-1 small fw-normal">@tag.Id</span>
+            }
+        </div>
+        
+        <h6 class="card-title fw-bold mb-1 text-truncate" title="@Book.Title">@Book.Title</h6>
+        <p class="card-text text-muted small mb-2 text-truncate">
+            by @string.Join(", ", Book.Authors.Select(a => a.Name))
+        </p>
+        
+        <div class="mb-3">
+            <RatingStars Rating="@Book.AverageRating" ReviewCount="@Book.ReviewCount" />
+        </div>
+        
+        <div class="mt-auto d-flex align-items-center justify-content-between">
+            <div class="d-flex flex-column">
+                @if (Book.Promotion is not null)
+                {
+                    <span class="text-decoration-line-through text-muted small">@Book.Price.ToString("C")</span>
+                }
+                <span class="fw-bold @(Book.Promotion is not null ? "text-danger fs-5" : "fs-5")">
+                    @((Book.Promotion?.NewPrice ?? Book.Price).ToString("C"))
+                </span>
+            </div>
+            
+            <a href="/books/@Book.Id" class="btn btn-outline-primary rounded-pill btn-sm px-3">
+                Details
+            </a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public BookSummaryDto Book { get; set; } = default!;
+}

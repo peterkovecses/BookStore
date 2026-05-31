@@ -47,6 +47,53 @@ public static class NavigationManagerExtensions
     }
 
     /// <summary>
+    /// Tries to get multiple query parameter values for a specific key.
+    /// </summary>
+    /// <typeparam name="T">The type of the parameter values.</typeparam>
+    /// <param name="navigationManager">The navigation manager.</param>
+    /// <param name="key">The query parameter key.</param>
+    /// <param name="values">When this method returns, contains the list of successfully converted values.</param>
+    /// <returns><c>true</c> if the key was found and at least one value was successfully converted; otherwise, <c>false</c>.</returns>
+    public static bool TryGetQueryParameters<T>(this NavigationManager navigationManager, string key, out List<T> values)
+    {
+        values = [];
+        var uri = navigationManager.ToAbsoluteUri(navigationManager.Uri);
+
+        if (!QueryHelpers.ParseQuery(uri.Query).TryGetValue(key, out var valuesFromQueryString))
+        {
+            return false;
+        }
+
+        var converter = TypeDescriptor.GetConverter(typeof(T));
+
+        if (!converter.CanConvertFrom(typeof(string)))
+        {
+            return false;
+        }
+
+        foreach (var rawValue in valuesFromQueryString)
+        {
+            if (rawValue is not null && converter.IsValid(rawValue))
+            {
+                try
+                {
+                    var converted = (T?)converter.ConvertFromString(rawValue);
+                    if (converted is not null)
+                    {
+                        values.Add(converted);
+                    }
+                }
+                catch
+                {
+                    // Skip failed conversions
+                }
+            }
+        }
+
+        return values.Count > 0;
+    }
+
+    /// <summary>
     /// Returns a new URI with the specified query parameter updated or added.
     /// </summary>
     /// <typeparam name="T">The type of the parameter value.</typeparam>

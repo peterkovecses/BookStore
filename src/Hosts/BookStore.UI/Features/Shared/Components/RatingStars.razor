@@ -1,22 +1,11 @@
 <div class="d-flex align-items-center">
-    @if (Rating.HasValue && Rating > 0)
+    @if (Rating is > 0)
     {
         @for (var i = 1; i <= 5; i++)
         {
-            if (Rating >= i)
-            {
-                <i class="bi bi-star-fill text-warning"></i>
-            }
-            else if (Rating >= i - 0.5)
-            {
-                <i class="bi bi-star-half text-warning"></i>
-            }
-            else
-            {
-                <i class="bi bi-star text-secondary"></i>
-            }
+            <i class="bi @GetStarClass(i) @GetStarColor(i)"></i>
         }
-        if (ReviewCount.HasValue)
+        @if (ReviewCount.HasValue)
         {
             <span class="ms-1 text-muted">(@ReviewCount)</span>
         }
@@ -33,4 +22,17 @@
 
     [Parameter]
     public int? ReviewCount { get; set; }
+
+    private string GetStarClass(int i)
+    {
+        if (Rating >= i) return "bi-star-fill";
+        if (Rating >= i - 0.5) return "bi-star-half";
+        return "bi-star";
+    }
+
+    private string GetStarColor(int i)
+    {
+        if (Rating >= i - 0.5) return "text-warning";
+        return "text-secondary";
+    }
 }

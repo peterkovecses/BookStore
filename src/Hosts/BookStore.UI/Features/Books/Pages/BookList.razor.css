@@ -1,0 +1,25 @@
+.hover-shadow:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-5px);
+}
+
+.transition {
+    transition: all 0.3s ease-in-out;
+}
+
+.object-fit-contain {
+    object-fit: contain;
+}
+
+.badge {
+    font-weight: 500;
+}
+
+.form-check-input:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.card-title {
+    color: #2c3e50;
+}
