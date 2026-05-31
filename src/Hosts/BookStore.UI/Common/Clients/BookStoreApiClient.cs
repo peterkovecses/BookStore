@@ -1,40 +1,13 @@
-using Microsoft.JSInterop;
-using Microsoft.Extensions.Configuration;
-
 namespace BookStore.UI.Common.Clients;
 
-public class BookStoreApiClient(
-    HttpClient httpClient, 
-    IJSRuntime jsRuntime, 
-    IConfiguration configuration) : IBookStoreApiClient
+public class BookStoreApiClient(HttpClient httpClient) : IBookStoreApiClient
 {
-    private async Task EnsureBaseAddressSet()
-    {
-        if (httpClient.BaseAddress is not null)
-        {
-            return;
-        }
-
-        // Try to get the URL from the index.html placeholder (via JS)
-        var apiUrl = await jsRuntime.InvokeAsync<string>("getApiUrl");
-
-        if (string.IsNullOrEmpty(apiUrl) || apiUrl.StartsWith("{{"))
-        {
-            // Fallback to configuration or default localhost
-            apiUrl = configuration["ApiBaseUrl"] ?? "https://localhost:7068";
-        }
-
-        httpClient.BaseAddress = new Uri(apiUrl.EndsWith('/') ? apiUrl : $"{apiUrl}/");
-    }
-
     public async Task<Result<PaginatedList<BookSummaryDto>>> SearchBooksAsync(
         BookSearchParameters searchParameters,
         IPagination pagination,
         ISorting sorting,
         CancellationToken cancellationToken)
     {
-        await EnsureBaseAddressSet();
-
         var query = new List<KeyValuePair<string, string?>>();
 
         if (!string.IsNullOrWhiteSpace(searchParameters.SearchTerm))
@@ -71,8 +44,6 @@ public class BookStoreApiClient(
 
     public async Task<Result<BookDetailsDto>> GetBookDetailsAsync(int id, CancellationToken cancellationToken)
     {
-        await EnsureBaseAddressSet();
-
         using var response = await httpClient.GetAsync($"api/catalog/books/{id}", cancellationToken);
 
         return await response.ToResultAsync<BookDetailsDto>(cancellationToken);
@@ -80,8 +51,6 @@ public class BookStoreApiClient(
 
     public async Task<Result<BookSearchFiltersDto>> GetSearchFiltersAsync(CancellationToken cancellationToken)
     {
-        await EnsureBaseAddressSet();
-
         using var response = await httpClient.GetAsync("api/catalog/books/filters", cancellationToken);
 
         return await response.ToResultAsync<BookSearchFiltersDto>(cancellationToken);

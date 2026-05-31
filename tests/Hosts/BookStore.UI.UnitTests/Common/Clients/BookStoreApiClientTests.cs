@@ -4,18 +4,12 @@ public class BookStoreApiClientTests
 {
     private readonly MockHttpMessageHandler _httpMessageHandler = new();
     private readonly HttpClient _httpClient;
-    private readonly IJSRuntime _jsRuntime = Substitute.For<IJSRuntime>();
-    private readonly IConfiguration _configuration = Substitute.For<IConfiguration>();
     private readonly BookStoreApiClient _sut;
 
     public BookStoreApiClientTests()
     {
         _httpClient = new HttpClient(_httpMessageHandler) { BaseAddress = new Uri("http://localhost/") };
-        
-        _jsRuntime.InvokeAsync<string>("getApiUrl", Arg.Any<object?[]>())
-            .Returns(new ValueTask<string>("http://localhost/"));
-
-        _sut = new BookStoreApiClient(_httpClient, _jsRuntime, _configuration);
+        _sut = new BookStoreApiClient(_httpClient);
     }
 
     [Fact]

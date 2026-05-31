@@ -10,12 +10,11 @@ public static class DependencyInjection
         {
             options.AddDefaultPolicy(builder =>
             {
-                var uiUrl = configuration["services:bookstore-ui:https:0"] ?? 
-                            configuration["services:bookstore-ui:http:0"];
+                var allowedOrigins = configuration["AllowedOrigins"];
 
-                if (!string.IsNullOrEmpty(uiUrl))
+                if (!string.IsNullOrEmpty(allowedOrigins))
                 {
-                    builder.WithOrigins(uiUrl)
+                    builder.WithOrigins(allowedOrigins)
                            .AllowAnyMethod()
                            .AllowAnyHeader();
                 }

@@ -13,6 +13,8 @@ var sql = builder.AddSqlServer("sqlserver")
 var bookStoreDb = sql.AddDatabase("BookStoreDb");
 
 var bookStoreApi = builder.AddProject<Projects.BookStore_Api>("bookstore-api")
+    .WithExternalHttpEndpoints()
+    .WithHttpsEndpoint(port: 5001)
     .WithReference(blobs)
     .WithReference(bookStoreDb)
     .WaitFor(blobs)
@@ -22,6 +24,6 @@ var bookStoreUi = builder.AddProject<Projects.BookStore_UI>("bookstore-ui")
     .WithReference(bookStoreApi)
     .WaitFor(bookStoreApi);
 
-bookStoreApi.WithReference(bookStoreUi);
+bookStoreApi.WithEnvironment("AllowedOrigins", bookStoreUi.GetEndpoint("https"));
 
 builder.Build().Run();
