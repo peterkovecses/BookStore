@@ -5,12 +5,6 @@ public partial class BookList
     [Inject]
     private IBookStoreApiClient ApiClient { get; init; } = default!;
 
-    protected override async Task OnParametersSetAsync()
-    {
-        SyncStateWithUrl();
-        await LoadDataAsync();
-    }
-
     protected override async Task LoadDataAsync()
     {
         Items = null;
@@ -58,7 +52,7 @@ public partial class BookList
         return new Dictionary<string, object?>
         {
             ["searchTerm"] = string.IsNullOrWhiteSpace(Filter.SearchTerm) ? null : Filter.SearchTerm,
-            ["authorIds"] = Filter.AuthorIds.Count == 0 ? null : Filter.AuthorIds.Select(id => (object)id).ToArray(),
+            ["authorIds"] = Filter.AuthorIds.Count == 0 ? null : Filter.AuthorIds.ToArray(),
             ["tagIds"] = Filter.TagIds.Count == 0 ? null : Filter.TagIds.ToArray()
         };
     }

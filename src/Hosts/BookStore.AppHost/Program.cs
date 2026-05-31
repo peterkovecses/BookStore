@@ -18,8 +18,10 @@ var bookStoreApi = builder.AddProject<Projects.BookStore_Api>("bookstore-api")
     .WaitFor(blobs)
     .WaitFor(bookStoreDb);
 
-builder.AddProject<Projects.BookStore_UI>("bookstore-ui")
+var bookStoreUi = builder.AddProject<Projects.BookStore_UI>("bookstore-ui")
     .WithReference(bookStoreApi)
     .WaitFor(bookStoreApi);
+
+bookStoreApi.WithReference(bookStoreUi);
 
 builder.Build().Run();

@@ -1,6 +1,6 @@
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
-builder.Services.AddApiServices();
+builder.Services.AddApiServices(builder.Configuration);
 builder.AddCatalogModuleServices();
 
 var app = builder.Build();
@@ -13,6 +13,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 app.UseHttpsRedirection();
+app.UseCors();
 app.MapCatalogEndpoints();
 
 app.Run();

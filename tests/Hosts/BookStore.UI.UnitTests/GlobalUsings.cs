@@ -1,4 +1,5 @@
 global using FluentAssertions;
+global using NSubstitute;
 global using Kovecses.Result.FluentAssertions;
 global using BookStore.UI.Common.Clients;
 global using BookStore.UI.Common.Models;
@@ -13,4 +14,6 @@ global using System.Text;
 global using BookStore.UI.Common.Services;
 global using BookStore.UI.Common.Utils;
 global using Microsoft.AspNetCore.Components;
+global using Microsoft.JSInterop;
+global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.Time.Testing;

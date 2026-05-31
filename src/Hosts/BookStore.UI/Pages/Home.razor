@@ -1,7 +1,73 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Home | BookStore</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container py-5">
+    <div class="row align-items-center g-5 py-5">
+        <div class="col-lg-6">
+            <h1 class="display-3 fw-bold lh-1 mb-4 text-primary">Discover Your Next Favorite Story</h1>
+            <p class="lead text-muted mb-5">
+                Explore our vast collection of books from world-renowned authors. Whether you're looking for timeless classics, modern thrillers, or insightful technical guides, we have something for every reader.
+            </p>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start mb-4 mb-lg-3">
+                <a href="books" class="btn btn-primary btn-lg px-4 me-md-2 fw-bold rounded-pill shadow">
+                    <i class="bi bi-collection-fill me-2"></i>Browse Collection
+                </a>
+                <button type="button" class="btn btn-outline-secondary btn-lg px-4 rounded-pill">
+                    Learn More
+                </button>
+            </div>
+        </div>
+        <div class="col-lg-6 text-center">
+            <div class="position-relative d-inline-block">
+                <div class="position-absolute top-0 start-0 translate-middle p-5 bg-primary bg-opacity-10 rounded-circle" style="width: 400px; height: 400px; z-index: -1;"></div>
+                <i class="bi bi-book-half text-primary opacity-75" style="font-size: 15rem;"></i>
+            </div>
+        </div>
+    </div>
 
-Welcome to your new app.
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3 mt-5 border-top">
+        <div class="col d-flex align-items-start">
+            <div class="icon-square bg-light text-primary flex-shrink-0 me-3 p-3 rounded shadow-sm">
+                <i class="bi bi-truck fs-2"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold fs-4">Fast Shipping</h3>
+                <p class="text-muted">Get your favorite books delivered to your doorstep in no time. We offer express delivery options for urgent reads.</p>
+            </div>
+        </div>
+        <div class="col d-flex align-items-start">
+            <div class="icon-square bg-light text-primary flex-shrink-0 me-3 p-3 rounded shadow-sm">
+                <i class="bi bi-shield-check fs-2"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold fs-4">Secure Payment</h3>
+                <p class="text-muted">Your transactions are safe with us. We use industry-standard encryption to protect your financial data.</p>
+            </div>
+        </div>
+        <div class="col d-flex align-items-start">
+            <div class="icon-square bg-light text-primary flex-shrink-0 me-3 p-3 rounded shadow-sm">
+                <i class="bi bi-stars fs-2"></i>
+            </div>
+            <div>
+                <h3 class="fw-bold fs-4">Curated Quality</h3>
+                <p class="text-muted">We take pride in our selection. Every book in our store is carefully picked to ensure the best reading experience.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .icon-square {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 4rem;
+        height: 40px; /* Base height for small icons, but using flex align center */
+        min-height: 4rem;
+    }
+    
+    .text-primary {
+        color: #0d6efd !important;
+    }
+</style>

@@ -4,12 +4,18 @@ public class BookStoreApiClientTests
 {
     private readonly MockHttpMessageHandler _httpMessageHandler = new();
     private readonly HttpClient _httpClient;
+    private readonly IJSRuntime _jsRuntime = Substitute.For<IJSRuntime>();
+    private readonly IConfiguration _configuration = Substitute.For<IConfiguration>();
     private readonly BookStoreApiClient _sut;
 
     public BookStoreApiClientTests()
     {
         _httpClient = new HttpClient(_httpMessageHandler) { BaseAddress = new Uri("http://localhost/") };
-        _sut = new BookStoreApiClient(_httpClient);
+        
+        _jsRuntime.InvokeAsync<string>("getApiUrl", Arg.Any<object?[]>())
+            .Returns(new ValueTask<string>("http://localhost/"));
+
+        _sut = new BookStoreApiClient(_httpClient, _jsRuntime, _configuration);
     }
 
     [Fact]
@@ -101,7 +107,7 @@ public class BookStoreApiClientTests
         // Assert
         actual.Should().BeSuccess()
             .HaveData(x => x.Should().BeEquivalentTo(expected));
-        _httpMessageHandler.LastRequest?.RequestUri?.AbsolutePath.Should().Be($"/books/{id}");
+        _httpMessageHandler.LastRequest?.RequestUri?.AbsolutePath.Should().Be($"/api/catalog/books/{id}");
     }
 
     [Fact]
@@ -117,7 +123,7 @@ public class BookStoreApiClientTests
         // Assert
         actual.Should().BeSuccess()
             .HaveData(x => x.Should().BeEquivalentTo(expected));
-        _httpMessageHandler.LastRequest?.RequestUri?.AbsolutePath.Should().Be("/books/filters");
+        _httpMessageHandler.LastRequest?.RequestUri?.AbsolutePath.Should().Be("/api/catalog/books/filters");
     }
 
     [Fact]

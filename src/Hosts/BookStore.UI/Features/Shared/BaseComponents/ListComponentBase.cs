@@ -34,6 +34,26 @@ public abstract class ListComponentBase<TItem, TFilter> : CustomComponentBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
+        NavigationManager.LocationChanged += HandleLocationChanged;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        SyncStateWithUrl();
+        await LoadDataAsync();
+    }
+
+    private async void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // React to URL changes (e.g. back/forward button or NavigateTo)
+        await InvokeAsync(async () => 
+        {
+            SyncStateWithUrl();
+            await LoadDataAsync();
+            StateHasChanged();
+        });
     }
 
     /// <summary>
@@ -108,6 +128,7 @@ public abstract class ListComponentBase<TItem, TFilter> : CustomComponentBase
     /// <inheritdoc />
     public override void Dispose()
     {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
         _debouncer.Dispose();
         base.Dispose();
     }

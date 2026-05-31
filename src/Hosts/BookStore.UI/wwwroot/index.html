@@ -11,6 +11,13 @@
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="BookStore.UI.styles.css" rel="stylesheet" />
+    <meta id="api-url" name="api-url" content="{{ services.bookstore-api.https.0 }}" />
+    <script>
+        window.getApiUrl = function () {
+            const meta = document.getElementById('api-url');
+            return meta ? meta.getAttribute('content') : null;
+        };
+    </script>
     <script type="importmap"></script>
 </head>
 
