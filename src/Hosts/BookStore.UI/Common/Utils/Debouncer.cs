@@ -3,18 +3,13 @@ namespace BookStore.UI.Common.Utils;
 /// <summary>
 /// Provides a mechanism to debounce actions, ensuring they are only executed after a specified delay.
 /// </summary>
-public sealed class Debouncer : IDisposable
+public sealed class Debouncer(TimeProvider timeProvider) : IDisposable
 {
-    private readonly System.Timers.Timer _timer;
+    private ITimer? _timer;
     private Action? _action;
 
-    public Debouncer()
+    public Debouncer() : this(TimeProvider.System)
     {
-        _timer = new System.Timers.Timer
-        {
-            AutoReset = false
-        };
-        _timer.Elapsed += OnTimerElapsed;
     }
 
     /// <summary>
@@ -25,9 +20,8 @@ public sealed class Debouncer : IDisposable
     public void Debounce(Action action, int milliseconds)
     {
         _action = action;
-        _timer.Stop();
-        _timer.Interval = milliseconds;
-        _timer.Start();
+        _timer ??= timeProvider.CreateTimer(_ => _action?.Invoke(), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _timer.Change(TimeSpan.FromMilliseconds(milliseconds), Timeout.InfiniteTimeSpan);
     }
 
     /// <summary>
@@ -35,19 +29,9 @@ public sealed class Debouncer : IDisposable
     /// </summary>
     public void Cancel()
     {
-        _timer.Stop();
+        _timer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _action = null;
     }
 
-    private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
-    {
-        _action?.Invoke();
-    }
-
-    public void Dispose()
-    {
-        _timer.Elapsed -= OnTimerElapsed;
-        _timer.Stop();
-        _timer.Dispose();
-    }
+    public void Dispose() => _timer?.Dispose();
 }
