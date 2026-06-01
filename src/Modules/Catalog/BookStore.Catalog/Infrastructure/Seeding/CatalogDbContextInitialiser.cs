@@ -94,7 +94,6 @@ internal sealed class CatalogDbContextInitialiser(
         [26] = new() { Name = "Marcella Hazan", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
         [27] = new() { Name = "John Bolton", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
         [28] = new() { Name = "Michael Wolff", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [29] = new() { Name = "Bob Woodward", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
         [30] = new() { Name = "Barack Obama", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
         [31] = new() { Name = "James Clear", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
         [32] = new() { Name = "Mark Manson", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
@@ -602,19 +601,6 @@ internal sealed class CatalogDbContextInitialiser(
                 LastModifiedUtc = new DateTime(2020, 01, 02),
                 LastModifiedBy = "12"
             },
-            [39] = new()
-            {
-                Title = "Fear: Trump in the White House",
-                PublishedOn = new DateTime(2018, 9, 11),
-                Publisher = "Simon & Schuster",
-                Price = 26.99m,
-                Description = "Bob Woodward's detailed investigation into the Trump administration.",
-                ImageName = "fear_trump.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
             [40] = new()
             {
                 Title = "A Promised Land",
@@ -751,7 +737,6 @@ internal sealed class CatalogDbContextInitialiser(
         books[36].Tags.Add(tags["Cooking"]);
         books[37].Tags.Add(tags["Politics"]);
         books[38].Tags.Add(tags["Politics"]);
-        books[39].Tags.Add(tags["Politics"]);
         books[40].Tags.Add(tags["Politics"]);
         books[41].Tags.Add(tags["Politics"]);
         books[42].Tags.Add(tags["Lifestyle"]);
@@ -805,7 +790,6 @@ internal sealed class CatalogDbContextInitialiser(
         AddAuthor(books[36], authors[26], 0);
         AddAuthor(books[37], authors[27], 0);
         AddAuthor(books[38], authors[28], 0);
-        AddAuthor(books[39], authors[29], 0);
         AddAuthor(books[40], authors[30], 0);
         AddAuthor(books[41], authors[30], 0);
         AddAuthor(books[42], authors[31], 0);
@@ -879,7 +863,6 @@ internal sealed class CatalogDbContextInitialiser(
         books[36].Reviews.Add(new Review { Voter = "Italian Cuisine Lover", Stars = 5, Comment = "Authentic and delightful recipes." });
         books[37].Reviews.Add(new Review { Voter = "Political Analyst", Stars = 4, Comment = "A gripping insider's perspective." });
         books[38].Reviews.Add(new Review { Voter = "News Enthusiast", Stars = 3, Comment = "Interesting, but sometimes repetitive." });
-        books[39].Reviews.Add(new Review { Voter = "Journalist", Stars = 5, Comment = "An outstanding piece of investigative journalism." });
         books[40].Reviews.Add(new Review { Voter = "History Buff", Stars = 5, Comment = "Inspiring and insightful." });
         books[41].Reviews.Add(new Review { Voter = "Obama Supporter", Stars = 5, Comment = "A hopeful and beautifully written book." });
         books[42].Reviews.Add(new Review { Voter = "Self-help Enthusiast", Stars = 5, Comment = "A practical guide to forming life-changing habits." });
