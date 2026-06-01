@@ -47,10 +47,10 @@
             <div class="d-flex flex-column">
                 @if (Book.Promotion is not null)
                 {
-                    <span class="text-decoration-line-through text-muted small">@Book.Price.ToString("C")</span>
+                    <span class="text-decoration-line-through text-muted small">@Book.Price.ToCurrency()</span>
                 }
                 <span class="fw-bold @(Book.Promotion is not null ? "text-danger fs-5" : "fs-5")">
-                    @((Book.Promotion?.NewPrice ?? Book.Price).ToString("C"))
+                    @((Book.Promotion?.NewPrice ?? Book.Price).ToCurrency())
                 </span>
             </div>
             

@@ -1,14 +1,11 @@
 global using Kovecses.Result;
+global using System.Globalization;
 global using FluentValidation;
 global using Kovecses.Requests;
-global using Microsoft.Extensions.DependencyInjection;
 global using BookStore.Common.Validation;
 global using Microsoft.Extensions.Logging;
 global using System.Diagnostics;
 global using BookStore.Common.Logging;
-global using BookStore.Common.Pagination;
-global using BookStore.Common.Sorting;
-global using BookStore.Common.Filtering;
 global using Microsoft.EntityFrameworkCore;
 global using System.Reflection;
 global using System.Collections.Concurrent;
