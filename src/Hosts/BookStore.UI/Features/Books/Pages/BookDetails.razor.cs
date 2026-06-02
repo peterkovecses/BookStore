@@ -8,7 +8,15 @@ public partial class BookDetails
     [Inject]
     private IBookStoreApiClient ApiClient { get; init; } = default!;
 
+    [Inject]
+    private IJSRuntime JSRuntime { get; init; } = default!;
+
     private BookDetailsDto? _book;
+
+    private async Task ScrollToReviews()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollToElement", "reviews");
+    }
 
     protected override async Task OnParametersSetAsync()
     {

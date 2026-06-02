@@ -44,7 +44,16 @@ else if (_book is not null)
                 </p>
 
                 <div class="d-flex align-items-center mb-4">
-                    <RatingStars Rating="@_book.AverageRating" ReviewCount="@_book.Reviews.Count" />
+                    @if (_book.Reviews.Any())
+                    {
+                        <button type="button" class="btn btn-link p-0 text-decoration-none" @onclick="ScrollToReviews" title="Jump to reviews">
+                            <RatingStars Rating="@_book.AverageRating" ReviewCount="@_book.Reviews.Count" />
+                        </button>
+                    }
+                    else
+                    {
+                        <RatingStars Rating="@_book.AverageRating" ReviewCount="@_book.Reviews.Count" />
+                    }
                     <span class="ms-3 text-muted">|</span>
                     <span class="ms-3 text-muted">Published by <span class="fw-medium text-dark">@_book.Publisher</span> on @_book.PublishedOn.ToString("MMMM dd, yyyy")</span>
                 </div>
@@ -92,7 +101,7 @@ else if (_book is not null)
 
         @if (_book.Reviews.Any())
         {
-            <div class="mt-5 pt-5">
+            <div id="reviews" class="mt-5 pt-5">
                 <h3 class="fw-bold mb-4">Customer Reviews</h3>
                 <div class="row g-4">
                     @foreach (var review in _book.Reviews)

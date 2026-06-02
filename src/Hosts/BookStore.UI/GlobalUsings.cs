@@ -7,6 +7,7 @@ global using Microsoft.AspNetCore.Components.Web;
 global using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 global using Microsoft.AspNetCore.Components.Routing;
 global using Microsoft.AspNetCore.WebUtilities;
+global using Microsoft.JSInterop;
 global using Kovecses.Result;
 global using BookStore.Common;
 global using BookStore.Common.Pagination;
