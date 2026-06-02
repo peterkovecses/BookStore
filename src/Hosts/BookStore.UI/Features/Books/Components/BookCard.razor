@@ -43,20 +43,28 @@
             <RatingStars Rating="@Book.AverageRating" ReviewCount="@Book.ReviewCount" />
         </div>
         
-        <div class="mt-auto d-flex align-items-center justify-content-between">
-            <div class="d-flex flex-column">
-                @if (Book.Promotion is not null)
-                {
-                    <span class="text-decoration-line-through text-muted small">@Book.Price.ToCurrency()</span>
-                }
-                <span class="fw-bold @(Book.Promotion is not null ? "text-danger fs-5" : "fs-5")">
-                    @((Book.Promotion?.NewPrice ?? Book.Price).ToCurrency())
-                </span>
+        <div class="mt-auto">
+            @if (Book.Promotion is not null)
+            {
+                <div class="text-success small fw-medium mb-2 text-truncate" title="@Book.Promotion.Text">
+                    <i class="bi bi-tag-fill me-1"></i>@Book.Promotion.Text
+                </div>
+            }
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex flex-column">
+                    @if (Book.Promotion is not null)
+                    {
+                        <span class="text-decoration-line-through text-muted small">@Book.Price.ToCurrency()</span>
+                    }
+                    <span class="fw-bold @(Book.Promotion is not null ? "text-danger fs-5" : "fs-5")">
+                        @((Book.Promotion?.NewPrice ?? Book.Price).ToCurrency())
+                    </span>
+                </div>
+                
+                <a href="/books/@Book.Id" class="btn btn-outline-primary rounded-pill btn-sm px-3">
+                    Details
+                </a>
             </div>
-            
-            <a href="/books/@Book.Id" class="btn btn-outline-primary rounded-pill btn-sm px-3">
-                Details
-            </a>
         </div>
     </div>
 </div>

@@ -46,22 +46,31 @@ else if (_book is not null)
                 <div class="d-flex align-items-center mb-4">
                     <RatingStars Rating="@_book.AverageRating" ReviewCount="@_book.Reviews.Count" />
                     <span class="ms-3 text-muted">|</span>
-                    <span class="ms-3 text-muted">Published by <span class="fw-medium text-dark">@_book.Publisher</span> on @_book.PublishedOn.ToShortDateString()</span>
+                    <span class="ms-3 text-muted">Published by <span class="fw-medium text-dark">@_book.Publisher</span> on @_book.PublishedOn.ToString("MMMM dd, yyyy")</span>
                 </div>
 
                 <div class="card border-0 shadow-sm bg-light p-4 mb-4">
-                    <div class="d-flex align-items-end gap-3 mb-3">
+                    <div class="d-flex flex-column mb-3">
+                        <div class="d-flex align-items-end gap-3 mb-2">
+                            @if (_book.Promotion is not null)
+                            {
+                                <h2 class="fw-bold text-danger mb-0">@_book.Promotion.NewPrice.ToCurrency()</h2>
+                                <h4 class="text-muted text-decoration-line-through mb-1">@_book.Price.ToCurrency()</h4>
+                                <span class="badge bg-danger rounded-pill px-3 py-2 mb-1">
+                                    Save @((_book.Price - _book.Promotion.NewPrice).ToCurrency())
+                                </span>
+                            }
+                            else
+                            {
+                                <h2 class="fw-bold mb-0">@_book.Price.ToCurrency()</h2>
+                            }
+                        </div>
+                        
                         @if (_book.Promotion is not null)
                         {
-                            <h2 class="fw-bold text-danger mb-0">@_book.Promotion.NewPrice.ToCurrency()</h2>
-                            <h4 class="text-muted text-decoration-line-through mb-1">@_book.Price.ToCurrency()</h4>
-                            <span class="badge bg-danger rounded-pill px-3 py-2 mb-1">
-                                Save @((_book.Price - _book.Promotion.NewPrice).ToCurrency())
-                            </span>
-                        }
-                        else
-                        {
-                            <h2 class="fw-bold mb-0">@_book.Price.ToCurrency()</h2>
+                            <div class="text-success small fw-medium">
+                                <i class="bi bi-tag-fill me-1"></i>@_book.Promotion.Text
+                            </div>
                         }
                     </div>
 
