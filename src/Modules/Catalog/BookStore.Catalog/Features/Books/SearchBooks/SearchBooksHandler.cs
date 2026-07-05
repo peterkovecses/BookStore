@@ -12,8 +12,18 @@ internal sealed class SearchBooksHandler(
         var query = dbContext.Books
             .AsNoTracking()
             .AsExpandable()
-            .Where(request.Filter.GetPredicate())
-            .ApplySorting(request.Sorting);
+            .Where(request.Filter.GetPredicate());
+
+        if (string.Equals(request.Sorting.SortBy, "Price", StringComparison.OrdinalIgnoreCase))
+        {
+            query = request.Sorting.IsDescending
+                ? query.OrderByDescending(b => b.Promotion != null ? b.Promotion.NewPrice : b.Price)
+                : query.OrderBy(b => b.Promotion != null ? b.Promotion.NewPrice : b.Price);
+        }
+        else
+        {
+            query = query.ApplySorting(request.Sorting);
+        }
 
         var result = await query
             .Select(BookMappings.ToBookSummary)

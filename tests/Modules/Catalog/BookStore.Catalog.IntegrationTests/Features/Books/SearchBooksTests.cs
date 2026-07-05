@@ -461,4 +461,58 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         problemDetails.Errors.Should().ContainKey(nameof(SearchBooksQuery.Pagination.PageSize));
         problemDetails.Errors.Should().ContainKey(nameof(SearchBooksQuery.Filter.SearchTerm));
     }
+
+    [Fact]
+    public async Task Search_WhenSortedByPriceWithPromotions_ShouldReturnBooksInCorrectEffectivePriceOrder()
+    {
+        // Arrange
+        Book bookA = CreateBook(title: "Book A", price: 20.00m);
+        bookA.Promotion = new PriceOffer { NewPrice = 15.00m, Text = "Sale" };
+
+        Book bookB = CreateBook(title: "Book B", price: 12.00m);
+
+        Book bookC = CreateBook(title: "Book C", price: 30.00m);
+        bookC.Promotion = new PriceOffer { NewPrice = 8.00m, Text = "Big Sale" };
+
+        Book bookD = CreateBook(title: "Book D", price: 18.00m);
+
+        await SeedAsync(bookA, bookB, bookC, bookD);
+
+        // Act
+        var response = await Client.GetAsync("/api/catalog/books?SortBy=Price&IsDescending=false", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result.Items.Select(b => b.Title).Should().Equal("Book C", "Book B", "Book A", "Book D");
+    }
+
+    [Fact]
+    public async Task Search_WhenSortedByPriceDescendingWithPromotions_ShouldReturnBooksInCorrectEffectivePriceOrder()
+    {
+        // Arrange
+        Book bookA = CreateBook(title: "Book A", price: 20.00m);
+        bookA.Promotion = new PriceOffer { NewPrice = 15.00m, Text = "Sale" };
+
+        Book bookB = CreateBook(title: "Book B", price: 12.00m);
+
+        Book bookC = CreateBook(title: "Book C", price: 30.00m);
+        bookC.Promotion = new PriceOffer { NewPrice = 8.00m, Text = "Big Sale" };
+
+        Book bookD = CreateBook(title: "Book D", price: 18.00m);
+
+        await SeedAsync(bookA, bookB, bookC, bookD);
+
+        // Act
+        var response = await Client.GetAsync("/api/catalog/books?SortBy=Price&IsDescending=true", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result.Items.Select(b => b.Title).Should().Equal("Book D", "Book A", "Book B", "Book C");
+    }
 }
