@@ -65,6 +65,10 @@
     - Use `TheoryDataRow` metadata properties (e.g., `Skip`, `Timeout`, `DisplayName`) or fluent methods (e.g., `.WithSkip(...)`) when needed.
     - Use `MatrixTheoryData<...>` to automatically generate combinations of multiple data sets (2-5 sets).
     - Leverage async `MemberData` when data retrieval requires asynchronous operations.
+- **Bug Fix Testing Requirement:** When fixing a bug, tests are ALWAYS required. A bug's existence implies either:
+    1. A faulty or incorrect test (which must be corrected).
+    2. An uncovered scenario or edge case (which requires adding a new test case).
+    This requirement applies to both **Unit Tests** and **Integration Tests** where applicable.
 
 ## Validation Standards
 - **Build Verification:** After completing a task or a significant sub-task, ALWAYS build the entire solution to verify your changes.

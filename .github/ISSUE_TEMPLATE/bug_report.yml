@@ -1,0 +1,63 @@
+name: 🐛 Bug Report
+description: Report a bug to help us improve the BookStore Catalog module.
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting this issue! Please provide as much detail as possible to help us reproduce and resolve the bug.
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: E.g., Catalog item price rounding causes a 1-cent discrepancy under specific discount conditions.
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Call endpoint 'GET /catalog/items/...'
+        3. See error or mismatch in the response
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: E.g., The item price should be rounded to two decimal places.
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: E.g., The item price is rounded to three decimal places.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Proposed Acceptance Criteria
+      description: What must be verified/tested to consider this bug resolved?
+      placeholder: |
+        - [ ] Unit tests covering rounding logic are added and passing.
+        - [ ] API integration tests verify correct response representation.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have verified that this issue is reproducible on the latest main branch.
+          required: true
+        - label: I have checked that there are no duplicate open/closed issues for this bug.
+          required: true
