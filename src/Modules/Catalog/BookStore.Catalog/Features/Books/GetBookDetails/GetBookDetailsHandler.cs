@@ -12,6 +12,7 @@ internal sealed class GetBookDetailsHandler(
         var book = await dbContext.Books
             .AsNoTracking()
             .Where(book => book.Id == request.Id)
+            .Where(book => !book.SoftDeleted)
             .Select(BookMappings.ToBookDetailsDto)
             .FirstOrDefaultAsync(cancellationToken);
 
