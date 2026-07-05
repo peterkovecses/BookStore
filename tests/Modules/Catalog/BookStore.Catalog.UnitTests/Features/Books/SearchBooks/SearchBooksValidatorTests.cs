@@ -72,4 +72,51 @@ public class SearchBooksValidatorTests
         // Assert
         actual.ShouldHaveValidationErrorFor(nameof(SearchBooksFilter.SearchTerm));
     }
+
+    [Theory]
+    [InlineData("Title")]
+    [InlineData("Price")]
+    [InlineData("PublishedOn")]
+    [InlineData("AverageRating")]
+    public void Validate_WhenSortByIsValid_ShouldNotHaveAnyErrors(string sortBy)
+    {
+        // Arrange
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Default, ISorting.Create(sortBy, false));
+
+        // Act
+        var actual = _sut.TestValidate(request);
+
+        // Assert
+        actual.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData("Title")]
+    [InlineData("Price")]
+    [InlineData("PublishedOn")]
+    [InlineData("AverageRating")]
+    public void Validate_WhenSortByIsValid_ShouldNotHaveError(string sortBy)
+    {
+        // Arrange
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Default, ISorting.Create(sortBy, false));
+
+        // Act
+        var actual = _sut.TestValidate(request);
+
+        // Assert
+        actual.ShouldNotHaveValidationErrorFor(nameof(SearchBooksQuery.Sorting.SortBy));
+    }
+
+    [Fact]
+    public void Validate_WhenSortByIsInvalid_ShouldHaveError()
+    {
+        // Arrange
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Default, ISorting.Create("InvalidField", false));
+
+        // Act
+        var actual = _sut.TestValidate(request);
+
+        // Assert
+        actual.ShouldHaveValidationErrorFor(nameof(SearchBooksQuery.Sorting.SortBy));
+    }
 }

@@ -13,10 +13,10 @@ internal sealed class SearchBooksHandler(
             .AsNoTracking()
             .AsExpandable()
             .Where(request.Filter.GetPredicate())
+            .Select(BookMappings.ToBookSummary)
             .ApplySorting(request.Sorting);
 
         var result = await query
-            .Select(BookMappings.ToBookSummary)
             .ToPaginatedListAsync(request.Pagination, cancellationToken);
 
         PopulateImageUrls(result.Items);
