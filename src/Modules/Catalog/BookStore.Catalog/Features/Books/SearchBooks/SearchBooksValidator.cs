@@ -6,7 +6,7 @@ internal class SearchBooksValidator : AbstractValidator<SearchBooksQuery>
     private const int MinPageSize = 1;
 
     private static readonly HashSet<string> AllowedSortProperties = 
-        new(StringComparer.OrdinalIgnoreCase) { "Title", "Price", "PublishedOn" };
+        new(StringComparer.OrdinalIgnoreCase) { "Title", "Price", "PublishedOn", "AverageRating" };
 
     private static readonly string InvalidSortByMessage = 
         $"SortBy must be one of the following: {string.Join(", ", AllowedSortProperties)}";

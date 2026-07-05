@@ -461,4 +461,27 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         problemDetails.Errors.Should().ContainKey(nameof(SearchBooksQuery.Pagination.PageSize));
         problemDetails.Errors.Should().ContainKey(nameof(SearchBooksQuery.Filter.SearchTerm));
     }
+
+    [Theory]
+    [InlineData(true, new[] { "Book A", "Book C", "Book B" })]
+    [InlineData(false, new[] { "Book B", "Book C", "Book A" })]
+    public async Task Search_WhenSortedByAverageRating_ShouldReturnBooksInCorrectOrder(bool isDescending, string[] expectedOrder)
+    {
+        // Arrange
+        Book bookA = CreateBook(title: "Book A", reviews: [new Review { Stars = 5, Voter = "Voter A" }]);
+        Book bookB = CreateBook(title: "Book B", reviews: [new Review { Stars = 3, Voter = "Voter B" }]);
+        Book bookC = CreateBook(title: "Book C", reviews: [new Review { Stars = 4, Voter = "Voter C" }]);
+
+        await SeedAsync(bookA, bookB, bookC);
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books?SortBy=AverageRating&IsDescending={isDescending}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result.Items.Select(b => b.Title).Should().Equal(expectedOrder);
+    }
 }
