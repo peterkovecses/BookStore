@@ -1,13 +1,24 @@
 # Project Rules and Conventions
 
-## Commit Standards
-- **Format:** Always use [Conventional Commits](https://www.conventionalcommits.org/) (e.g., `feat:`, `fix:`, `chore:`, `docs:`).
-- **Language:** Commit messages must be in English.
-- **Style:** Use concise, single-line messages.
-- **Approval Workflow:**
+## Branching, Commit, and PR Workflow (GitHub Flow)
+- **Branch Naming:** Start tasks by creating a branch from `master` named `bugfix/BUG-XXX-description` or `feature/BUG-XXX-description` matching the backlog ticket ID.
+- **Commit Format:** Always use [Conventional Commits](https://www.conventionalcommits.org/) (e.g., `feat(catalog): ...`, `fix(catalog): ...`). Messages must be in English, concise, and single-line.
+- **Local Verification:** Before pushing or opening a PR, always build the solution and run all unit/integration tests (`dotnet test`). Do not proceed if there are any failures or warnings.
+- **Pushing & PR Creation:**
   1. Propose the commit message first and wait for user approval.
-  2. After the message is approved, ask for a single final confirmation to perform both `git commit` and `git push` together.
-  3. Never commit or push without explicit user consent for each operation.
+  2. Once approved, push the branch to GitHub (`git push origin <branch-name>`).
+  3. Open a Pull Request on GitHub linking to the backlog issue/ticket (e.g., in the PR description, mention `Closes BUG-XXX` or `Closes #YYY`).
+- **PR Review & Approval Policy:**
+  - Pull Requests require exactly **2 Approvals** before merge:
+    1. One from a Review Agent (spawn a subagent to inspect code diffs and write an approval message).
+    2. One from the Human User.
+- **Merge & Clean Up:**
+  - Always squash all commits related to the feature/bugfix branch into a single clean commit when merging the PR.
+  - After the PR is merged:
+    1. Delete the remote branch on GitHub.
+    2. Switch back to `master` locally (`git checkout master` and `git pull`).
+    3. Delete the local branch (`git branch -d <branch-name>`).
+
 
 ## C# Coding Standards
 - **Global Usings:** Always use Global Usings for the entire solution.
