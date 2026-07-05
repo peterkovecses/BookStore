@@ -47,13 +47,11 @@ graph TD
 - **Isolated Boundaries:** Modules communicate strictly through `Contracts`. Implementation details remain `internal` within module assemblies to prevent tight coupling.
 - **Vertical Slices:** Features (e.g., endpoints, handlers, validators) are grouped together by capability rather than horizontal layers.
 - **Quality Assurance:** Covered by isolated unit tests and full integration tests using containerized databases to verify real-world behavior.
-- **Docs-as-Code:** Uses a local [Bug Backlog Board](docs/backlog/README.md) to track and triage issues, simulating a standard development lifecycle.
 
 ## 📂 Project Structure
 
 ```text
 ├── .aspire/                 # Aspire orchestration assets
-├── docs/backlog/            # Markdown-based issue tracking
 ├── src/
 │   ├── Hosts/               # API, Blazor UI, Aspire AppHost
 │   ├── Modules/             # Core modules (e.g., Catalog)

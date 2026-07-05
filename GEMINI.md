@@ -1,13 +1,14 @@
 # Project Rules and Conventions
 
 ## Branching, Commit, and PR Workflow (GitHub Flow)
+- **Issue-Driven Development:** For any task (feature or bugfix), we must first ensure there is a corresponding GitHub Issue. During the issue's lifecycle, we actively update its status (adding comments/updates on progress if needed) until it is closed when the PR is completed/merged.
 - **Branch Naming:** Start tasks by creating a branch from `master` named `bugfix/BUG-XXX-description` or `feature/BUG-XXX-description` matching the backlog ticket ID.
 - **Commit Format:** Always use [Conventional Commits](https://www.conventionalcommits.org/) (e.g., `feat(catalog): ...`, `fix(catalog): ...`). Messages must be in English, concise, and single-line.
 - **Local Verification:** Before pushing or opening a PR, always build the solution and run all unit/integration tests (`dotnet test`). Do not proceed if there are any failures or warnings.
 - **Pushing & PR Creation:**
   1. Propose the commit message first and wait for user approval.
   2. Once approved, push the branch to GitHub (`git push origin <branch-name>`).
-  3. Open a Pull Request on GitHub linking to the backlog issue/ticket (e.g., in the PR description, mention `Closes BUG-XXX` or `Closes #YYY`).
+  3. Open a Pull Request on GitHub linking to the backlog issue/ticket (e.g., in the PR description, mention `Closes #X` where `X` is the GitHub Issue number).
 - **PR Review & Approval Policy:**
   - Pull Requests require exactly **2 Approvals** before merge:
     1. One from a Review Agent (spawn a subagent to inspect code diffs and write an approval message).
