@@ -81,37 +81,11 @@ public class GetBookDetailsHandlerTests
         _storageService.Received(1).GetPublicUrl(imageName);
     }
 
-    [Fact]
-    public async Task HandleAsync_WhenBookHasNoImage_ShouldSetImageUrlToNull()
-    {
-        // Arrange
-        var bookId = 1;
-        var book = new Book
-        {
-            Id = bookId,
-            Title = "Test Book",
-            ImageName = null
-        };
-
-        var mockDbSet = new List<Book> { book }.BuildMockDbSet();
-        _dbContext.Books.Returns(mockDbSet);
-
-        var request = new GetBookDetailsQuery(bookId);
-
-        // Act
-        var actual = await _sut.HandleAsync(request, CancellationToken.None);
-
-        // Assert
-        actual.Should().BeSuccess();
-        actual.Should().HaveData(data => data.ImageUrl.Should().BeNull());
-
-        _storageService.DidNotReceiveWithAnyArgs().GetPublicUrl(default!);
-    }
-
     [Theory]
+    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task HandleAsync_WhenBookImageNameIsEmptyOrWhitespace_ShouldSetImageUrlToNull(string imageName)
+    public async Task HandleAsync_WhenBookImageNameIsEmptyOrWhitespaceOrNull_ShouldSetImageUrlToNull(string? imageName)
     {
         // Arrange
         const int bookId = 1;
