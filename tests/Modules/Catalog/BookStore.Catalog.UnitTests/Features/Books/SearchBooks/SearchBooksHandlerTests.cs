@@ -93,6 +93,33 @@ public class SearchBooksHandlerTests
         _storageService.DidNotReceiveWithAnyArgs().GetPublicUrl(default!);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Handle_WhenBookImageNameIsEmptyOrWhitespace_ShouldNotCallStorageService(string imageName)
+    {
+        // Arrange
+        const int bookId = 1;
+        const string title = "Book 1";
+        const int pageNumber = 1;
+        const int pageSize = 10;
+        const string? sortBy = null;
+        const bool isDescending = false;
+        var mockDbSet = new List<Book> { new() { Id = bookId, Title = title, ImageName = imageName } }.BuildMockDbSet();
+        _dbContext.Books.Returns(mockDbSet);
+        
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, pageSize), ISorting.Create(sortBy, isDescending));
+
+        // Act
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        actual.ShouldBePaginatedSuccess()
+            .AllSatisfy(i => i.ImageUrl.Should().BeNull());
+
+        _storageService.DidNotReceiveWithAnyArgs().GetPublicUrl(default!);
+    }
+
     [Fact]
     public async Task Handle_WhenFilteredBySearchTerm_ShouldReturnMatchingBooks()
     {
