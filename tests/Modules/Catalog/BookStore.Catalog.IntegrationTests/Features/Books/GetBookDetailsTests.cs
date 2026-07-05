@@ -122,4 +122,19 @@ public class GetBookDetailsTests(CatalogWebApplicationFactory factory) : Catalog
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
+
+    [Fact]
+    public async Task GetDetails_WhenBookIsSoftDeleted_ShouldReturnNotFound()
+    {
+        // Arrange
+        const string bookTitle = "Soft Deleted Book";
+        Book book = CreateBook(title: bookTitle, softDeleted: true);
+        await SeedAsync(book);
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books/{book.Id}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
 }
