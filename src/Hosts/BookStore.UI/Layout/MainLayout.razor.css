@@ -8,8 +8,10 @@ main {
     flex: 1;
 }
 
-.top-row {
-    height: 4.5rem;
+@media (min-width: 992px) {
+    .top-row {
+        height: 4.5rem;
+    }
 }
 
     .top-row ::deep .nav-link.active {
