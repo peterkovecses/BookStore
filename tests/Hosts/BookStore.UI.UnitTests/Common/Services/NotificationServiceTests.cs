@@ -37,8 +37,8 @@ public class NotificationServiceTests
         // Assert
         actual.Should().NotBeNull();
         actual.Message.Should().Be(expectedMessage);
-        actual.IsSuccess.Should().BeFalse();
-        actual.AutoHide.Should().BeFalse();
+        actual.IsSuccess.Should().Be(false);
+        actual.AutoHide.Should().Be(false);
         actual.Id.Should().NotBe(Guid.Empty);
     }
 
@@ -71,12 +71,14 @@ public class NotificationServiceTests
         raised.Should().BeTrue();
     }
 
-
     [Fact]
     public void ShowSuccess_WhenNoSubscriber_ShouldNotThrow()
     {
-        // Arrange & Act
-        var act = () => _sut.ShowSuccess("Message");
+        // Arrange
+        const string message = "Message";
+
+        // Act
+        var act = () => _sut.ShowSuccess(message);
 
         // Assert
         act.Should().NotThrow();
@@ -85,10 +87,13 @@ public class NotificationServiceTests
     [Fact]
     public void ClearNotifications_WhenNoSubscriber_ShouldNotThrow()
     {
-        // Arrange & Act
+        // Arrange
         var act = () => _sut.ClearNotifications();
 
+        // Act
+        var execute = () => act();
+
         // Assert
-        act.Should().NotThrow();
+        execute.Should().NotThrow();
     }
 }

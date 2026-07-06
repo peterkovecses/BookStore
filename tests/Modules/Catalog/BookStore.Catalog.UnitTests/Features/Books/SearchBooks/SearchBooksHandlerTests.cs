@@ -12,7 +12,7 @@ public class SearchBooksHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenNoBooks_ShouldReturnEmptyList()
+    public async Task HandleAsync_WhenNoBooks_ShouldReturnEmptyList()
     {
         // Arrange
         const int pageNumber = 1;
@@ -32,7 +32,7 @@ public class SearchBooksHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenMultipleBooksHaveImages_ShouldPopulateImageUrls()
+    public async Task HandleAsync_WhenMultipleBooksHaveImages_ShouldPopulateImageUrls()
     {
         // Arrange
         const int bookId1 = 1;
@@ -75,7 +75,7 @@ public class SearchBooksHandlerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task Handle_WhenBookHasNoImage_ShouldNotCallStorageService(string? imageName)
+    public async Task HandleAsync_WhenBookHasNoImage_ShouldNotCallStorageService(string? imageName)
     {
         // Arrange
         const int bookId = 1;
@@ -100,7 +100,7 @@ public class SearchBooksHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenFilteredBySearchTerm_ShouldReturnMatchingBooks()
+    public async Task HandleAsync_WhenFilteredBySearchTerm_ShouldReturnMatchingBooks()
     {
         // Arrange
         const int pageNumber = 1;
@@ -132,7 +132,7 @@ public class SearchBooksHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenFilteredByAuthorIds_ShouldReturnMatchingBooks()
+    public async Task HandleAsync_WhenFilteredByAuthorIds_ShouldReturnMatchingBooks()
     {
         // Arrange
         const int authorId = 1;
@@ -159,7 +159,7 @@ public class SearchBooksHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenFilteredByTagIds_ShouldReturnMatchingBooks()
+    public async Task HandleAsync_WhenFilteredByTagIds_ShouldReturnMatchingBooks()
     {
         // Arrange
         const int pageNumber = 1;
@@ -188,7 +188,7 @@ public class SearchBooksHandlerTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task Handle_WhenSortedByTitle_ShouldSortCorrectly(bool isDescending)
+    public async Task HandleAsync_WhenSortedByTitle_ShouldSortCorrectly(bool isDescending)
     {
         // Arrange
         const int pageNumber = 1;
@@ -218,7 +218,7 @@ public class SearchBooksHandlerTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task Handle_WhenSortedByPublishedOn_ShouldSortCorrectly(bool isDescending)
+    public async Task HandleAsync_WhenSortedByPublishedOn_ShouldSortCorrectly(bool isDescending)
     {
         // Arrange
         var books = new List<Book>
@@ -245,7 +245,7 @@ public class SearchBooksHandlerTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task Handle_WhenSortedByAverageRating_ShouldSortCorrectly(bool isDescending)
+    public async Task HandleAsync_WhenSortedByAverageRating_ShouldSortCorrectly(bool isDescending)
     {
         // Arrange
         var books = new List<Book>
@@ -270,7 +270,7 @@ public class SearchBooksHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenMixedImageList_ShouldPopulateOnlyBooksWithImages()
+    public async Task HandleAsync_WhenMixedImageList_ShouldPopulateOnlyBooksWithImages()
     {
         // Arrange
         const int bookId1 = 1;
@@ -305,7 +305,7 @@ public class SearchBooksHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenSecondPageRequested_ShouldReturnCorrectPage()
+    public async Task HandleAsync_WhenSecondPageRequested_ShouldReturnCorrectPage()
     {
         // Arrange
         const int totalBooks = 15;
@@ -338,7 +338,7 @@ public class SearchBooksHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenSortedByPriceWithPromotions_ShouldSortByEffectivePrice()
+    public async Task HandleAsync_WhenSortedByPriceWithPromotions_ShouldSortByEffectivePrice()
     {
         // Arrange
         var books = new List<Book>

@@ -68,7 +68,10 @@ public class PaginatedListTests
     public void HasNextPage_WhenTotalCountIsZero_ShouldBeFalse()
     {
         // Arrange
-        var sut = new PaginatedList<int>([], 0, 1, 5);
+        const int totalCount = 0;
+        const int pageNumber = 1;
+        const int pageSize = 5;
+        var sut = new PaginatedList<int>([], totalCount, pageNumber, pageSize);
 
         // Act
         var actual = sut.HasNextPage;

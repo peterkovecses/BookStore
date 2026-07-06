@@ -1,3 +1,5 @@
+#pragma warning disable xUnit1016
+
 namespace BookStore.Catalog.UnitTests.Features.Books.SearchBooks;
 
 public class SearchBooksFilterTests
@@ -20,13 +22,9 @@ public class SearchBooksFilterTests
 
     [Theory]
     [MemberData(nameof(SearchTermTestData))]
-    public void GetPredicate_WhenSearchTermMatches_ShouldMatch(object filterObj, object bookObj)
+    internal void GetPredicate_WhenSearchTermMatches_ShouldMatch(SearchBooksFilter filter, Book book)
     {
-        // Arrange
-        var filter = (SearchBooksFilter)filterObj;
-        var book = (Book)bookObj;
-
-        // Act
+        // Arrange & Act
         var predicate = filter.GetPredicate();
         var compiledPredicate = predicate.Compile();
         var actual = compiledPredicate(book);
@@ -35,9 +33,9 @@ public class SearchBooksFilterTests
         actual.Should().BeTrue();
     }
 
-    public static TheoryData<object, object> SearchTermTestData()
+    internal static TheoryData<SearchBooksFilter, Book> SearchTermTestData()
     {
-        var data = new TheoryData<object, object>();
+        var data = new TheoryData<SearchBooksFilter, Book>();
 
         // Title
         data.Add(

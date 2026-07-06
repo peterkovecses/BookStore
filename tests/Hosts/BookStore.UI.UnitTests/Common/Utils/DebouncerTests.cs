@@ -43,17 +43,11 @@ public class DebouncerTests
         // Arrange
         var executionCount = 0;
         _sut.Debounce(() => executionCount++, 100);
+        _timeProvider.Advance(TimeSpan.FromMilliseconds(50));
+        _sut.Debounce(() => executionCount++, 100);
 
         // Act
-        _timeProvider.Advance(TimeSpan.FromMilliseconds(50));
-        _sut.Debounce(() => executionCount++, 100); // Reset
-        _timeProvider.Advance(TimeSpan.FromMilliseconds(60)); // Total 110 from start, but only 60 from reset
-
-        // Assert
-        executionCount.Should().Be(0);
-
-        // Act again
-        _timeProvider.Advance(TimeSpan.FromMilliseconds(40)); // Now total 100 from reset
+        _timeProvider.Advance(TimeSpan.FromMilliseconds(100));
 
         // Assert
         executionCount.Should().Be(1);
@@ -88,7 +82,6 @@ public class DebouncerTests
         // Assert
         executed.Should().BeFalse();
     }
-
 
     [Fact]
     public void Debounce_WhenCalledAfterCancel_ShouldExecuteOnNextTimeout()

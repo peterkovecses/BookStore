@@ -88,7 +88,7 @@ public class BookStoreApiClientTests
     }
 
     [Fact]
-    public async Task GetBookDetailsAsync_WhenCalled_ShouldReturnSuccessWithData()
+    public async Task GetBookDetailsAsync_ShouldReturnSuccessWithData()
     {
         // Arrange
         const int id = 1;
@@ -105,7 +105,7 @@ public class BookStoreApiClientTests
     }
 
     [Fact]
-    public async Task GetSearchFiltersAsync_WhenCalled_ShouldReturnSuccessWithData()
+    public async Task GetSearchFiltersAsync_ShouldReturnSuccessWithData()
     {
         // Arrange
         var expected = new BookSearchFiltersDto { Authors = [], TagIds = [] };

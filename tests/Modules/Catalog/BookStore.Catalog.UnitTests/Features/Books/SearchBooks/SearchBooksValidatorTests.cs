@@ -91,7 +91,6 @@ public class SearchBooksValidatorTests
         actual.ShouldNotHaveAnyValidationErrors();
     }
 
-
     [Fact]
     public void Validate_WhenSortByIsInvalid_ShouldHaveError()
     {
@@ -104,7 +103,6 @@ public class SearchBooksValidatorTests
         // Assert
         actual.ShouldHaveValidationErrorFor(nameof(SearchBooksQuery.Sorting.SortBy));
     }
-
 
     [Fact]
     public void Validate_WhenSearchTermIsExactlyMaxLength_ShouldNotHaveError()
