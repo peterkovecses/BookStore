@@ -538,4 +538,117 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
         result.Should().NotBeNull();
         result.Items.Select(b => b.Title).Should().Equal(expectedOrder);
     }
+
+    [Theory]
+    [InlineData(false, new[] { "Oldest Book", "Middle Book", "Newest Book" })]
+    [InlineData(true, new[] { "Newest Book", "Middle Book", "Oldest Book" })]
+    public async Task Search_WhenSortedByPublishedOn_ShouldReturnBooksInCorrectOrder(bool isDescending, string[] expectedOrder)
+    {
+        // Arrange
+        Book bookOld = CreateBook(title: "Oldest Book", publishedOn: new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        Book bookMid = CreateBook(title: "Middle Book", publishedOn: new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        Book bookNew = CreateBook(title: "Newest Book", publishedOn: new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        await SeedAsync(bookOld, bookMid, bookNew);
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books?SortBy=PublishedOn&IsDescending={isDescending}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result!.Items.Select(b => b.Title).Should().Equal(expectedOrder);
+    }
+
+    [Fact]
+    public async Task Search_WhenDefaultPaginationApplied_ShouldReturnFirstPageWithDefaultPageSize()
+    {
+        // Arrange
+        const int totalBooks = 20;
+        const int expectedPageSize = 15;
+        const int expectedPageNumber = 1;
+
+        Book[] books = [.. Enumerable.Range(1, totalBooks).Select(i => CreateBook(title: $"Book {i:D2}"))];
+        await SeedAsync(books);
+
+        // Act
+        var response = await Client.GetAsync("/api/catalog/books", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result!.PageNumber.Should().Be(expectedPageNumber);
+        result.Items.Should().HaveCount(expectedPageSize);
+        result.TotalCount.Should().Be(totalBooks);
+    }
+
+    [Fact]
+    public async Task Search_WhenLastPageRequested_ShouldReturnRemainingItems()
+    {
+        // Arrange
+        const int totalBooks = 10;
+        const int pageNumber = 4;
+        const int pageSize = 3;
+        const int expectedItemsCount = 1;
+        const int expectedTotalPages = 4;
+
+        Book[] books = [.. Enumerable.Range(1, totalBooks).Select(i => CreateBook(title: $"Book {i:D2}"))];
+        await SeedAsync(books);
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books?PageNumber={pageNumber}&PageSize={pageSize}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result!.PageNumber.Should().Be(pageNumber);
+        result.TotalPages.Should().Be(expectedTotalPages);
+        result.HasNextPage.Should().BeFalse();
+        result.HasPreviousPage.Should().BeTrue();
+        result.Items.Should().HaveCount(expectedItemsCount);
+    }
+
+    [Fact]
+    public async Task Search_WhenSearchTermDoesNotMatchCase_ShouldStillReturnMatchingBooks()
+    {
+        // Arrange
+        const string bookTitle = "Domain Driven Design";
+        const string searchTerm = "dOmAiN";
+        Book book = CreateBook(title: bookTitle);
+        await SeedAsync(book);
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books?SearchTerm={searchTerm}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result!.TotalCount.Should().Be(1);
+        result.Items.Should().ContainSingle(b => b.Title == bookTitle);
+    }
+
+    [Fact]
+    public async Task Search_WhenEmptyDatabase_ShouldReturnEmptyPaginatedList()
+    {
+        // Arrange
+
+        // Act
+        var response = await Client.GetAsync("/api/catalog/books", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<BookSummaryDto>>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result!.TotalCount.Should().Be(0);
+        result.Items.Should().BeEmpty();
+    }
 }
