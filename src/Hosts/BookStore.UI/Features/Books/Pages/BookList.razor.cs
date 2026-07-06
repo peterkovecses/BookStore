@@ -2,8 +2,6 @@ namespace BookStore.UI.Features.Books.Pages;
 
 public partial class BookList
 {
-    private const int FilterDebounceDelayMilliseconds = 600;
-
     [Inject]
     private IBookStoreApiClient ApiClient { get; init; } = default!;
 
@@ -74,11 +72,8 @@ public partial class BookList
 
     private void OnFilterChanged()
     {
-        Debounce(() => 
-        {
-            Pagination.PageNumber = 1;
-            UpdateUrl();
-        }, FilterDebounceDelayMilliseconds);
+        Pagination.PageNumber = 1;
+        UpdateUrl();
     }
 
     private void ToggleSortDirection()
