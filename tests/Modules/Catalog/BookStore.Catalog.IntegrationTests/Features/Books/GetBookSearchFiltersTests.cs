@@ -104,8 +104,8 @@ public class GetBookSearchFiltersTests : CatalogIntegrationTestBase
 
         response2.StatusCode.Should().Be(HttpStatusCode.OK);
         result2.Should().NotBeNull();
-        result2!.Authors.Should().ContainSingle(a => a.Name == authorName1);
-        result2.Authors.Should().NotContain(a => a.Name == authorName2);
+        result2!.Authors.Should().ContainSingle(a => a.Name == authorName1)
+            .And.NotContain(a => a.Name == authorName2);
     }
 
     [Fact]
