@@ -13,6 +13,6 @@ internal static class BookSortExpressions
                 b.Promotion != null ? b.Promotion.NewPrice : b.Price),
 
             ["AverageRating"] = (Expression<Func<Book, double?>>)(b =>
-                b.Reviews.Any() ? b.Reviews.Average(r => r.Stars) : null)
+                b.Reviews.Any() ? (double?)b.Reviews.Average(r => (double)r.Stars) : null)
         };
 }
