@@ -12,6 +12,7 @@ internal sealed class GetBookDetailsHandler(
         var book = await dbContext.Books
             .AsNoTracking()
             .Where(book => book.Id == request.Id)
+            .Where(book => !book.SoftDeleted)
             .Select(BookMappings.ToBookDetailsDto)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -21,7 +22,7 @@ internal sealed class GetBookDetailsHandler(
                 Error.NotFound($"Book with id {request.Id} was not found."));
         }
 
-        if (book.ImageName is not null)
+        if (!string.IsNullOrWhiteSpace(book.ImageName))
         {
             book.ImageUrl = storageService.GetPublicUrl(book.ImageName);
         }

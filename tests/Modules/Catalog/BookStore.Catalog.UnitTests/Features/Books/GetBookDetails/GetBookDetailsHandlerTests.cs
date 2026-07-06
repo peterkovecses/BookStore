@@ -81,16 +81,20 @@ public class GetBookDetailsHandlerTests
         _storageService.Received(1).GetPublicUrl(imageName);
     }
 
-    [Fact]
-    public async Task HandleAsync_WhenBookHasNoImage_ShouldSetImageUrlToNull()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task HandleAsync_WhenBookHasNoImage_ShouldSetImageUrlToNull(string? imageName)
     {
         // Arrange
-        var bookId = 1;
+        const int bookId = 1;
+        const string title = "Test Book";
         var book = new Book
         {
             Id = bookId,
-            Title = "Test Book",
-            ImageName = null
+            Title = title,
+            ImageName = imageName
         };
 
         var mockDbSet = new List<Book> { book }.BuildMockDbSet();
@@ -117,6 +121,31 @@ public class GetBookDetailsHandlerTests
         _dbContext.Books.Returns(mockDbSet);
 
         var request = new GetBookDetailsQuery(nonExistentBookId);
+
+        // Act
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        actual.Should().BeFailure();
+        actual.Should().HaveError(ErrorCodes.NotFound);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenBookIsSoftDeleted_ShouldReturnNotFound()
+    {
+        // Arrange
+        const int bookId = 1;
+        var book = new Book
+        {
+            Id = bookId,
+            Title = "Test Book",
+            SoftDeleted = true
+        };
+
+        var mockDbSet = new List<Book> { book }.BuildMockDbSet();
+        _dbContext.Books.Returns(mockDbSet);
+
+        var request = new GetBookDetailsQuery(bookId);
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);

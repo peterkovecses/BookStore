@@ -14,7 +14,13 @@ internal sealed class SearchBooksHandler(
             .AsExpandable()
             .Where(request.Filter.GetPredicate());
 
-        if (string.Equals(request.Sorting.SortBy, "Price", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(request.Sorting.SortBy, "AverageRating", StringComparison.OrdinalIgnoreCase))
+        {
+            query = request.Sorting.IsDescending
+                ? query.OrderByDescending(b => b.Reviews.Any() ? (double?)b.Reviews.Average(r => r.Stars) : null)
+                : query.OrderBy(b => b.Reviews.Any() ? (double?)b.Reviews.Average(r => r.Stars) : null);
+        }
+        else if (string.Equals(request.Sorting.SortBy, "Price", StringComparison.OrdinalIgnoreCase))
         {
             query = request.Sorting.IsDescending
                 ? query.OrderByDescending(b => b.Promotion != null ? b.Promotion.NewPrice : b.Price)
@@ -38,7 +44,7 @@ internal sealed class SearchBooksHandler(
     {
         foreach (var book in books)
         {
-            if (book.ImageName is not null)
+            if (!string.IsNullOrWhiteSpace(book.ImageName))
             {
                 book.ImageUrl = storageService.GetPublicUrl(book.ImageName);
             }

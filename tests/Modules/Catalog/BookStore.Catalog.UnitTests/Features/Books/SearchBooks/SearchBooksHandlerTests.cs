@@ -71,17 +71,23 @@ public class SearchBooksHandlerTests
         _storageService.Received(1).GetPublicUrl(imageName2);
     }
 
-    [Fact]
-    public async Task Handle_WhenBooksHaveNoImages_ShouldNotCallStorageService()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Handle_WhenBookHasNoImage_ShouldNotCallStorageService(string? imageName)
     {
         // Arrange
         const int bookId = 1;
+        const string title = "Book 1";
         const int pageNumber = 1;
         const int pageSize = 10;
-        var mockDbSet = new List<Book> { new() { Id = bookId, Title = "Book 1", ImageName = null } }.BuildMockDbSet();
+        const string? sortBy = null;
+        const bool isDescending = false;
+        var mockDbSet = new List<Book> { new() { Id = bookId, Title = title, ImageName = imageName } }.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, pageSize), ISorting.Create(null, false));
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, pageSize), ISorting.Create(sortBy, isDescending));
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
