@@ -113,3 +113,18 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+.input-group:focus-within {
+    box-shadow: 0 0 0 0.25rem rgba(37, 140, 251, 0.25);
+    border-radius: 0.375rem;
+}
+
+.input-group:focus-within .input-group-text,
+.input-group:focus-within .form-control,
+.input-group:focus-within .btn {
+    border-color: #258cfb;
+}
+
+.input-group:focus-within .form-control:focus,
+.input-group:focus-within .btn:focus {
+    box-shadow: none;
+}
