@@ -76,7 +76,7 @@ public partial class BookList
         {
             Pagination.PageNumber = 1;
             UpdateUrl();
-        });
+        }, 600);
     }
 
     private void ToggleSortDirection()
