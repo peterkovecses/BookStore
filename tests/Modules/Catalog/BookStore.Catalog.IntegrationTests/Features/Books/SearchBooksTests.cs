@@ -638,7 +638,7 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     [Fact]
     public async Task Search_WhenEmptyDatabase_ShouldReturnEmptyPaginatedList()
     {
-        // Arrange - Database is clean and empty
+        // Arrange
 
         // Act
         var response = await Client.GetAsync("/api/catalog/books", TestContext.Current.CancellationToken);

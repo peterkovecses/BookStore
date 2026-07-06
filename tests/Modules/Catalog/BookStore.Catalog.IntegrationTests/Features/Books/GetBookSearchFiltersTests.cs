@@ -15,7 +15,7 @@ public class GetBookSearchFiltersTests : CatalogIntegrationTestBase
     }
 
     [Fact]
-    public async Task GetFilters_WhenCalled_ShouldReturn200WithAuthorsAndTagIds()
+    public async Task GetFilters_ShouldReturn200WithAuthorsAndTagIds()
     {
         // Arrange
         const string authorName1 = "Author A";
@@ -87,26 +87,23 @@ public class GetBookSearchFiltersTests : CatalogIntegrationTestBase
 
         await SeedAsync(author1, tag1);
 
-        // Act & Assert 1: First call to populate cache
+        // Act
         var response1 = await Client.GetAsync("/api/catalog/books/filters", TestContext.Current.CancellationToken);
-        response1.StatusCode.Should().Be(HttpStatusCode.OK);
-
         var result1 = await response1.Content.ReadFromJsonAsync<BookSearchFiltersDto>(TestContext.Current.CancellationToken);
-        result1.Should().NotBeNull();
-        result1!.Authors.Should().ContainSingle(a => a.Name == authorName1);
 
-        // Seed new author after first call (would normally be returned if DB is queried)
         Author author2 = new() { Name = authorName2 };
         await SeedAsync(author2);
 
-        // Act 2: Second call should hit the cache
         var response2 = await Client.GetAsync("/api/catalog/books/filters", TestContext.Current.CancellationToken);
-        response2.StatusCode.Should().Be(HttpStatusCode.OK);
-
         var result2 = await response2.Content.ReadFromJsonAsync<BookSearchFiltersDto>(TestContext.Current.CancellationToken);
-        result2.Should().NotBeNull();
 
-        // Assert: It should still only contain Author A, not Author B
+        // Assert
+        response1.StatusCode.Should().Be(HttpStatusCode.OK);
+        result1.Should().NotBeNull();
+        result1!.Authors.Should().ContainSingle(a => a.Name == authorName1);
+
+        response2.StatusCode.Should().Be(HttpStatusCode.OK);
+        result2.Should().NotBeNull();
         result2!.Authors.Should().ContainSingle(a => a.Name == authorName1);
         result2.Authors.Should().NotContain(a => a.Name == authorName2);
     }
@@ -114,7 +111,7 @@ public class GetBookSearchFiltersTests : CatalogIntegrationTestBase
     [Fact]
     public async Task GetFilters_WhenNoAuthorsOrTagsExist_ShouldReturnEmptyCollections()
     {
-        // Arrange - Database is clean and empty
+        // Arrange
 
         // Act
         var response = await Client.GetAsync("/api/catalog/books/filters", TestContext.Current.CancellationToken);
