@@ -137,4 +137,75 @@ public class GetBookDetailsTests(CatalogWebApplicationFactory factory) : Catalog
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
+
+    [Fact]
+    public async Task GetDetails_WhenIdIsNotAnInteger_ShouldReturnNotFound()
+    {
+        // Arrange
+        const string invalidId = "not-an-integer";
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books/{invalidId}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetDetails_WhenBookHasNoPromotion_ShouldReturnNullPromotion()
+    {
+        // Arrange
+        const string bookTitle = "Book Without Promotion";
+        Book book = CreateBook(title: bookTitle, promotion: null);
+        await SeedAsync(book);
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books/{book.Id}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<BookDetailsDto>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result!.Promotion.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetDetails_WhenBookHasNoReviews_ShouldReturnEmptyReviewsAndNullAverageRating()
+    {
+        // Arrange
+        const string bookTitle = "Book Without Reviews";
+        Book book = CreateBook(title: bookTitle, reviews: null);
+        await SeedAsync(book);
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books/{book.Id}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<BookDetailsDto>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result!.Reviews.Should().BeEmpty();
+        result.AverageRating.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetDetails_WhenBookHasNoAuthors_ShouldReturnEmptyAuthors()
+    {
+        // Arrange
+        const string bookTitle = "Book Without Authors";
+        Book book = CreateBook(title: bookTitle, authors: null);
+        await SeedAsync(book);
+
+        // Act
+        var response = await Client.GetAsync($"/api/catalog/books/{book.Id}", TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<BookDetailsDto>(TestContext.Current.CancellationToken);
+        result.Should().NotBeNull();
+        result!.Authors.Should().BeEmpty();
+    }
 }
