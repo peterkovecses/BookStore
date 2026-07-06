@@ -13,8 +13,8 @@ internal sealed class SearchBooksHandler(
             .AsNoTracking()
             .AsExpandable()
             .Where(request.Filter.GetPredicate())
-            .Select(BookMappings.ToBookSummary)
-            .ApplySorting(request.Sorting);
+            .ApplySorting(request.Sorting, BookSortExpressions.Mappings)
+            .Select(BookMappings.ToBookSummary);
 
         var result = await query
             .ToPaginatedListAsync(request.Pagination, cancellationToken);

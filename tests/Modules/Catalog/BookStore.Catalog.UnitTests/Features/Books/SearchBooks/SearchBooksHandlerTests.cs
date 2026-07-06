@@ -248,4 +248,35 @@ public class SearchBooksHandlerTests
                 b => b.Title.Should().Be("Book 10")
             );
     }
+
+    [Fact]
+    public async Task Handle_WhenSortedByPriceWithPromotions_ShouldSortByEffectivePrice()
+    {
+        // Arrange
+        var books = new List<Book>
+        {
+            new() { Id = 1, Title = "Book A", Price = 20.00m, Promotion = new PriceOffer { Id = 1, NewPrice = 15.00m, BookId = 1 } },
+            new() { Id = 2, Title = "Book B", Price = 12.00m },
+            new() { Id = 3, Title = "Book C", Price = 30.00m, Promotion = new PriceOffer { Id = 2, NewPrice = 8.00m, BookId = 3 } },
+            new() { Id = 4, Title = "Book D", Price = 18.00m }
+        };
+
+        var mockDbSet = books.BuildMockDbSet();
+        _dbContext.Books.Returns(mockDbSet);
+
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Default, ISorting.Create("Price", false));
+
+        // Act
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        actual.ShouldBePaginatedSuccess()
+            .HaveCount(4)
+            .SatisfyRespectively(
+                b => b.Title.Should().Be("Book C"),
+                b => b.Title.Should().Be("Book B"),
+                b => b.Title.Should().Be("Book A"),
+                b => b.Title.Should().Be("Book D")
+            );
+    }
 }

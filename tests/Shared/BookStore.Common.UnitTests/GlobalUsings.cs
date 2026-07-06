@@ -2,6 +2,7 @@ global using BookStore.Common.Pagination;
 global using BookStore.Common.Sorting;
 global using BookStore.Common.Validation;
 global using BookStore.Common.Logging;
+global using System.Linq.Expressions;
 global using FluentAssertions;
 global using FluentValidation;
 global using Kovecses.Result;
