@@ -88,4 +88,21 @@ public class DebouncerTests
         // Assert
         executed.Should().BeFalse();
     }
+
+
+    [Fact]
+    public void Debounce_WhenCalledAfterCancel_ShouldExecuteOnNextTimeout()
+    {
+        // Arrange
+        var executed = false;
+        _sut.Debounce(() => {}, 100);
+        _sut.Cancel();
+
+        // Act
+        _sut.Debounce(() => executed = true, 100);
+        _timeProvider.Advance(TimeSpan.FromMilliseconds(100));
+
+        // Assert
+        executed.Should().BeTrue();
+    }
 }

@@ -298,4 +298,19 @@ public class NavigationManagerExtensionsTests
             NotifyLocationChanged(false);
         }
     }
+
+
+    [Fact]
+    public void TryGetQueryParameters_WhenKeyDoesNotExist_ShouldReturnFalseAndEmptyList()
+    {
+        // Arrange
+        _navManager.SetUri("http://localhost/books");
+
+        // Act
+        var result = _navManager.TryGetQueryParameters<int>("nonexistent", out var actualValues);
+
+        // Assert
+        result.Should().BeFalse();
+        actualValues.Should().BeEmpty();
+    }
 }

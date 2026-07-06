@@ -185,8 +185,10 @@ public class SearchBooksHandlerTests
             .AllSatisfy(b => b.Id.Should().Be(1));
     }
 
-    [Fact]
-    public async Task Handle_WhenSortedByTitleDescending_ShouldSortCorrectly()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Handle_WhenSortedByTitle_ShouldSortCorrectly(bool isDescending)
     {
         // Arrange
         const int pageNumber = 1;
@@ -201,19 +203,105 @@ public class SearchBooksHandlerTests
         var mockDbSet = books.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
         
-        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, pageSize), ISorting.Create(sortBy, true));
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(pageNumber, pageSize), ISorting.Create(sortBy, isDescending));
+
+        // Act
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        var expectedTitles = isDescending ? new[] { "C", "B", "A" } : new[] { "A", "B", "C" };
+        actual.ShouldBePaginatedSuccess()
+            .HaveCount(3);
+        actual.Data!.Items.Select(b => b.Title).Should().ContainInOrder(expectedTitles);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Handle_WhenSortedByPublishedOn_ShouldSortCorrectly(bool isDescending)
+    {
+        // Arrange
+        var books = new List<Book>
+        {
+            new() { Id = 1, Title = "A", PublishedOn = new DateTime(2024, 1, 1) },
+            new() { Id = 2, Title = "B", PublishedOn = new DateTime(2024, 1, 3) },
+            new() { Id = 3, Title = "C", PublishedOn = new DateTime(2024, 1, 2) }
+        };
+        var mockDbSet = books.BuildMockDbSet();
+        _dbContext.Books.Returns(mockDbSet);
+        
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Default, ISorting.Create("PublishedOn", isDescending));
+
+        // Act
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        var expectedTitles = isDescending ? new[] { "B", "C", "A" } : new[] { "A", "C", "B" };
+        actual.ShouldBePaginatedSuccess()
+            .HaveCount(3);
+        actual.Data!.Items.Select(b => b.Title).Should().ContainInOrder(expectedTitles);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Handle_WhenSortedByAverageRating_ShouldSortCorrectly(bool isDescending)
+    {
+        // Arrange
+        var books = new List<Book>
+        {
+            new() { Id = 1, Title = "A", Reviews = [new() { Stars = 5 }] },
+            new() { Id = 2, Title = "B", Reviews = [new() { Stars = 3 }] },
+            new() { Id = 3, Title = "C", Reviews = [new() { Stars = 4 }] }
+        };
+        var mockDbSet = books.BuildMockDbSet();
+        _dbContext.Books.Returns(mockDbSet);
+        
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Default, ISorting.Create("AverageRating", isDescending));
+
+        // Act
+        var actual = await _sut.HandleAsync(request, CancellationToken.None);
+
+        // Assert
+        var expectedTitles = isDescending ? new[] { "A", "C", "B" } : new[] { "B", "C", "A" };
+        actual.ShouldBePaginatedSuccess()
+            .HaveCount(3);
+        actual.Data!.Items.Select(b => b.Title).Should().ContainInOrder(expectedTitles);
+    }
+
+    [Fact]
+    public async Task Handle_WhenMixedImageList_ShouldPopulateOnlyBooksWithImages()
+    {
+        // Arrange
+        const int bookId1 = 1;
+        const int bookId2 = 2;
+        const string imageName1 = "cover1.jpg";
+        const string expectedUrl1 = "https://cdn.com/cover1.jpg";
+        
+        var books = new List<Book>
+        {
+            new() { Id = bookId1, Title = "Book 1", ImageName = imageName1 },
+            new() { Id = bookId2, Title = "Book 2", ImageName = null }
+        };
+        var mockDbSet = books.BuildMockDbSet();
+        _dbContext.Books.Returns(mockDbSet);
+        
+        _storageService.GetPublicUrl(imageName1).Returns(expectedUrl1);
+        
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Default, ISorting.Create(null, false));
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
 
         // Assert
         actual.ShouldBePaginatedSuccess()
-            .HaveCount(3)
             .SatisfyRespectively(
-                b => b.Title.Should().Be("C"),
-                b => b.Title.Should().Be("B"),
-                b => b.Title.Should().Be("A")
+                first => first.ImageUrl.Should().Be(expectedUrl1),
+                second => second.ImageUrl.Should().BeNull()
             );
+    
+        _storageService.Received(1).GetPublicUrl(imageName1);
+        _storageService.DidNotReceive().GetPublicUrl(Arg.Is<string>(s => s != imageName1));
     }
 
     [Fact]

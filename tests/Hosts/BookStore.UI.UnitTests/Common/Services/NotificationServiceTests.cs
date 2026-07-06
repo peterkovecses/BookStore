@@ -70,4 +70,25 @@ public class NotificationServiceTests
         // Assert
         raised.Should().BeTrue();
     }
+
+
+    [Fact]
+    public void ShowSuccess_WhenNoSubscriber_ShouldNotThrow()
+    {
+        // Arrange & Act
+        var act = () => _sut.ShowSuccess("Message");
+
+        // Assert
+        act.Should().NotThrow();
+    }
+
+    [Fact]
+    public void ClearNotifications_WhenNoSubscriber_ShouldNotThrow()
+    {
+        // Arrange & Act
+        var act = () => _sut.ClearNotifications();
+
+        // Assert
+        act.Should().NotThrow();
+    }
 }

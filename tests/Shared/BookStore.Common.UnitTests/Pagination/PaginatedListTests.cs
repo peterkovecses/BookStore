@@ -62,4 +62,18 @@ public class PaginatedListTests
         // Assert
         actual.Should().Be(expectedHasNextPage);
     }
+
+
+    [Fact]
+    public void HasNextPage_WhenTotalCountIsZero_ShouldBeFalse()
+    {
+        // Arrange
+        var sut = new PaginatedList<int>([], 0, 1, 5);
+
+        // Act
+        var actual = sut.HasNextPage;
+
+        // Assert
+        actual.Should().BeFalse();
+    }
 }

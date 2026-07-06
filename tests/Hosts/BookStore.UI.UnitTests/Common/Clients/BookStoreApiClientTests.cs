@@ -189,4 +189,55 @@ public class BookStoreApiClientTests
             return Task.FromResult(_response);
         }
     }
+
+
+    [Fact]
+    public async Task SearchBooksAsync_WhenSearchTermIsSet_ShouldIncludeSearchTermInQuery()
+    {
+        // Arrange
+        const string expectedSearchTerm = "DDD";
+        var searchParams = new BookSearchParameters { SearchTerm = expectedSearchTerm };
+        _httpMessageHandler.SetResponse(HttpStatusCode.OK, new PaginatedList<BookSummaryDto>([], 0, 1, 10));
+
+        // Act
+        await _sut.SearchBooksAsync(searchParams, new PaginationParameters(), new SortingParameters(), CancellationToken.None);
+
+        // Assert
+        var lastRequest = _httpMessageHandler.LastRequest;
+        lastRequest.Should().NotBeNull();
+        lastRequest!.RequestUri!.Query.Should().Contain($"searchTerm={expectedSearchTerm}");
+    }
+
+    [Fact]
+    public async Task SearchBooksAsync_WhenSortByIsSet_ShouldIncludeSortByInQuery()
+    {
+        // Arrange
+        const string expectedSortBy = "Title";
+        var sortingParams = new SortingParameters { SortBy = expectedSortBy, IsDescending = true };
+        _httpMessageHandler.SetResponse(HttpStatusCode.OK, new PaginatedList<BookSummaryDto>([], 0, 1, 10));
+
+        // Act
+        await _sut.SearchBooksAsync(new BookSearchParameters(), new PaginationParameters(), sortingParams, CancellationToken.None);
+
+        // Assert
+        var lastRequest = _httpMessageHandler.LastRequest;
+        lastRequest.Should().NotBeNull();
+        lastRequest!.RequestUri!.Query.Should().Contain($"sortBy={expectedSortBy}");
+        lastRequest.RequestUri.Query.Should().Contain("isDescending=true");
+    }
+
+    [Fact]
+    public async Task GetBookDetailsAsync_WhenNotFound_ShouldReturnFailure()
+    {
+        // Arrange
+        const int id = 999;
+        var problem = new ProblemDetails { Status = (int)HttpStatusCode.NotFound, Detail = "Not found" };
+        _httpMessageHandler.SetResponse(HttpStatusCode.NotFound, problem);
+
+        // Act
+        var actual = await _sut.GetBookDetailsAsync(id, CancellationToken.None);
+
+        // Assert
+        actual.Should().BeFailure();
+    }
 }

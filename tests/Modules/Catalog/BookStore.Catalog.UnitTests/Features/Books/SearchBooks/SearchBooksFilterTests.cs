@@ -18,15 +18,16 @@ public class SearchBooksFilterTests
         actual.Should().BeTrue();
     }
 
-    [Fact]
-    public void GetPredicate_WhenSearchTermInTitle_ShouldMatch()
+    [Theory]
+    [MemberData(nameof(SearchTermTestData))]
+    public void GetPredicate_WhenSearchTermMatches_ShouldMatch(object filterObj, object bookObj)
     {
         // Arrange
-        var sut = new SearchBooksFilter { SearchTerm = "Test" };
-        var book = new Book { Id = 1, Title = "Test Book", Description = "", Publisher = "", AuthorsLink = [] };
+        var filter = (SearchBooksFilter)filterObj;
+        var book = (Book)bookObj;
 
         // Act
-        var predicate = sut.GetPredicate();
+        var predicate = filter.GetPredicate();
         var compiledPredicate = predicate.Compile();
         var actual = compiledPredicate(book);
 
@@ -34,57 +35,39 @@ public class SearchBooksFilterTests
         actual.Should().BeTrue();
     }
 
-    [Fact]
-    public void GetPredicate_WhenSearchTermInDescription_ShouldMatch()
+    public static TheoryData<object, object> SearchTermTestData()
     {
-        // Arrange
-        var sut = new SearchBooksFilter { SearchTerm = "Fiction" };
-        var book = new Book { Id = 1, Title = "Book", Description = "Great Fiction", Publisher = "", AuthorsLink = [] };
+        var data = new TheoryData<object, object>();
 
-        // Act
-        var predicate = sut.GetPredicate();
-        var compiledPredicate = predicate.Compile();
-        var actual = compiledPredicate(book);
+        // Title
+        data.Add(
+            new SearchBooksFilter { SearchTerm = "Test" },
+            new Book { Id = 1, Title = "Test Book", Description = "", Publisher = "", AuthorsLink = [] }
+        );
 
-        // Assert
-        actual.Should().BeTrue();
-    }
+        // Description
+        data.Add(
+            new SearchBooksFilter { SearchTerm = "Fiction" },
+            new Book { Id = 1, Title = "Book", Description = "Great Fiction", Publisher = "", AuthorsLink = [] }
+        );
 
-    [Fact]
-    public void GetPredicate_WhenSearchTermInPublisher_ShouldMatch()
-    {
-        // Arrange
-        var sut = new SearchBooksFilter { SearchTerm = "Publisher" };
-        var book = new Book { Id = 1, Title = "", Description = "", Publisher = "Test Publisher", AuthorsLink = [] };
+        // Publisher
+        data.Add(
+            new SearchBooksFilter { SearchTerm = "Publisher" },
+            new Book { Id = 1, Title = "", Description = "", Publisher = "Test Publisher", AuthorsLink = [] }
+        );
 
-        // Act
-        var predicate = sut.GetPredicate();
-        var compiledPredicate = predicate.Compile();
-        var actual = compiledPredicate(book);
+        // AuthorName
+        data.Add(
+            new SearchBooksFilter { SearchTerm = "Smith" },
+            new Book 
+            { 
+                Id = 1, Title = "", Description = "", Publisher = "", 
+                AuthorsLink = [new BookAuthor { Author = new Author { Id = 1, Name = "John Smith" } }]
+            }
+        );
 
-        // Assert
-        actual.Should().BeTrue();
-    }
-
-    [Fact]
-    public void GetPredicate_WhenSearchTermInAuthorName_ShouldMatch()
-    {
-        // Arrange
-        var sut = new SearchBooksFilter { SearchTerm = "Smith" };
-        var author = new Author { Id = 1, Name = "John Smith" };
-        var book = new Book 
-        { 
-            Id = 1, Title = "", Description = "", Publisher = "", 
-            AuthorsLink = [new BookAuthor { Author = author }]
-        };
-
-        // Act
-        var predicate = sut.GetPredicate();
-        var compiledPredicate = predicate.Compile();
-        var actual = compiledPredicate(book);
-
-        // Assert
-        actual.Should().BeTrue();
+        return data;
     }
 
     [Fact]
@@ -217,6 +200,92 @@ public class SearchBooksFilterTests
         // Arrange
         var sut = new SearchBooksFilter();
         var book = new Book { Id = 1, SoftDeleted = true };
+
+        // Act
+        var predicate = sut.GetPredicate();
+        var compiledPredicate = predicate.Compile();
+        var actual = compiledPredicate(book);
+
+        // Assert
+        actual.Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetPredicate_WhenAuthorIdsIsEmpty_ShouldNotFilterByAuthor()
+    {
+        // Arrange
+        var sut = new SearchBooksFilter { AuthorIds = [] };
+        var book = new Book 
+        { 
+            Id = 1, Title = "Test Book", Description = "", Publisher = "", 
+            AuthorsLink = [new BookAuthor { AuthorId = 1 }]
+        };
+
+        // Act
+        var predicate = sut.GetPredicate();
+        var compiledPredicate = predicate.Compile();
+        var actual = compiledPredicate(book);
+
+        // Assert
+        actual.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetPredicate_WhenTagIdsIsEmpty_ShouldNotFilterByTag()
+    {
+        // Arrange
+        var sut = new SearchBooksFilter { TagIds = [] };
+        var book = new Book 
+        { 
+            Id = 1, Title = "Test Book", Description = "", Publisher = "", AuthorsLink = [],
+            Tags = [new Tag { Id = "Fiction" }]
+        };
+
+        // Act
+        var predicate = sut.GetPredicate();
+        var compiledPredicate = predicate.Compile();
+        var actual = compiledPredicate(book);
+
+        // Assert
+        actual.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void GetPredicate_WhenSearchTermIsEmptyOrWhitespace_ShouldNotApplySearchFilter(string? searchTerm)
+    {
+        // Arrange
+        var sut = new SearchBooksFilter { SearchTerm = searchTerm };
+        var book = new Book { Id = 1, Title = "Test Book", Description = "", Publisher = "", AuthorsLink = [] };
+
+        // Act
+        var predicate = sut.GetPredicate();
+        var compiledPredicate = predicate.Compile();
+        var actual = compiledPredicate(book);
+
+        // Assert
+        actual.Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetPredicate_WhenMultipleFiltersAppliedAndOneDoesNotMatch_ShouldReturnFalse()
+    {
+        // Arrange
+        var sut = new SearchBooksFilter
+        {
+            SearchTerm = "Test",
+            AuthorIds = [1],
+            TagIds = ["Fiction"]
+        };
+
+        var author = new Author { Id = 1, Name = "Author" };
+        var book = new Book 
+        { 
+            Id = 1, Title = "Test Book", Description = "", Publisher = "", 
+            AuthorsLink = [new BookAuthor { AuthorId = 1, Author = author }],
+            Tags = [new Tag { Id = "NonMatchingTag" }]
+        };
 
         // Act
         var predicate = sut.GetPredicate();

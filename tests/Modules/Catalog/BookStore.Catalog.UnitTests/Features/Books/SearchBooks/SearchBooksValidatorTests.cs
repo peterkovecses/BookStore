@@ -74,11 +74,12 @@ public class SearchBooksValidatorTests
     }
 
     [Theory]
+    [InlineData(null)]
     [InlineData("Title")]
     [InlineData("Price")]
     [InlineData("PublishedOn")]
     [InlineData("AverageRating")]
-    public void Validate_WhenSortByIsValid_ShouldNotHaveAnyErrors(string sortBy)
+    public void Validate_WhenSortByIsValid_ShouldNotHaveAnyErrors(string? sortBy)
     {
         // Arrange
         var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Default, ISorting.Create(sortBy, false));
@@ -102,5 +103,63 @@ public class SearchBooksValidatorTests
 
         // Assert
         actual.ShouldHaveValidationErrorFor(nameof(SearchBooksQuery.Sorting.SortBy));
+    }
+
+
+    [Fact]
+    public void Validate_WhenSearchTermIsExactlyMaxLength_ShouldNotHaveError()
+    {
+        // Arrange
+        const int maxLength = 100;
+        var request = new SearchBooksQuery(new SearchBooksFilter { SearchTerm = new string('a', maxLength) }, IPagination.Default, ISorting.Create(null, false));
+
+        // Act
+        var actual = _sut.TestValidate(request);
+
+        // Assert
+        actual.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_WhenSearchTermIsNull_ShouldNotHaveError()
+    {
+        // Arrange
+        var request = new SearchBooksQuery(new SearchBooksFilter { SearchTerm = null }, IPagination.Default, ISorting.Create(null, false));
+
+        // Act
+        var actual = _sut.TestValidate(request);
+
+        // Assert
+        actual.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_WhenPageSizeIsMaxPageSize_ShouldNotHaveError()
+    {
+        // Arrange
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Create(1, IPagination.MaxPageSize), ISorting.Create(null, false));
+
+        // Act
+        var actual = _sut.TestValidate(request);
+
+        // Assert
+        actual.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData("title")]
+    [InlineData("PRICE")]
+    [InlineData("publishedon")]
+    [InlineData("AVERAGERATING")]
+    public void Validate_WhenSortByIsCaseDifferent_ShouldNotHaveError(string sortBy)
+    {
+        // Arrange
+        var request = new SearchBooksQuery(new SearchBooksFilter(), IPagination.Default, ISorting.Create(sortBy, false));
+
+        // Act
+        var actual = _sut.TestValidate(request);
+
+        // Assert
+        actual.ShouldNotHaveAnyValidationErrors();
     }
 }
