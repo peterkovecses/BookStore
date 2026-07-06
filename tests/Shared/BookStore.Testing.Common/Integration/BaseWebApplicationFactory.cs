@@ -70,6 +70,13 @@ public abstract class BaseWebApplicationFactory<TMarker> : WebApplicationFactory
     /// </summary>
     public override async ValueTask DisposeAsync()
     {
-        await base.DisposeAsync();
+        try
+        {
+            await base.DisposeAsync();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Ignore ObjectDisposedException on host disposal due to physical file provider watcher issues in some environments.
+        }
     }
 }
