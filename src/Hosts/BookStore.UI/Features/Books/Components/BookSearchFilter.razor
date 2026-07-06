@@ -9,6 +9,7 @@
             <SearchBox 
                 SearchTerm="@Filter.SearchTerm" 
                 Placeholder="Title, publisher..." 
+                DebounceMilliseconds="800"
                 OnSearch="HandleSearch" />
         </div>
 
@@ -64,6 +65,8 @@
 </div>
 
 @code {
+    private readonly Debouncer _debouncer = new();
+
     [Parameter]
     public BookSearchParameters Filter { get; set; } = default!;
 
@@ -92,35 +95,44 @@
         await OnFilterChanged.InvokeAsync();
     }
 
-    private async Task ToggleAuthor(int authorId, bool isChecked)
+    private void ToggleAuthor(int authorId, bool isChecked)
     {
         if (isChecked)
         {
             Filter.AuthorIds.Add(authorId);
-            await OnFilterChanged.InvokeAsync();
-            return;
+        }
+        else
+        {
+            Filter.AuthorIds.Remove(authorId);
         }
 
-        Filter.AuthorIds.Remove(authorId);
-        await OnFilterChanged.InvokeAsync();
+        _debouncer.Debounce(() => InvokeAsync(async () => await OnFilterChanged.InvokeAsync()), 1500);
     }
 
-    private async Task ToggleTag(string tagId)
+    private void ToggleTag(string tagId)
     {
         if (Filter.TagIds.Contains(tagId))
         {
             Filter.TagIds.Remove(tagId);
-            await OnFilterChanged.InvokeAsync();
-            return;
+        }
+        else
+        {
+            Filter.TagIds.Add(tagId);
         }
 
-        Filter.TagIds.Add(tagId);
-        await OnFilterChanged.InvokeAsync();
+        _debouncer.Debounce(() => InvokeAsync(async () => await OnFilterChanged.InvokeAsync()), 1500);
     }
 
     private async Task ClearFilters()
     {
         Filter.Clear();
+        _debouncer.Cancel();
         await OnFilterChanged.InvokeAsync();
+    }
+
+    public override void Dispose()
+    {
+        _debouncer.Dispose();
+        base.Dispose();
     }
 }
