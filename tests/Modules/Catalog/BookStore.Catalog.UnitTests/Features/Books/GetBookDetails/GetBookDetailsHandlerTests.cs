@@ -85,7 +85,7 @@ public class GetBookDetailsHandlerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task HandleAsync_WhenBookImageNameIsEmptyOrWhitespaceOrNull_ShouldSetImageUrlToNull(string? imageName)
+    public async Task HandleAsync_WhenBookHasNoImage_ShouldSetImageUrlToNull(string? imageName)
     {
         // Arrange
         const int bookId = 1;

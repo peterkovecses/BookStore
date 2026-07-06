@@ -75,7 +75,7 @@ public class SearchBooksHandlerTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task Handle_WhenBookImageNameIsEmptyOrWhitespaceOrNull_ShouldNotCallStorageService(string? imageName)
+    public async Task Handle_WhenBookHasNoImage_ShouldNotCallStorageService(string? imageName)
     {
         // Arrange
         const int bookId = 1;
