@@ -27,7 +27,7 @@ internal static class BookMappings
             Id = t.Id
         }),
         ReviewCount = book.Reviews.Count,
-        AverageRating = book.Reviews.Any() ? book.Reviews.Average(r => r.Stars) : null
+        AverageRating = book.Reviews.Any() ? book.Reviews.Average(r => (double)r.Stars) : null
     };
 
     public static Expression<Func<Book, BookDetailsDto>> ToBookDetailsDto => book => new BookDetailsDto
@@ -64,6 +64,6 @@ internal static class BookMappings
             Comment = r.Comment,
             BookId = r.BookId
         }).ToList(),
-        AverageRating = book.Reviews.Any() ? book.Reviews.Average(r => r.Stars) : null
+        AverageRating = book.Reviews.Any() ? book.Reviews.Average(r => (double)r.Stars) : null
     };
 }

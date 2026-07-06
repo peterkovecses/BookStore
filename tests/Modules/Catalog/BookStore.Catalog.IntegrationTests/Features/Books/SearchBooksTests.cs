@@ -522,9 +522,9 @@ public class SearchBooksTests(CatalogWebApplicationFactory factory) : CatalogInt
     public async Task Search_WhenSortedByAverageRating_ShouldReturnBooksInCorrectOrder(bool isDescending, string[] expectedOrder)
     {
         // Arrange
-        Book bookA = CreateBook(title: "Book A", reviews: [new Review { Stars = 5, Voter = "Voter A" }]);
-        Book bookB = CreateBook(title: "Book B", reviews: [new Review { Stars = 3, Voter = "Voter B" }]);
-        Book bookC = CreateBook(title: "Book C", reviews: [new Review { Stars = 4, Voter = "Voter C" }]);
+        Book bookA = CreateBook(title: "Book A", reviews: [new Review { Stars = 5, Voter = "Voter A1" }, new Review { Stars = 4, Voter = "Voter A2" }]);
+        Book bookB = CreateBook(title: "Book B", reviews: [new Review { Stars = 3, Voter = "Voter B1" }, new Review { Stars = 4, Voter = "Voter B2" }]);
+        Book bookC = CreateBook(title: "Book C", reviews: [new Review { Stars = 4, Voter = "Voter C1" }, new Review { Stars = 4, Voter = "Voter C2" }]);
 
         await SeedAsync(bookA, bookB, bookC);
 
