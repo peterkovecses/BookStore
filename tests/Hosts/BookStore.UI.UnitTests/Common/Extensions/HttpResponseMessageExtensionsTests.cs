@@ -180,4 +180,27 @@ public class HttpResponseMessageExtensionsTests
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
+
+
+    [Fact]
+    public async Task ToResultAsync_WhenBadRequestWithBothDetailAndTitle_ShouldPreferDetail()
+    {
+        // Arrange
+        const string detail = "Specific error detail";
+        using var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
+        {
+            Content = new StringContent(
+                "{\"errors\":null,\"detail\":\"Specific error detail\",\"title\":\"General Error Title\"}",
+                Encoding.UTF8,
+                "application/json")
+        };
+
+        // Act
+        var actual = await response.ToResultAsync<TestData>(CancellationToken.None);
+
+        // Assert
+        actual.Should().BeFailure()
+            .HaveError(UIErrorCodes.ApiError)
+            .HaveMessage(detail);
+    }
 }

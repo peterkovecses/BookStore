@@ -13,7 +13,7 @@ public class ValidationBehaviorTests
     }
 
     [Fact]
-    public async Task Handle_WhenNoValidators_ShouldCallNext()
+    public async Task HandleAsync_WhenNoValidators_ShouldCallNext()
     {
         // Arrange
         var next = Substitute.For<RequestHandlerDelegate<Result>>();
@@ -29,7 +29,7 @@ public class ValidationBehaviorTests
     }
 
     [Fact]
-    public async Task Handle_WhenValidationSucceeds_ShouldCallNext()
+    public async Task HandleAsync_WhenValidationSucceeds_ShouldCallNext()
     {
         // Arrange
         var validator = Substitute.For<IValidator<TestRequest>>();
@@ -50,7 +50,7 @@ public class ValidationBehaviorTests
     }
 
     [Fact]
-    public async Task Handle_WhenValidationFails_ShouldReturnFailureResult()
+    public async Task HandleAsync_WhenValidationFails_ShouldReturnFailureResult()
     {
         // Arrange
         var validator = Substitute.For<IValidator<TestRequest>>();
@@ -77,6 +77,38 @@ public class ValidationBehaviorTests
                     .HaveCount(2).And
                 .HaveValidationProperty("Property2")
                     .HaveCount(1);
+
+        await next.DidNotReceive()();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenMultipleValidatorsAndOneFailsOneSucceeds_ShouldReturnAggregatedFailure()
+    {
+        // Arrange
+        var validator1 = Substitute.For<IValidator<TestRequest>>();
+        validator1.ValidateAsync(Arg.Any<TestRequest>(), TestContext.Current.CancellationToken)
+            .Returns(new FluentValidation.Results.ValidationResult());
+        _validators.Add(validator1);
+
+        var validator2 = Substitute.For<IValidator<TestRequest>>();
+        var failures = new List<FluentValidation.Results.ValidationFailure>
+        {
+            new("Property1", "Error 1")
+        };
+        validator2.ValidateAsync(Arg.Any<TestRequest>(), TestContext.Current.CancellationToken)
+            .Returns(new FluentValidation.Results.ValidationResult(failures));
+        _validators.Add(validator2);
+
+        var next = Substitute.For<RequestHandlerDelegate<Result>>();
+
+        // Act
+        var actual = await _sut.HandleAsync(new TestRequest(), next, TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.Should().BeFailure()
+            .HaveError(ErrorCodes.Validation)
+                .HaveValidationProperty("Property1")
+                    .Contain("Error 1");
 
         await next.DidNotReceive()();
     }

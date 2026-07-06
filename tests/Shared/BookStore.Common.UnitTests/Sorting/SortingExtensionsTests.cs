@@ -19,8 +19,10 @@ public class SortingExtensionsTests
         actual.Should().BeEquivalentTo(data);
     }
 
-    [Fact]
-    public void ApplySorting_WhenSortByIsPresent_ShouldSortAscending()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ApplySorting_WhenSortByIsPresent_ShouldSortCorrectly(bool isDescending)
     {
         // Arrange
         var data = new List<TestEntity> 
@@ -32,17 +34,41 @@ public class SortingExtensionsTests
         
         var sorting = Substitute.For<ISorting>();
         sorting.SortBy.Returns("Id");
-        sorting.IsDescending.Returns(false);
+        sorting.IsDescending.Returns(isDescending);
 
         // Act
         var actual = data.ApplySorting(sorting).ToList();
 
         // Assert
-        actual.Select(entity => entity.Id).Should().BeInAscendingOrder();
+        var expected = isDescending 
+            ? new[] { 3, 2, 1 } 
+            : new[] { 1, 2, 3 };
+        
+        actual.Select(entity => entity.Id).Should().ContainInOrder(expected);
     }
 
-    [Fact]
-    public void ApplySorting_WhenIsDescendingIsTrue_ShouldSortDescending()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ApplySorting_WhenSortByIsWhitespace_ShouldReturnOriginalQueryable(string sortBy)
+    {
+        // Arrange
+        var data = new List<TestEntity> { new(1, "B"), new(3, "C"),  new(2, "A") }.AsQueryable();
+        var sorting = Substitute.For<ISorting>();
+        sorting.SortBy.Returns(sortBy);
+
+        // Act
+        var actual = data.ApplySorting(sorting);
+
+        // Assert
+        actual.Should().BeEquivalentTo(data);
+    }
+
+    [Theory]
+    [InlineData("id")]
+    [InlineData("ID")]
+    [InlineData("Id")]
+    public void ApplySorting_WhenSortByIsCaseInsensitive_ShouldSort(string sortBy)
     {
         // Arrange
         var data = new List<TestEntity> 
@@ -53,14 +79,14 @@ public class SortingExtensionsTests
         }.AsQueryable();
         
         var sorting = Substitute.For<ISorting>();
-        sorting.SortBy.Returns("Name");
-        sorting.IsDescending.Returns(true);
+        sorting.SortBy.Returns(sortBy);
+        sorting.IsDescending.Returns(false);
 
         // Act
         var actual = data.ApplySorting(sorting).ToList();
 
         // Assert
-        actual.Select(entity => entity.Name).Should().BeInDescendingOrder();
+        actual.Select(entity => entity.Id).Should().ContainInOrder(1, 2, 3);
     }
 
     [Fact]

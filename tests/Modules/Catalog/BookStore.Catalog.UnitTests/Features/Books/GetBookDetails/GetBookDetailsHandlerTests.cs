@@ -51,36 +51,6 @@ public class GetBookDetailsHandlerTests
         _storageService.Received(1).GetPublicUrl(imageName);
     }
 
-    [Fact]
-    public async Task HandleAsync_WhenBookHasImage_ShouldSetImageUrl()
-    {
-        // Arrange
-        var bookId = 1;
-        var imageName = "cover.jpg";
-        var expectedUrl = "https://cdn.com/cover.jpg";
-        var book = new Book
-        {
-            Id = bookId,
-            Title = "Test Book",
-            ImageName = imageName
-        };
-
-        var mockDbSet = new List<Book> { book }.BuildMockDbSet();
-        _dbContext.Books.Returns(mockDbSet);
-        _storageService.GetPublicUrl(imageName).Returns(expectedUrl);
-
-        var request = new GetBookDetailsQuery(bookId);
-
-        // Act
-        var actual = await _sut.HandleAsync(request, CancellationToken.None);
-
-        // Assert
-        actual.Should().BeSuccess();
-        actual.Should().HaveData(data => data.ImageUrl.Should().Be(expectedUrl));
-
-        _storageService.Received(1).GetPublicUrl(imageName);
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -127,7 +97,8 @@ public class GetBookDetailsHandlerTests
 
         // Assert
         actual.Should().BeFailure();
-        actual.Should().HaveError(ErrorCodes.NotFound);
+        actual.Should().HaveError(ErrorCodes.NotFound)
+            .HaveMessage($"Book with id {nonExistentBookId} was not found.");
     }
 
     [Fact]
