@@ -17,15 +17,8 @@ internal static class BookMappings
             Text = book.Promotion.Text,
             BookId = book.Promotion.BookId
         },
-        Authors = book.AuthorsLink.Select(al => new AuthorDto
-        {
-            Id = al.AuthorId,
-            Name = al.Author.Name
-        }),
-        Tags = book.Tags.Select(t => new TagDto
-        {
-            Id = t.Id
-        }),
+        Authors = book.AuthorsLink.AsQueryable().Select(ToAuthorDto).ToList(),
+        Tags = book.Tags.AsQueryable().Select(ToTagDto).ToList(),
         ReviewCount = book.Reviews.Count,
         AverageRating = book.Reviews.Any() ? book.Reviews.Average(r => (double)r.Stars) : null
     };
@@ -47,15 +40,8 @@ internal static class BookMappings
             Text = book.Promotion.Text,
             BookId = book.Promotion.BookId
         },
-        Authors = book.AuthorsLink.Select(al => new AuthorDto
-        {
-            Id = al.AuthorId,
-            Name = al.Author.Name
-        }),
-        Tags = book.Tags.Select(t => new TagDto
-        {
-            Id = t.Id
-        }),
+        Authors = book.AuthorsLink.AsQueryable().Select(ToAuthorDto).ToList(),
+        Tags = book.Tags.AsQueryable().Select(ToTagDto).ToList(),
         Reviews = book.Reviews.Select(r => new ReviewDto
         {
             Id = r.Id,
@@ -65,5 +51,16 @@ internal static class BookMappings
             BookId = r.BookId
         }).ToList(),
         AverageRating = book.Reviews.Any() ? book.Reviews.Average(r => (double)r.Stars) : null
+    };
+
+    private static readonly Expression<Func<BookAuthor, AuthorDto>> ToAuthorDto = bookAuthor => new AuthorDto
+    {
+        Id = bookAuthor.AuthorId,
+        Name = bookAuthor.Author.Name
+    };
+
+    private static readonly Expression<Func<Tag, TagDto>> ToTagDto = tag => new TagDto
+    {
+        Id = tag.Id
     };
 }
