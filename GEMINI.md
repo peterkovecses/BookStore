@@ -6,9 +6,8 @@
 - **Commit Format:** Always use [Conventional Commits](https://www.conventionalcommits.org/) (e.g., `feat(catalog): ...`, `fix(catalog): ...`). Messages must be in English, concise, and single-line.
 - **Local Verification:** Before pushing or opening a PR, always build the solution and run all unit/integration tests (`dotnet test`). Do not proceed if there are any failures or warnings.
 - **Pushing & PR Creation:**
-  1. Propose the commit message first and wait for user approval.
-  2. Once approved, push the branch to GitHub (`git push origin <branch-name>`).
-  3. Open a Pull Request on GitHub linking to the backlog issue/ticket (e.g., in the PR description, mention `Closes #X` where `X` is the GitHub Issue number).
+  1. Push the branch to GitHub (`git push origin <branch-name>`).
+  2. Open a Pull Request on GitHub linking to the backlog issue/ticket (e.g., in the PR description, mention `Closes #X` where `X` is the GitHub Issue number).
 - **PR Review & Approval Policy:**
   - Pull Requests require exactly **2 Approvals** before merge:
     1. One from a Review Agent (spawn a subagent to inspect code diffs and write an approval message).

@@ -65,6 +65,7 @@
 </div>
 
 @code {
+    private const int DebounceDelayMilliseconds = 1300;
     private readonly Debouncer _debouncer = new();
 
     [Parameter]
@@ -106,7 +107,7 @@
             Filter.AuthorIds.Remove(authorId);
         }
 
-        _debouncer.Debounce(() => InvokeAsync(async () => await OnFilterChanged.InvokeAsync()), 1500);
+        _debouncer.Debounce(() => InvokeAsync(async () => await OnFilterChanged.InvokeAsync()), DebounceDelayMilliseconds);
     }
 
     private void ToggleTag(string tagId)
@@ -120,7 +121,7 @@
             Filter.TagIds.Add(tagId);
         }
 
-        _debouncer.Debounce(() => InvokeAsync(async () => await OnFilterChanged.InvokeAsync()), 1500);
+        _debouncer.Debounce(() => InvokeAsync(async () => await OnFilterChanged.InvokeAsync()), DebounceDelayMilliseconds);
     }
 
     private async Task ClearFilters()
