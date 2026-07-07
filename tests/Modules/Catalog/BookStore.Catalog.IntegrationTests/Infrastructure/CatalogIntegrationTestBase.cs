@@ -82,17 +82,26 @@ public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory fa
 
         if (authors is not null)
         {
-            book.AuthorsLink = [.. authors.Select((a, index) => new BookAuthor { Author = a, Order = (byte)(index + 1) })];
+            foreach (var author in authors.Select((a, index) => new BookAuthor { Author = a, Order = (byte)(index + 1) }))
+            {
+                book.AuthorsLink.Add(author);
+            }
         }
 
         if (tags is not null)
         {
-            book.Tags = [.. tags];
+            foreach (var tag in tags)
+            {
+                book.Tags.Add(tag);
+            }
         }
 
         if (reviews is not null)
         {
-            book.Reviews = [.. reviews];
+            foreach (var review in reviews)
+            {
+                book.Reviews.Add(review);
+            }
         }
 
         return book;

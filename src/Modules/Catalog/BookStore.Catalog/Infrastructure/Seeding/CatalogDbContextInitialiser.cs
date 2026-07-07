@@ -50,57 +50,57 @@ internal sealed class CatalogDbContextInitialiser(
 
     private static Dictionary<string, Tag> GetTags() => new()
     {
-        ["Software Development"] = new() { Id = "Software Development", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Mystery"] = new() { Id = "Mystery", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Thriller"] = new() { Id = "Thriller", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Science Fiction"] = new() { Id = "Science Fiction", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Classic Literature"] = new() { Id = "Classic Literature", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Historical"] = new() { Id = "Historical", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Dystopian"] = new() { Id = "Dystopian", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Fantasy"] = new() { Id = "Fantasy", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Magic"] = new() { Id = "Magic", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Cooking"] = new() { Id = "Cooking", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Politics"] = new() { Id = "Politics", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        ["Lifestyle"] = new() { Id = "Lifestyle", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" }
+        ["Software Development"] = new() { Id = "Software Development" },
+        ["Mystery"] = new() { Id = "Mystery" },
+        ["Thriller"] = new() { Id = "Thriller" },
+        ["Science Fiction"] = new() { Id = "Science Fiction" },
+        ["Classic Literature"] = new() { Id = "Classic Literature" },
+        ["Historical"] = new() { Id = "Historical" },
+        ["Dystopian"] = new() { Id = "Dystopian" },
+        ["Fantasy"] = new() { Id = "Fantasy" },
+        ["Magic"] = new() { Id = "Magic" },
+        ["Cooking"] = new() { Id = "Cooking" },
+        ["Politics"] = new() { Id = "Politics" },
+        ["Lifestyle"] = new() { Id = "Lifestyle" }
     };
 
     private static Dictionary<int, Author> GetAuthors() => new()
     {
-        [1] = new() { Name = "Robert C. Martin", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [2] = new() { Name = "Andrew Hunt", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [3] = new() { Name = "David Thomas", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [4] = new() { Name = "Martin Fowler", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [5] = new() { Name = "Kent Beck", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [6] = new() { Name = "Stieg Larsson", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [7] = new() { Name = "Frank Herbert", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [8] = new() { Name = "Brian Herbert", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [9] = new() { Name = "Erich Gamma", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [10] = new() { Name = "Richard Helm", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [11] = new() { Name = "Ralph Johnson", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [12] = new() { Name = "John Vlissides", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [13] = new() { Name = "Frederick P. Brooks Jr.", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [14] = new() { Name = "Harper Lee", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [15] = new() { Name = "Ken Follett", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [16] = new() { Name = "George Orwell", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [17] = new() { Name = "J.K. Rowling", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [18] = new() { Name = "George R.R. Martin", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [19] = new() { Name = "J.R.R. Tolkien", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [20] = new() { Name = "Timothy Zahn", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [21] = new() { Name = "Isaac Asimov", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [22] = new() { Name = "Julia Child", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [23] = new() { Name = "Irma S. Rombauer", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [24] = new() { Name = "Samin Nosrat", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [25] = new() { Name = "The Culinary Institute of America", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [26] = new() { Name = "Marcella Hazan", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [27] = new() { Name = "John Bolton", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [28] = new() { Name = "Michael Wolff", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [30] = new() { Name = "Barack Obama", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [31] = new() { Name = "James Clear", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [32] = new() { Name = "Mark Manson", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [33] = new() { Name = "H\u00E9ctor Garc\u00EDa", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [34] = new() { Name = "Francesc Miralles", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [35] = new() { Name = "Dan Buettner", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" },
-        [36] = new() { Name = "Robin Sharma", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" }
+        [1] = new() { Name = "Robert C. Martin" },
+        [2] = new() { Name = "Andrew Hunt" },
+        [3] = new() { Name = "David Thomas" },
+        [4] = new() { Name = "Martin Fowler" },
+        [5] = new() { Name = "Kent Beck" },
+        [6] = new() { Name = "Stieg Larsson" },
+        [7] = new() { Name = "Frank Herbert" },
+        [8] = new() { Name = "Brian Herbert" },
+        [9] = new() { Name = "Erich Gamma" },
+        [10] = new() { Name = "Richard Helm" },
+        [11] = new() { Name = "Ralph Johnson" },
+        [12] = new() { Name = "John Vlissides" },
+        [13] = new() { Name = "Frederick P. Brooks Jr." },
+        [14] = new() { Name = "Harper Lee" },
+        [15] = new() { Name = "Ken Follett" },
+        [16] = new() { Name = "George Orwell" },
+        [17] = new() { Name = "J.K. Rowling" },
+        [18] = new() { Name = "George R.R. Martin" },
+        [19] = new() { Name = "J.R.R. Tolkien" },
+        [20] = new() { Name = "Timothy Zahn" },
+        [21] = new() { Name = "Isaac Asimov" },
+        [22] = new() { Name = "Julia Child" },
+        [23] = new() { Name = "Irma S. Rombauer" },
+        [24] = new() { Name = "Samin Nosrat" },
+        [25] = new() { Name = "The Culinary Institute of America" },
+        [26] = new() { Name = "Marcella Hazan" },
+        [27] = new() { Name = "John Bolton" },
+        [28] = new() { Name = "Michael Wolff" },
+        [30] = new() { Name = "Barack Obama" },
+        [31] = new() { Name = "James Clear" },
+        [32] = new() { Name = "Mark Manson" },
+        [33] = new() { Name = "H\u00E9ctor Garc\u00EDa" },
+        [34] = new() { Name = "Francesc Miralles" },
+        [35] = new() { Name = "Dan Buettner" },
+        [36] = new() { Name = "Robin Sharma" }
     };
 
     private static Dictionary<int, Book> GetBooks(Dictionary<string, Tag> tags, Dictionary<int, Author> authors)
@@ -114,12 +114,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Prentice Hall",
                 Price = 30.99m,
                 Description = "Noted software expert Robert C. Martin, presents a revolutionary paradigm with Clean Code: A Handbook of Agile Software Craftsmanship. Martin, who has helped bring agile principles from a practitioner\u2019s point of view to tens of thousands of programmers, has teamed up with his colleagues from Object Mentor to distill their best agile practice of cleaning code \u201Con the fly\u201D into a book that will instill within you the values of software craftsman, and make you a better programmer\u2015but only if you work at it.",
-                ImageName = "clean-code.jpeg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "clean-code.jpeg" },
             [2] = new()
             {
                 Title = "The Pragmatic Programmer",
@@ -127,12 +122,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Addison-Wesley",
                 Price = 45.00m,
                 Description = "The Pragmatic Programmer is one of those rare books that you\u2019ll read, re-read, and read again over the years. Whether you\u2019re new to the field or an experienced practitioner, you\u2019ll come away with fresh insights and guidance.",
-                ImageName = "pragmatic-programmer.jpeg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "pragmatic-programmer.jpeg" },
             [3] = new()
             {
                 Title = "Refactoring: Improving the Design of Existing Code",
@@ -140,12 +130,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Addison-Wesley",
                 Price = 50.00m,
                 Description = "Refactoring is the process of changing a software system in such a way that it does not alter the external behavior of the code yet improves its internal structure. This book explains how to refactor code.",
-                ImageName = "refactoring.jpeg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "refactoring.jpeg" },
             [4] = new()
             {
                 Title = "The Girl with the Dragon Tattoo",
@@ -153,12 +138,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Norstedts F\u00F6rlag",
                 Price = 35.99m,
                 Description = "A spellbinding amalgam of murder mystery, family saga, love story, and financial intrigue.",
-                ImageName = "dragon-tattoo.jpeg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "dragon-tattoo.jpeg" },
             [5] = new()
             {
                 Title = "Dune",
@@ -166,12 +146,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Chilton Books",
                 Price = 40.00m,
                 Description = "Set on the desert planet Arrakis, Dune is the story of the boy Paul Atreides, who would become the mysterious man known as Muad'Dib.",
-                ImageName = "dune.jpeg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "dune.jpeg" },
             [6] = new()
             {
                 Title = "Design Patterns: Elements of Reusable Object-Oriented Software",
@@ -179,12 +154,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Addison-Wesley",
                 Price = 55.00m,
                 Description = "Capturing a wealth of experience about the design of object-oriented software, Design Patterns condenses the most effective solutions to recurring design problems into a guidebook that will help developers solve common challenges.",
-                ImageName = "design-patterns.jpeg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "design-patterns.jpeg" },
             [7] = new()
             {
                 Title = "The Mythical Man-Month: Essays on Software Engineering",
@@ -192,12 +162,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Addison-Wesley",
                 Price = 39.99m,
                 Description = "Few books on software project management have been as influential and timeless as The Mythical Man-Month. This collection of essays on software engineering and project management is based on Brooks' experiences as project manager for the development of IBM's System/360 family of computers.",
-                ImageName = "mythical-man-month.jpeg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "mythical-man-month.jpeg" },
             [8] = new()
             {
                 Title = "To Kill a Mockingbird",
@@ -205,12 +170,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "J.B. Lippincott & Co.",
                 Price = 24.99m,
                 Description = "A gripping, heart-wrenching, and wholly remarkable tale of coming-of-age in a South poisoned by virulent prejudice, it views a world of great beauty and savage inequities through the eyes of a young girl.",
-                ImageName = "to-kill-a-mockingbird.jpeg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "to-kill-a-mockingbird.jpeg" },
             [9] = new()
             {
                 Title = "The Pillars of the Earth",
@@ -218,12 +178,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Penguin",
                 Price = 29.99m,
                 Description = "Ken Follett\u2019s historical masterpiece about the construction of a cathedral in the fictional town of Kingsbridge, set in 12th century England.",
-                ImageName = "pillars-of-the-earth.jpeg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "pillars-of-the-earth.jpeg" },
             [10] = new()
             {
                 Title = "1984",
@@ -231,12 +186,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Secker & Warburg",
                 Price = 19.99m,
                 Description = "A dystopian social science fiction novel and cautionary tale about the dangers of totalitarianism.",
-                ImageName = "1984.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "1984.jpg" },
             [11] = new()
             {
                 Title = "Harry Potter and the Philosopher's Stone",
@@ -244,12 +194,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bloomsbury",
                 Price = 14.99m,
                 Description = "The first book in the Harry Potter series, introducing Harry and his adventures at Hogwarts.",
-                ImageName = "philosophers_stone.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "philosophers_stone.jpg" },
             [12] = new()
             {
                 Title = "Harry Potter and the Chamber of Secrets",
@@ -257,12 +202,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bloomsbury",
                 Price = 15.99m,
                 Description = "Harry returns to Hogwarts and uncovers the secrets of the Chamber of Secrets.",
-                ImageName = "chamber_of_secrets.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "chamber_of_secrets.jpg" },
             [13] = new()
             {
                 Title = "Harry Potter and the Prisoner of Azkaban",
@@ -270,12 +210,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bloomsbury",
                 Price = 16.99m,
                 Description = "Harry learns about Sirius Black and his connection to Harry's past.",
-                ImageName = "prisoner_of_azkaban.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "prisoner_of_azkaban.jpg" },
             [14] = new()
             {
                 Title = "Harry Potter and the Goblet of Fire",
@@ -283,12 +218,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bloomsbury",
                 Price = 18.99m,
                 Description = "Harry competes in the Triwizard Tournament and faces new challenges.",
-                ImageName = "goblet_of_fire.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "goblet_of_fire.jpg" },
             [15] = new()
             {
                 Title = "Harry Potter Paperback Box Set (Books 1-3)",
@@ -296,11 +226,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bloomsbury",
                 Price = 39.99m,
                 Description = "A special box set containing the first three Harry Potter books in paperback edition.",
-                ImageName = "paperback_box_set.jpg",
-                CreatedUtc = new DateTime(2023, 07, 15),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2023, 07, 15),
-                LastModifiedBy = "12"
+                ImageName = "paperback_box_set.jpg"
             },
             [16] = new()
             {
@@ -309,12 +235,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bantam Books",
                 Price = 19.99m,
                 Description = "The first book in the epic fantasy series A Song of Ice and Fire by George R.R. Martin.",
-                ImageName = "game_of_thrones.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "game_of_thrones.jpg" },
             [17] = new()
             {
                 Title = "A Clash of Kings",
@@ -322,12 +243,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bantam Books",
                 Price = 21.99m,
                 Description = "The second book in the series, continuing the political and military conflicts in Westeros.",
-                ImageName = "clash_of_kings.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "clash_of_kings.jpg" },
             [18] = new()
             {
                 Title = "A Storm of Swords",
@@ -335,12 +251,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bantam Books",
                 Price = 24.99m,
                 Description = "The third book in the series, featuring epic battles and shocking betrayals.",
-                ImageName = "storm_of_swords.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "storm_of_swords.jpg" },
             [19] = new()
             {
                 Title = "The Fellowship of the Ring",
@@ -348,12 +259,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "George Allen & Unwin",
                 Price = 14.99m,
                 Description = "The first book in The Lord of the Rings trilogy, introducing the epic quest to destroy the One Ring.",
-                ImageName = "fellowship_of_the_ring.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "fellowship_of_the_ring.jpg" },
             [20] = new()
             {
                 Title = "The Two Towers",
@@ -361,12 +267,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "George Allen & Unwin",
                 Price = 16.99m,
                 Description = "The second book in the trilogy, chronicling the journey of Frodo and the battle against Sauron's forces.",
-                ImageName = "the_two_towers.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "the_two_towers.jpg" },
             [21] = new()
             {
                 Title = "The Return of the King",
@@ -374,12 +275,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "George Allen & Unwin",
                 Price = 18.99m,
                 Description = "The final book in the trilogy, depicting the climactic battle for Middle-earth and the destruction of the One Ring.",
-                ImageName = "return_of_the_king.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "return_of_the_king.jpg" },
             [22] = new()
             {
                 Title = "The Lord of the Rings 3-Book Paperback Box Set",
@@ -387,12 +283,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Mariner Books",
                 Price = 39.99m,
                 Description = "A beautifully designed box set containing all three books in The Lord of the Rings trilogy by J.R.R. Tolkien.",
-                ImageName = "lotr_box_set.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "lotr_box_set.jpg" },
             [23] = new()
             {
                 Title = "Star Wars: Heir to the Empire",
@@ -400,12 +291,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bantam Spectra",
                 Price = 12.99m,
                 Description = "The first book in Timothy Zahn's epic Thrawn Trilogy, set in the Star Wars Expanded Universe.",
-                ImageName = "heir_to_the_empire.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "heir_to_the_empire.jpg" },
             [24] = new()
             {
                 Title = "Star Wars: Dark Force Rising",
@@ -413,12 +299,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bantam Spectra",
                 Price = 14.99m,
                 Description = "The second book in Timothy Zahn's Thrawn Trilogy, continuing the battle for the galaxy.",
-                ImageName = "dark_force_rising.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "dark_force_rising.jpg" },
             [25] = new()
             {
                 Title = "Star Wars: The Last Command",
@@ -426,12 +307,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Bantam Spectra",
                 Price = 16.99m,
                 Description = "The thrilling conclusion to Timothy Zahn's Thrawn Trilogy, with the fate of the galaxy hanging in the balance.",
-                ImageName = "the_last_command.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "the_last_command.jpg" },
             [26] = new()
             {
                 Title = "The Thrawn Trilogy Boxed Set: Star Wars Legends",
@@ -439,12 +315,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Del Rey",
                 Price = 39.99m,
                 Description = "A stunning paperback boxed set of the Thrawn Trilogy by Timothy Zahn, part of the Star Wars Legends universe.",
-                ImageName = "thrawn_trilogy_boxed_set.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "thrawn_trilogy_boxed_set.jpg" },
             [27] = new()
             {
                 Title = "Foundation",
@@ -452,12 +323,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Gnome Press",
                 Price = 15.99m,
                 Description = "The first book in Asimov's epic Foundation series, exploring the rise and fall of a galactic empire.",
-                ImageName = "foundation.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "foundation.jpg" },
             [28] = new()
             {
                 Title = "Foundation and Empire",
@@ -465,12 +331,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Gnome Press",
                 Price = 16.99m,
                 Description = "The second book in the Foundation series, chronicling the struggle between the Foundation and the remnants of the Empire.",
-                ImageName = "foundation_and_empire.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "foundation_and_empire.jpg" },
             [29] = new()
             {
                 Title = "Second Foundation",
@@ -478,12 +339,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Gnome Press",
                 Price = 17.99m,
                 Description = "The third book in the Foundation series, revealing the secretive Second Foundation and its role in shaping galactic history.",
-                ImageName = "second_foundation.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "second_foundation.jpg" },
             [30] = new()
             {
                 Title = "I, Robot",
@@ -491,12 +347,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Gnome Press",
                 Price = 14.99m,
                 Description = "A collection of interconnected short stories exploring the Three Laws of Robotics.",
-                ImageName = "i_robot.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "i_robot.jpg" },
             [31] = new()
             {
                 Title = "The Gods Themselves",
@@ -504,12 +355,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Doubleday",
                 Price = 18.99m,
                 Description = "A Hugo and Nebula Award-winning novel about humanity's discovery of an alien energy source and its implications.",
-                ImageName = "the_gods_themselves.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "the_gods_themselves.jpg" },
             [32] = new()
             {
                 Title = "Mastering the Art of French Cooking",
@@ -517,12 +363,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Knopf",
                 Price = 29.99m,
                 Description = "A classic French cookbook by Julia Child, offering timeless recipes and techniques.",
-                ImageName = "mastering_french_cooking.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "mastering_french_cooking.jpg" },
             [33] = new()
             {
                 Title = "The Joy of Cooking",
@@ -530,12 +371,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Scribner",
                 Price = 24.99m,
                 Description = "An American classic by Irma S. Rombauer, featuring recipes for every occasion.",
-                ImageName = "joy_of_cooking.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "joy_of_cooking.jpg" },
             [34] = new()
             {
                 Title = "Salt, Fat, Acid, Heat",
@@ -543,12 +379,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Simon & Schuster",
                 Price = 32.99m,
                 Description = "Samin Nosrat's groundbreaking guide to mastering the four elements of cooking.",
-                ImageName = "salt_fat_acid_heat.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "salt_fat_acid_heat.jpg" },
             [35] = new()
             {
                 Title = "The Professional Chef",
@@ -556,12 +387,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Wiley",
                 Price = 49.99m,
                 Description = "The Culinary Institute of America's definitive guide for chefs and culinary professionals.",
-                ImageName = "professional_chef.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "professional_chef.jpg" },
             [36] = new()
             {
                 Title = "Essentials of Classic Italian Cooking",
@@ -569,12 +395,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Knopf",
                 Price = 27.99m,
                 Description = "Marcella Hazan's definitive guide to authentic Italian cuisine.",
-                ImageName = "italian_cooking.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "italian_cooking.jpg" },
             [37] = new()
             {
                 Title = "The Room Where It Happened",
@@ -582,12 +403,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Simon & Schuster",
                 Price = 34.99m,
                 Description = "John Bolton's account of his time as National Security Advisor in the Trump administration.",
-                ImageName = "room_where_it_happened.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "room_where_it_happened.jpg" },
             [38] = new()
             {
                 Title = "Fire and Fury: Inside the Trump White House",
@@ -595,12 +411,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Henry Holt and Co.",
                 Price = 29.99m,
                 Description = "Michael Wolff's expos\u00E9 of the first year of Donald Trump's presidency.",
-                ImageName = "fire_and_fury.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "fire_and_fury.jpg" },
             [40] = new()
             {
                 Title = "A Promised Land",
@@ -608,12 +419,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Crown",
                 Price = 39.99m,
                 Description = "Barack Obama's memoir covering his early political career and presidency.",
-                ImageName = "promised_land.jpeg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "promised_land.jpeg" },
             [41] = new()
             {
                 Title = "The Audacity of Hope",
@@ -621,12 +427,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Crown",
                 Price = 24.99m,
                 Description = "Barack Obama's vision for the future of America, written before his presidency.",
-                ImageName = "audacity_of_hope.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "audacity_of_hope.jpg" },
             [42] = new()
             {
                 Title = "Atomic Habits",
@@ -634,12 +435,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Avery",
                 Price = 22.99m,
                 Description = "An easy and proven way to build good habits and break bad ones by James Clear.",
-                ImageName = "atomic_habits.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "atomic_habits.jpg" },
             [43] = new()
             {
                 Title = "The Subtle Art of Not Giving a F*ck",
@@ -647,12 +443,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "HarperOne",
                 Price = 18.99m,
                 Description = "A counterintuitive approach to living a good life by Mark Manson.",
-                ImageName = "subtle_art.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "subtle_art.jpg" },
             [44] = new()
             {
                 Title = "Ikigai: The Japanese Secret to a Long and Happy Life",
@@ -660,12 +451,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "Penguin Books",
                 Price = 16.99m,
                 Description = "A book by H\u00E9ctor Garc\u00EDa and Francesc Miralles exploring the Japanese concept of finding your purpose.",
-                ImageName = "ikigai.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "ikigai.jpg" },
             [45] = new()
             {
                 Title = "The Blue Zones Solution",
@@ -673,12 +459,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "National Geographic",
                 Price = 21.99m,
                 Description = "Dan Buettner shares secrets of the world's healthiest and happiest communities.",
-                ImageName = "blue_zones.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            },
+                ImageName = "blue_zones.jpg" },
             [46] = new()
             {
                 Title = "The 5 AM Club",
@@ -686,12 +467,7 @@ internal sealed class CatalogDbContextInitialiser(
                 Publisher = "HarperCollins",
                 Price = 19.99m,
                 Description = "Robin Sharma's guide to transforming your mornings and your life.",
-                ImageName = "5am_club.jpg",
-                CreatedUtc = new DateTime(2020, 01, 02),
-                CreatedBy = "12",
-                LastModifiedUtc = new DateTime(2020, 01, 02),
-                LastModifiedBy = "12"
-            }
+                ImageName = "5am_club.jpg" }
         };
 
         // Tags Many-to-Many
@@ -872,28 +648,28 @@ internal sealed class CatalogDbContextInitialiser(
         books[46].Reviews.Add(new Review { Voter = "Early Riser", Stars = 4, Comment = "Motivating and inspiring." });
 
         // PriceOffers (Promotions)
-        books[1].Promotion = new PriceOffer { NewPrice = 26.99m, Text = "Limited Time Offer", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[5].Promotion = new PriceOffer { NewPrice = 35.00m, Text = "Special Edition Offer", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[6].Promotion = new PriceOffer { NewPrice = 49.99m, Text = "Early Bird Discount", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[11].Promotion = new PriceOffer { NewPrice = 12.99m, Text = "Limited Time Magic Deal", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[12].Promotion = new PriceOffer { NewPrice = 13.99m, Text = "Chamber Special Offer", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[15].Promotion = new PriceOffer { NewPrice = 34.99m, Text = "Holiday Box Set Discount", CreatedUtc = new DateTime(2023, 07, 15), CreatedBy = "12", LastModifiedUtc = new DateTime(2023, 07, 15), LastModifiedBy = "12" };
-        books[16].Promotion = new PriceOffer { NewPrice = 16.99m, Text = "Winter Is Coming Discount", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[18].Promotion = new PriceOffer { NewPrice = 19.99m, Text = "Epic Fantasy Special", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[19].Promotion = new PriceOffer { NewPrice = 12.99m, Text = "Middle-earth Special", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[20].Promotion = new PriceOffer { NewPrice = 15.99m, Text = "Adventure Continues Discount", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[22].Promotion = new PriceOffer { NewPrice = 34.99m, Text = "Collector's Edition Discount", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[23].Promotion = new PriceOffer { NewPrice = 10.99m, Text = "Galaxy Saver Discount", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[25].Promotion = new PriceOffer { NewPrice = 12.99m, Text = "Force Awakens Special", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[26].Promotion = new PriceOffer { NewPrice = 34.99m, Text = "Box Set Discount", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[27].Promotion = new PriceOffer { NewPrice = 12.99m, Text = "Foundation Trilogy Sale", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[30].Promotion = new PriceOffer { NewPrice = 14.99m, Text = "Sci-Fi Classics Discount", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[32].Promotion = new PriceOffer { NewPrice = 25.99m, Text = "Limited Time Cooking Discount", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[33].Promotion = new PriceOffer { NewPrice = 22.99m, Text = "Joy of Cooking Sale", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[40].Promotion = new PriceOffer { NewPrice = 29.99m, Text = "Limited Time Political Discount", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[41].Promotion = new PriceOffer { NewPrice = 19.99m, Text = "Special Price for Fans", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[42].Promotion = new PriceOffer { NewPrice = 19.99m, Text = "New Year Lifestyle Promo", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
-        books[44].Promotion = new PriceOffer { NewPrice = 14.99m, Text = "Limited Time Offer", CreatedUtc = new DateTime(2020, 01, 02), CreatedBy = "12", LastModifiedUtc = new DateTime(2020, 01, 02), LastModifiedBy = "12" };
+        books[1].Promotion = new PriceOffer { NewPrice = 26.99m, Text = "Limited Time Offer" };
+        books[5].Promotion = new PriceOffer { NewPrice = 35.00m, Text = "Special Edition Offer" };
+        books[6].Promotion = new PriceOffer { NewPrice = 49.99m, Text = "Early Bird Discount" };
+        books[11].Promotion = new PriceOffer { NewPrice = 12.99m, Text = "Limited Time Magic Deal" };
+        books[12].Promotion = new PriceOffer { NewPrice = 13.99m, Text = "Chamber Special Offer" };
+        books[15].Promotion = new PriceOffer { NewPrice = 34.99m, Text = "Holiday Box Set Discount" };
+        books[16].Promotion = new PriceOffer { NewPrice = 16.99m, Text = "Winter Is Coming Discount" };
+        books[18].Promotion = new PriceOffer { NewPrice = 19.99m, Text = "Epic Fantasy Special" };
+        books[19].Promotion = new PriceOffer { NewPrice = 12.99m, Text = "Middle-earth Special" };
+        books[20].Promotion = new PriceOffer { NewPrice = 15.99m, Text = "Adventure Continues Discount" };
+        books[22].Promotion = new PriceOffer { NewPrice = 34.99m, Text = "Collector's Edition Discount" };
+        books[23].Promotion = new PriceOffer { NewPrice = 10.99m, Text = "Galaxy Saver Discount" };
+        books[25].Promotion = new PriceOffer { NewPrice = 12.99m, Text = "Force Awakens Special" };
+        books[26].Promotion = new PriceOffer { NewPrice = 34.99m, Text = "Box Set Discount" };
+        books[27].Promotion = new PriceOffer { NewPrice = 12.99m, Text = "Foundation Trilogy Sale" };
+        books[30].Promotion = new PriceOffer { NewPrice = 14.99m, Text = "Sci-Fi Classics Discount" };
+        books[32].Promotion = new PriceOffer { NewPrice = 25.99m, Text = "Limited Time Cooking Discount" };
+        books[33].Promotion = new PriceOffer { NewPrice = 22.99m, Text = "Joy of Cooking Sale" };
+        books[40].Promotion = new PriceOffer { NewPrice = 29.99m, Text = "Limited Time Political Discount" };
+        books[41].Promotion = new PriceOffer { NewPrice = 19.99m, Text = "Special Price for Fans" };
+        books[42].Promotion = new PriceOffer { NewPrice = 19.99m, Text = "New Year Lifestyle Promo" };
+        books[44].Promotion = new PriceOffer { NewPrice = 14.99m, Text = "Limited Time Offer" };
 
         return books;
     }
