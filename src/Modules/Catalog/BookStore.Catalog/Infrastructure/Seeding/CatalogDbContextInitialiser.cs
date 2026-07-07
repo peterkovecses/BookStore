@@ -92,8 +92,6 @@ internal sealed class CatalogDbContextInitialiser(
         [24] = new() { Name = "Samin Nosrat" },
         [25] = new() { Name = "The Culinary Institute of America" },
         [26] = new() { Name = "Marcella Hazan" },
-        [27] = new() { Name = "John Bolton" },
-        [28] = new() { Name = "Michael Wolff" },
         [30] = new() { Name = "Barack Obama" },
         [31] = new() { Name = "James Clear" },
         [32] = new() { Name = "Mark Manson" },
@@ -396,22 +394,6 @@ internal sealed class CatalogDbContextInitialiser(
                 Price = 27.99m,
                 Description = "Marcella Hazan's definitive guide to authentic Italian cuisine.",
                 ImageName = "italian_cooking.jpg" },
-            [37] = new()
-            {
-                Title = "The Room Where It Happened",
-                PublishedOn = new DateTime(2020, 6, 23),
-                Publisher = "Simon & Schuster",
-                Price = 34.99m,
-                Description = "John Bolton's account of his time as National Security Advisor in the Trump administration.",
-                ImageName = "room_where_it_happened.jpg" },
-            [38] = new()
-            {
-                Title = "Fire and Fury: Inside the Trump White House",
-                PublishedOn = new DateTime(2018, 1, 5),
-                Publisher = "Henry Holt and Co.",
-                Price = 29.99m,
-                Description = "Michael Wolff's expos\u00E9 of the first year of Donald Trump's presidency.",
-                ImageName = "fire_and_fury.jpg" },
             [40] = new()
             {
                 Title = "A Promised Land",
@@ -511,8 +493,6 @@ internal sealed class CatalogDbContextInitialiser(
         books[34].Tags.Add(tags["Cooking"]);
         books[35].Tags.Add(tags["Cooking"]);
         books[36].Tags.Add(tags["Cooking"]);
-        books[37].Tags.Add(tags["Politics"]);
-        books[38].Tags.Add(tags["Politics"]);
         books[40].Tags.Add(tags["Politics"]);
         books[41].Tags.Add(tags["Politics"]);
         books[42].Tags.Add(tags["Lifestyle"]);
@@ -564,8 +544,6 @@ internal sealed class CatalogDbContextInitialiser(
         AddAuthor(books[34], authors[24], 0);
         AddAuthor(books[35], authors[25], 0);
         AddAuthor(books[36], authors[26], 0);
-        AddAuthor(books[37], authors[27], 0);
-        AddAuthor(books[38], authors[28], 0);
         AddAuthor(books[40], authors[30], 0);
         AddAuthor(books[41], authors[30], 0);
         AddAuthor(books[42], authors[31], 0);
@@ -637,8 +615,6 @@ internal sealed class CatalogDbContextInitialiser(
         books[34].Reviews.Add(new Review { Voter = "Culinary Enthusiast", Stars = 5, Comment = "Innovative and inspirational!" });
         books[35].Reviews.Add(new Review { Voter = "Professional Chef Alex", Stars = 5, Comment = "A bible for professional chefs." });
         books[36].Reviews.Add(new Review { Voter = "Italian Cuisine Lover", Stars = 5, Comment = "Authentic and delightful recipes." });
-        books[37].Reviews.Add(new Review { Voter = "Political Analyst", Stars = 4, Comment = "A gripping insider's perspective." });
-        books[38].Reviews.Add(new Review { Voter = "News Enthusiast", Stars = 3, Comment = "Interesting, but sometimes repetitive." });
         books[40].Reviews.Add(new Review { Voter = "History Buff", Stars = 5, Comment = "Inspiring and insightful." });
         books[41].Reviews.Add(new Review { Voter = "Obama Supporter", Stars = 5, Comment = "A hopeful and beautifully written book." });
         books[42].Reviews.Add(new Review { Voter = "Self-help Enthusiast", Stars = 5, Comment = "A practical guide to forming life-changing habits." });
@@ -646,6 +622,47 @@ internal sealed class CatalogDbContextInitialiser(
         books[44].Reviews.Add(new Review { Voter = "Minimalist", Stars = 5, Comment = "A refreshing perspective on finding purpose." });
         books[45].Reviews.Add(new Review { Voter = "Health Advocate", Stars = 5, Comment = "Packed with insights for a healthier life." });
         books[46].Reviews.Add(new Review { Voter = "Early Riser", Stars = 4, Comment = "Motivating and inspiring." });
+
+        books[1].Reviews.Add(new Review { Voter = "CodeCraftsman", Stars = 5, Comment = "A true classic on writing clean, readable code." });
+        books[2].Reviews.Add(new Review { Voter = "DevLead", Stars = 5, Comment = "Changed the way I approach software engineering." });
+        books[3].Reviews.Add(new Review { Voter = "RefactorMaster", Stars = 4, Comment = "Excellent step-by-step guides for refactoring code." });
+        books[4].Reviews.Add(new Review { Voter = "BookWorm", Stars = 4, Comment = "A dark and gripping thriller, highly recommend." });
+        books[5].Reviews.Add(new Review { Voter = "SciFiFan", Stars = 5, Comment = "The greatest science fiction novel of all time." });
+        books[6].Reviews.Add(new Review { Voter = "PatternSeeker", Stars = 5, Comment = "An absolute necessity for object-oriented design." });
+        books[7].Reviews.Add(new Review { Voter = "ProjectManager", Stars = 4, Comment = "A foundational book for project management." });
+        books[8].Reviews.Add(new Review { Voter = "ClassicReader", Stars = 5, Comment = "Beautifully written and deeply moving." });
+        books[10].Reviews.Add(new Review { Voter = "WinstonSmith", Stars = 5, Comment = "Chillingly prophetic and powerful." });
+        books[11].Reviews.Add(new Review { Voter = "PotterHead", Stars = 5, Comment = "The beginning of a magical journey!" });
+        books[12].Reviews.Add(new Review { Voter = "HermioneG", Stars = 4, Comment = "A wonderful sequel that expands the wizarding world." });
+        books[13].Reviews.Add(new Review { Voter = "SiriusBlack", Stars = 5, Comment = "My personal favorite of the early books." });
+        books[15].Reviews.Add(new Review { Voter = "RonWeasley", Stars = 5, Comment = "Bloody brilliant collection!" });
+        books[16].Reviews.Add(new Review { Voter = "NedStark", Stars = 5, Comment = "A masterfully woven tale of politics and survival." });
+        books[17].Reviews.Add(new Review { Voter = "JorahMormont", Stars = 4, Comment = "A great setup for the events to come." });
+        books[18].Reviews.Add(new Review { Voter = "JonSnow", Stars = 5, Comment = "Unbelievable twists and turns. Incredible book." });
+        books[19].Reviews.Add(new Review { Voter = "Gandalf", Stars = 5, Comment = "A masterpiece of world-building." });
+        books[20].Reviews.Add(new Review { Voter = "BilboBaggins", Stars = 5, Comment = "The journey continues beautifully." });
+        books[21].Reviews.Add(new Review { Voter = "Gimli", Stars = 5, Comment = "A perfect ending. Unforgettable." });
+        books[23].Reviews.Add(new Review { Voter = "Chewbacca", Stars = 5, Comment = "HRRRR-WOOF! *translation: Incredible continuation!*" });
+        books[24].Reviews.Add(new Review { Voter = "LandoC", Stars = 4, Comment = "Very solid writing and plot development." });
+        books[25].Reviews.Add(new Review { Voter = "ObiWan", Stars = 5, Comment = "A classic Legends story done right." });
+        books[26].Reviews.Add(new Review { Voter = "ThrawnFan", Stars = 5, Comment = "The ultimate Thrawn collection." });
+        books[27].Reviews.Add(new Review { Voter = "EldonH", Stars = 5, Comment = "Fascinating vision of the far future." });
+        books[28].Reviews.Add(new Review { Voter = "AsimovFan", Stars = 4, Comment = "Maintains the high bar set by the first book." });
+        books[29].Reviews.Add(new Review { Voter = "GalacticCitizen", Stars = 5, Comment = "Superb execution of the trilogy's conclusion." });
+        books[30].Reviews.Add(new Review { Voter = "Roboticist", Stars = 5, Comment = "The foundation of modern robot stories." });
+        books[31].Reviews.Add(new Review { Voter = "ScienceLover", Stars = 5, Comment = "One of Asimov's best stand-alone novels." });
+        books[32].Reviews.Add(new Review { Voter = "JuliaFan", Stars = 5, Comment = "Indispensable guide for French cooking." });
+        books[33].Reviews.Add(new Review { Voter = "HomeChef", Stars = 5, Comment = "An absolute staple in my kitchen." });
+        books[34].Reviews.Add(new Review { Voter = "NosratFan", Stars = 5, Comment = "Teaches you how to think about cooking." });
+        books[35].Reviews.Add(new Review { Voter = "ChefInTraining", Stars = 5, Comment = "Crucial reference for any professional kitchen." });
+        books[36].Reviews.Add(new Review { Voter = "MarcellaFan", Stars = 5, Comment = "The best Italian cookbook in English." });
+        books[40].Reviews.Add(new Review { Voter = "ObamaReader", Stars = 5, Comment = "An incredibly reflective and engaging memoir." });
+        books[41].Reviews.Add(new Review { Voter = "Hopeful", Stars = 4, Comment = "Inspiring perspective on politics and hope." });
+        books[42].Reviews.Add(new Review { Voter = "HabitBuilder", Stars = 5, Comment = "Very actionable advice on habit formation." });
+        books[43].Reviews.Add(new Review { Voter = "MansonFan", Stars = 4, Comment = "Blunt, honest, and very helpful." });
+        books[44].Reviews.Add(new Review { Voter = "IkigaiSeeker", Stars = 5, Comment = "Beautifully explains the Japanese secret to long life." });
+        books[45].Reviews.Add(new Review { Voter = "BlueZoneFan", Stars = 5, Comment = "Great tips on diet and longevity." });
+        books[46].Reviews.Add(new Review { Voter = "5AMer", Stars = 4, Comment = "Great routine to start the day with focus." });
 
         // PriceOffers (Promotions)
         books[1].Promotion = new PriceOffer { NewPrice = 26.99m, Text = "Limited Time Offer" };
