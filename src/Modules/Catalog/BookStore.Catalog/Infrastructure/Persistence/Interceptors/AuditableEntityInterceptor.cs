@@ -29,12 +29,12 @@ internal sealed class AuditableEntityInterceptor(TimeProvider dateTime) : SaveCh
             {
                 if (entry.State == EntityState.Added)
                 {
-                    entry.Entity.CreatedUtc = utcNow;
-                    entry.Entity.CreatedBy = currentUserId;
+                    entry.Property(x => x.CreatedUtc).CurrentValue = utcNow;
+                    entry.Property(x => x.CreatedBy).CurrentValue = currentUserId;
                 }
 
-                entry.Entity.LastModifiedUtc = utcNow;
-                entry.Entity.LastModifiedBy = currentUserId;
+                entry.Property(x => x.LastModifiedUtc).CurrentValue = utcNow;
+                entry.Property(x => x.LastModifiedBy).CurrentValue = currentUserId;
             }
         }
     }
