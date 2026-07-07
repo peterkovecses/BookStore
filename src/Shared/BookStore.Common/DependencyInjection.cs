@@ -15,4 +15,11 @@ public static class DependencyInjection
 
         return builder;
     }
+
+    public static IRequestsBuilder AddCachingBehavior(this IRequestsBuilder builder)
+    {
+        builder.AddGlobalBehavior(typeof(QueryCachingBehavior<,>));
+
+        return builder;
+    }
 }

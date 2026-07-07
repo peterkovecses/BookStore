@@ -11,3 +11,4 @@ global using System.Reflection;
 global using System.Collections.Concurrent;
 global using System.Linq.Expressions;
 global using LinqKit;
+global using Microsoft.Extensions.Caching.Hybrid;

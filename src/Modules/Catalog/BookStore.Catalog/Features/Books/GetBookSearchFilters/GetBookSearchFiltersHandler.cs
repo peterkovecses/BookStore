@@ -1,27 +1,11 @@
 namespace BookStore.Catalog.Features.Books.GetBookSearchFilters;
 
-internal sealed class GetBookSearchFiltersHandler(
-    ICatalogDbContext dbContext,
-    IMemoryCache cache)
+internal sealed class GetBookSearchFiltersHandler(ICatalogDbContext dbContext)
     : IRequestHandler<GetBookSearchFiltersQuery, Result<BookSearchFiltersDto>>
 {
-    private const string CacheKey = "book_search_filters";
-
     public async Task<Result<BookSearchFiltersDto>> HandleAsync(
         GetBookSearchFiltersQuery request,
         CancellationToken cancellationToken)
-    {
-        var filters = await cache.GetOrCreateAsync(CacheKey, async entry =>
-        {
-            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1);
-            
-            return await RetrieveFiltersAsync(cancellationToken);
-        });
-
-        return Result.Success(filters!);
-    }
-
-    private async Task<BookSearchFiltersDto> RetrieveFiltersAsync(CancellationToken cancellationToken)
     {
         var tagIds = await dbContext.Tags
             .AsNoTracking()
@@ -40,10 +24,12 @@ internal sealed class GetBookSearchFiltersHandler(
             })
             .ToListAsync(cancellationToken);
 
-        return new BookSearchFiltersDto
+        var filters = new BookSearchFiltersDto
         {
             TagIds = tagIds,
             Authors = authors
         };
+
+        return Result.Success(filters);
     }
 }

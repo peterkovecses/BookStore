@@ -22,11 +22,12 @@ public static class DependencyInjection
         builder.Services.AddScoped<CatalogStorageInitialiser>();
         builder.Services.AddScoped<CatalogModuleInitialiser>();
 
-        builder.Services.AddMemoryCache();
+        builder.Services.AddHybridCache();
 
         builder.Services.AddRequests(Assembly.GetExecutingAssembly())
             .AddOpenTelemetry()
             .AddLoggingBehavior()
+            .AddCachingBehavior()
             .AddValidationBehavior();
 
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly(), includeInternalTypes: true);
