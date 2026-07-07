@@ -10,8 +10,8 @@ public class GetBookSearchFiltersTests : CatalogIntegrationTestBase
     private void ClearCache()
     {
         using var scope = Factory.Services.CreateScope();
-        var cache = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
-        cache.Remove("book_search_filters");
+        var cache = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Caching.Hybrid.HybridCache>();
+        cache.RemoveAsync("book_search_filters").AsTask().GetAwaiter().GetResult();
     }
 
     [Fact]

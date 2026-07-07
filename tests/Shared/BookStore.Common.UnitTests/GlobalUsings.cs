@@ -11,3 +11,4 @@ global using Kovecses.Requests;
 global using NSubstitute;
 global using Xunit;
 global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Caching.Hybrid;
