@@ -142,9 +142,22 @@ public class GetBookDetailsTests(CatalogWebApplicationFactory factory) : Catalog
     [InlineData("not-an-integer")]
     [InlineData("1.5")]
     [InlineData("2147483648")]
+    public async Task GetDetails_WhenIdCannotBeBoundToInteger_ShouldReturnBadRequest(string invalidId)
+    {
+        var response = await Client.GetAsync($"/api/catalog/books/{invalidId}", TestContext.Current.CancellationToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.Current.CancellationToken);
+        problemDetails.Should().NotBeNull();
+        problemDetails.Status.Should().Be((int)HttpStatusCode.BadRequest);
+        problemDetails.Detail.Should().Contain("id").And.Contain(invalidId);
+    }
+
+    [Theory]
     [InlineData("0")]
     [InlineData("-1")]
-    public async Task GetDetails_WhenIdIsInvalid_ShouldReturnValidationProblem(string invalidId)
+    public async Task GetDetails_WhenIdIsNotPositive_ShouldReturnValidationProblem(string invalidId)
     {
         // Act
         var response = await Client.GetAsync($"/api/catalog/books/{invalidId}", TestContext.Current.CancellationToken);

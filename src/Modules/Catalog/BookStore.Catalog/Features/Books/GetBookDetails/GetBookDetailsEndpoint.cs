@@ -10,7 +10,7 @@ internal static class GetBookDetailsEndpoint
             .ProducesValidationProblem();
 
     private static async Task<IResult> HandleAsync(
-        string id,
+        int id,
         IRequestHandler<GetBookDetailsQuery, Result<BookDetailsDto>> handler,
         CancellationToken cancellationToken) => await handler.HandleAsync(new GetBookDetailsQuery(id), cancellationToken)
             .ToMinimalApiResultAsync();
