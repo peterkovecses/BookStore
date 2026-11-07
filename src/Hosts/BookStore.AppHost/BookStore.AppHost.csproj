@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAspireHost>true</IsAspireHost>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
     <UserSecretsId>c2ab7139-8b31-47b6-a274-198b6ec3e9de</UserSecretsId>
   </PropertyGroup>
 
