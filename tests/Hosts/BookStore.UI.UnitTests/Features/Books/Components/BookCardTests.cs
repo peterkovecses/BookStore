@@ -13,6 +13,7 @@ public class BookCardTests
     [InlineData(42, "Another book", true)]
     public async Task BookCard_ShouldRenderOneNativeDetailsLink(int id, string title, bool hasPromotion)
     {
+        // Arrange
         var book = new BookSummaryDto
         {
             Id = id,
@@ -23,15 +24,17 @@ public class BookCardTests
         };
         using var services = new ServiceCollection().AddLogging().BuildServiceProvider();
         await using var renderer = new HtmlRenderer(services, services.GetRequiredService<ILoggerFactory>());
+        var parameters = ParameterView.FromDictionary(new Dictionary<string, object?> { [nameof(BookCard.Book)] = book });
 
+        // Act
         var html = await renderer.Dispatcher.InvokeAsync(async () =>
         {
-            var parameters = ParameterView.FromDictionary(new Dictionary<string, object?> { [nameof(BookCard.Book)] = book });
             var component = await renderer.RenderComponentAsync<BookCard>(parameters);
 
             return component.ToHtmlString();
         });
 
+        // Assert
         var links = Regex.Matches(html, "<a\\b[^>]*>.*?</a>", RegexOptions.Singleline);
         links.Should().ContainSingle();
         var link = links[0].Value;
