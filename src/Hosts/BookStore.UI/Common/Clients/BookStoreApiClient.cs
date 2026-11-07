@@ -35,7 +35,7 @@ public class BookStoreApiClient(HttpClient httpClient) : IBookStoreApiClient
 
         query.Add(new("isDescending", sorting.IsDescending.ToString().ToLower()));
 
-        var uri = QueryHelpers.AddQueryString("api/catalog/books", query);
+        var uri = QueryHelpers.AddQueryString(Routes.Books, query);
 
         using var response = await httpClient.GetAsync(uri, cancellationToken);
 
@@ -44,15 +44,23 @@ public class BookStoreApiClient(HttpClient httpClient) : IBookStoreApiClient
 
     public async Task<Result<BookDetailsDto>> GetBookDetailsAsync(int id, CancellationToken cancellationToken)
     {
-        using var response = await httpClient.GetAsync($"api/catalog/books/{id}", cancellationToken);
+        using var response = await httpClient.GetAsync(Routes.BookDetails(id), cancellationToken);
 
         return await response.ToResultAsync<BookDetailsDto>(cancellationToken);
     }
 
     public async Task<Result<BookSearchFiltersDto>> GetSearchFiltersAsync(CancellationToken cancellationToken)
     {
-        using var response = await httpClient.GetAsync("api/catalog/books/filters", cancellationToken);
+        using var response = await httpClient.GetAsync(Routes.SearchFilters, cancellationToken);
 
         return await response.ToResultAsync<BookSearchFiltersDto>(cancellationToken);
+    }
+
+    private static class Routes
+    {
+        public const string Books = "api/catalog/books";
+        public const string SearchFilters = $"{Books}/filters";
+
+        public static string BookDetails(int id) => $"{Books}/{id}";
     }
 }
