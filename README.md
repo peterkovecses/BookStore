@@ -64,7 +64,7 @@ graph TD
 To run the multi-service application locally:
 
 1. Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) required by `global.json` and [Docker Desktop](https://www.docker.com/products/docker-desktop/), and start Docker.
-2. Install Aspire CLI **13.6.4**, the version verified with this repository's Aspire AppHost SDK:
+2. Install Aspire CLI **13.6.4**:
    ```bash
    dotnet tool install --global Aspire.Cli --version 13.6.4
    ```
@@ -72,16 +72,12 @@ To run the multi-service application locally:
    ```bash
    dotnet tool update --global Aspire.Cli --version 13.6.4
    ```
-   Ensure the .NET global tools directory is on your `PATH` and check `aspire --version`. For other installation methods, see the [Aspire CLI installation guide](https://aspire.dev/get-started/install-cli/).
+   Ensure the .NET global tools directory is on your `PATH`.
 3. Clone the repository and run the AppHost from the repository root:
    ```bash
    aspire run --apphost src/Hosts/BookStore.AppHost --non-interactive
    ```
-4. Open the Aspire Dashboard URL provided in the console to monitor the services, logs, and traces. If the CLI reports that development certificates are not trusted, run `aspire certs trust` interactively and follow the prompts.
-
-The AppHost uses the Aspire CLI bundle for the dashboard and developer control plane. The SDK can also invoke a compatible CLI through `dnx` when building or running with `dotnet`; an older `aspire` on `PATH` alone does not guarantee a usable bundle. If build reports [ASPIRE009](https://aspire.dev/diagnostics/aspire009/), install the compatible CLI and check that any explicitly configured `AspireCliPath` or `AspireCliBundlePath` points to a valid installation or bundle. Explicit invalid paths are not bypassed by the `dnx` fallback. A working `dnx` and access to the matching CLI package are needed when relying on that fallback.
-
-Build environments that include the AppHost must provide the .NET SDK and a compatible Aspire CLI/bundle (or a working `dnx` fallback) before running `dotnet restore` and `dotnet build`. Docker is also required for the container-backed integration tests.
+4. Open the Aspire Dashboard URL provided in the console. If prompted to trust development certificates, run `aspire certs trust`.
 
 ## 🤝 Let's Connect
 
