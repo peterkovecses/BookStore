@@ -20,7 +20,7 @@
                 <div class="d-flex flex-column gap-2 overflow-auto ps-2" style="max-height: 200px;">
                     @foreach (var author in _filters.Authors)
                     {
-                        <div class="form-check">
+                        <div class="form-check flex-shrink-0">
                             <input class="form-check-input" type="checkbox" 
                                    id="author-@author.Id" 
                                    checked="@Filter.AuthorIds.Contains(author.Id)"
