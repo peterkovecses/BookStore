@@ -1,0 +1,16 @@
+.book-card {
+    cursor: pointer;
+    transition: box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.book-card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    transform: translateY(-5px);
+}
+
+.book-card:focus-within {
+    outline: 3px solid var(--bs-primary);
+    outline-offset: 3px;
+}
+
+/* Independent controls need position-relative and a z-index above the stretched link's 1. */
