@@ -3,7 +3,7 @@
     return;
 }
 
-<div class="card h-100 border-0 shadow-sm hover-shadow transition">
+<div class="card book-card h-100 border-0 shadow-sm">
     <div class="position-relative overflow-hidden" style="height: 250px; background-color: #f8f9fa;">
         @if (!string.IsNullOrEmpty(Book.ImageUrl))
         {
@@ -61,7 +61,8 @@
                     </span>
                 </div>
                 
-                <a href="/books/@Book.Id" class="btn btn-outline-primary rounded-pill btn-sm px-3">
+                <a href="/books/@Book.Id" class="btn btn-outline-primary rounded-pill btn-sm px-3 stretched-link"
+                   aria-label="View details for @Book.Title">
                     Details
                 </a>
             </div>
