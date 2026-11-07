@@ -144,8 +144,10 @@ public class GetBookDetailsTests(CatalogWebApplicationFactory factory) : Catalog
     [InlineData("2147483648")]
     public async Task GetDetails_WhenIdCannotBeBoundToInteger_ShouldReturnBadRequest(string invalidId)
     {
+        // Act
         var response = await Client.GetAsync($"/api/catalog/books/{invalidId}", TestContext.Current.CancellationToken);
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
         var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestContext.Current.CancellationToken);
