@@ -10,8 +10,8 @@ public static class UIErrorCodes
 
 public static class UIErrors
 {
-    public static Error ApiError(string message) => Error.Failure(message, UIErrorCodes.ApiError);
-    public static Error EmptyResponse() => Error.Failure("Response body was empty.", UIErrorCodes.EmptyResponse);
-    public static Error Exception(string message) => Error.Failure(message, UIErrorCodes.Exception);
+    public static Error ApiError(string message) => Error.Failure(code: UIErrorCodes.ApiError, message: message);
+    public static Error EmptyResponse() => Error.Failure(code: UIErrorCodes.EmptyResponse, message: "Response body was empty.");
+    public static Error Exception(string message) => Error.Failure(code: UIErrorCodes.Exception, message: message);
     public static Error Validation(Dictionary<string, object> metadata) => Error.Validation(UIErrorCodes.Validation, "Validation failed.", metadata);
 }
