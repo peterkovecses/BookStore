@@ -138,17 +138,24 @@ public class GetBookDetailsTests(CatalogWebApplicationFactory factory) : Catalog
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
-    [Fact]
-    public async Task GetDetails_WhenIdIsNotAnInteger_ShouldReturnNotFound()
+    [Theory]
+    [InlineData("not-an-integer")]
+    [InlineData("1.5")]
+    [InlineData("2147483648")]
+    [InlineData("0")]
+    [InlineData("-1")]
+    public async Task GetDetails_WhenIdIsInvalid_ShouldReturnValidationProblem(string invalidId)
     {
-        // Arrange
-        const string invalidId = "not-an-integer";
-
         // Act
         var response = await Client.GetAsync($"/api/catalog/books/{invalidId}", TestContext.Current.CancellationToken);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestContext.Current.CancellationToken);
+        problemDetails.Should().NotBeNull();
+        problemDetails.Errors.Should().ContainKey("Id")
+            .WhoseValue.Should().ContainSingle().Which.Should().Be("Id must be a positive integer.");
     }
 
     [Fact]

@@ -33,7 +33,7 @@ public class GetBookDetailsHandlerTests
         _dbContext.Books.Returns(mockDbSet);
         _storageService.GetPublicUrl(imageName).Returns(expectedUrl);
 
-        var request = new GetBookDetailsQuery(bookId);
+        var request = new GetBookDetailsQuery(bookId.ToString());
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -70,7 +70,7 @@ public class GetBookDetailsHandlerTests
         var mockDbSet = new List<Book> { book }.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
 
-        var request = new GetBookDetailsQuery(bookId);
+        var request = new GetBookDetailsQuery(bookId.ToString());
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -90,7 +90,7 @@ public class GetBookDetailsHandlerTests
         var mockDbSet = new List<Book>().BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
 
-        var request = new GetBookDetailsQuery(nonExistentBookId);
+        var request = new GetBookDetailsQuery(nonExistentBookId.ToString());
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
@@ -116,7 +116,7 @@ public class GetBookDetailsHandlerTests
         var mockDbSet = new List<Book> { book }.BuildMockDbSet();
         _dbContext.Books.Returns(mockDbSet);
 
-        var request = new GetBookDetailsQuery(bookId);
+        var request = new GetBookDetailsQuery(bookId.ToString());
 
         // Act
         var actual = await _sut.HandleAsync(request, CancellationToken.None);
