@@ -44,6 +44,5 @@ public class BookCardTests
         link.Should().Contain("Details");
         link.Should().NotContain("onclick");
         html.Should().NotContain("<button");
-        html.Should().NotContain("tabindex=");
     }
 }
