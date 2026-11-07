@@ -2,7 +2,7 @@ namespace BookStore.Catalog.IntegrationTests.Infrastructure;
 
 public class CatalogWebApplicationFactory : MsSqlWebApplicationFactory<Program, DbContext>
 {
-    private readonly AzuriteContainer _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:latest")
+    private readonly AzuriteContainer _azuriteContainer = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.35.0")
         .Build();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -10,6 +10,13 @@ public class CatalogWebApplicationFactory : MsSqlWebApplicationFactory<Program, 
         base.ConfigureWebHost(builder);
 
         builder.UseSetting("ConnectionStrings:book-covers", _azuriteContainer.GetConnectionString());
+        builder.ConfigureServices(services =>
+        {
+            services.RemoveAll<BlobServiceClient>();
+            services.AddSingleton(new BlobServiceClient(
+                _azuriteContainer.GetConnectionString(),
+                new BlobClientOptions(BlobClientOptions.ServiceVersion.V2025_11_05)));
+        });
     }
 
     protected override void ConfigureDatabase(IServiceCollection services)
