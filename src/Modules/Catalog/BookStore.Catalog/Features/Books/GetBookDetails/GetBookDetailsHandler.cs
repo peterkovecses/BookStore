@@ -19,7 +19,7 @@ internal sealed class GetBookDetailsHandler(
         if (book is null)
         {
             return Result.Failure<BookDetailsDto>(
-                Error.NotFound($"Book with id {request.Id} was not found."));
+                Error.NotFound(message: $"Book with id {request.Id} was not found."));
         }
 
         if (!string.IsNullOrWhiteSpace(book.ImageName))

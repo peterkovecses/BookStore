@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="8.1.1" />
-    <PackageReference Include="Kovecses.Result.FluentAssertions" Version="2.11.0" />
+    <PackageReference Include="Kovecses.Result.FluentAssertions" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.7" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.6" />
