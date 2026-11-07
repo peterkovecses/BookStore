@@ -16,6 +16,7 @@ public class BookStoreApiClientTests
     public async Task SearchBooksAsync_WhenSuccessful_ShouldReturnSuccessWithData()
     {
         // Arrange
+        const string expectedPath = "/api/catalog/books";
         var expected = new PaginatedList<BookSummaryDto>([], 0, 1, 10);
         _httpMessageHandler.SetResponse(HttpStatusCode.OK, expected);
 
@@ -25,6 +26,7 @@ public class BookStoreApiClientTests
         // Assert
         actual.Should().BeSuccess()
             .HaveData(x => x.Should().BeEquivalentTo(expected));
+        _httpMessageHandler.LastRequest?.RequestUri?.AbsolutePath.Should().Be(expectedPath);
     }
 
     [Fact]
