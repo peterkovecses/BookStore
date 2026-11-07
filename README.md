@@ -63,13 +63,21 @@ graph TD
 
 To run the multi-service application locally:
 
-1. Ensure [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and [Docker Desktop](https://www.docker.com/products/docker-desktop/) are installed.
-2. Clone the repository.
-3. Run the AppHost:
+1. Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) required by `global.json` and [Docker Desktop](https://www.docker.com/products/docker-desktop/), and start Docker.
+2. Install Aspire CLI **13.6.4**:
    ```bash
-   dotnet run --project src/Hosts/BookStore.AppHost
+   dotnet tool install --global Aspire.Cli --version 13.6.4
    ```
-4. Open the .NET Aspire Dashboard URL provided in the console to monitor the services, logs, and traces.
+   If Aspire CLI is already installed as a global .NET tool, update it instead:
+   ```bash
+   dotnet tool update --global Aspire.Cli --version 13.6.4
+   ```
+   Ensure the .NET global tools directory is on your `PATH`.
+3. Clone the repository and run the AppHost from the repository root:
+   ```bash
+   aspire run --apphost src/Hosts/BookStore.AppHost --non-interactive
+   ```
+4. Open the Aspire Dashboard URL provided in the console. If prompted to trust development certificates, run `aspire certs trust`.
 
 ## 🤝 Let's Connect
 
