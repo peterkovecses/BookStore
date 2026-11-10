@@ -24,11 +24,7 @@ public static class DependencyInjection
 
         builder.Services.AddHybridCache();
 
-        builder.Services.AddRequests(Assembly.GetExecutingAssembly())
-            .AddOpenTelemetry()
-            .AddLoggingBehavior()
-            .AddCachingBehavior()
-            .AddValidationBehavior();
+        builder.Services.AddRequests(Assembly.GetExecutingAssembly());
 
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly(), includeInternalTypes: true);
 

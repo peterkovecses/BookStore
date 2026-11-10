@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Modules\Catalog\BookStore.Catalog\BookStore.Catalog.csproj" />
+    <ProjectReference Include="..\..\Modules\Identity\BookStore.Identity\BookStore.Identity.csproj" />
     <ProjectReference Include="..\..\Shared\BookStore.ServiceDefaults\BookStore.ServiceDefaults.csproj" />
   </ItemGroup>
 

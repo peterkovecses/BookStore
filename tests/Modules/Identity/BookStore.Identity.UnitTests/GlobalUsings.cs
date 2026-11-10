@@ -1,0 +1,12 @@
+global using BookStore.Identity.Contracts;
+global using BookStore.Identity.Features.Registration;
+global using BookStore.Identity.Infrastructure;
+global using FluentAssertions;
+global using Kovecses.Result.FluentAssertions;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Options;
+global using NSubstitute;
