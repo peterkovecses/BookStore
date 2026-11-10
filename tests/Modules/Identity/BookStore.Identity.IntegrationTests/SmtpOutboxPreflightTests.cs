@@ -1,6 +1,3 @@
-using BookStore.Api;
-using BookStore.EmailDispatcher.Contracts;
-
 namespace BookStore.Identity.IntegrationTests;
 
 public class SmtpOutboxPreflightTests

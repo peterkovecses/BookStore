@@ -1,8 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
 namespace BookStore.Common.Outbox;
 
 public sealed class OutboxCleaner<TStore>(

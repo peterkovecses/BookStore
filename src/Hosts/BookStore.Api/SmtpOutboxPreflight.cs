@@ -1,7 +1,3 @@
-using BookStore.Common.Outbox;
-using BookStore.EmailDispatcher.Contracts;
-using Kovecses.Requests;
-
 namespace BookStore.Api;
 
 internal sealed class SmtpOutboxPreflight<TEvent>(IEmailDispatchAvailability availability) : IOutboxPreflight<TEvent>

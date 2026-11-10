@@ -1,8 +1,3 @@
-using System.Text.Json;
-using BookStore.Common.Outbox;
-using Kovecses.Requests;
-using Microsoft.Extensions.Configuration;
-
 namespace BookStore.Identity.IntegrationTests;
 
 [Collection("Outbox integration")]
@@ -29,7 +24,7 @@ public class SecondOutboxTests(IdentityFactory factory) : IClassFixture<Identity
         services.AddDbContext<IdentityDbContext>(options => options.UseSqlServer(connectionString));
         services.AddOutbox<SecondStore>(new ConfigurationBuilder().Build());
         services.AddOutbox<IdentityOutboxStore>(new ConfigurationBuilder().Build());
-        services.AddRequests(Array.Empty<System.Reflection.Assembly>());
+        services.AddRequests(Array.Empty<Assembly>());
         var control = new OutboxWorkerTests.WorkerControl();
         control.Release.TrySetResult();
         services.AddSingleton(control);
@@ -121,16 +116,16 @@ public class SecondOutboxTests(IdentityFactory factory) : IClassFixture<Identity
         CreatedAt = DateTimeOffset.UtcNow
     };
 
-    public sealed class SecondBusiness { public Guid Id { get; set; } }
+    public sealed class SecondBusiness { public Guid Id { get; init; } }
     public sealed class SecondMessage
     {
-        public Guid Id { get; set; }
-        public required string Payload { get; set; }
+        public Guid Id { get; init; }
+        public required string Payload { get; init; }
         public int Status { get; set; }
         public Guid? ClaimToken { get; set; }
         public DateTimeOffset? LeaseExpiresAt { get; set; }
         public int Attempts { get; set; }
-        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; init; }
         public DateTimeOffset? CompletedAt { get; set; }
     }
 

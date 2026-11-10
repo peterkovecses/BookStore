@@ -1,7 +1,3 @@
-using BookStore.Common.Outbox;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging.Abstractions;
-
 namespace BookStore.Identity.IntegrationTests;
 
 [Collection("Outbox integration")]
@@ -255,8 +251,7 @@ public class OutboxStoreTests(IdentityFactory factory) : IClassFixture<IdentityF
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         await db.OutboxMessages.ExecuteDeleteAsync(TestContext.Current.CancellationToken);
-        var pending = Message();
-        pending.CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-5);
+        var pending = Message(DateTimeOffset.UtcNow.AddMinutes(-5));
         var failed = Message();
         failed.Status = OutboxStatus.Failed;
         var expired = Message();
@@ -304,12 +299,12 @@ public class OutboxStoreTests(IdentityFactory factory) : IClassFixture<IdentityF
         (actual is null || actual.Status == OutboxStatus.Pending).Should().BeTrue();
     }
 
-    private static OutboxMessage Message() => new()
+    private static OutboxMessage Message(DateTimeOffset? createdAt = null) => new()
     {
         Id = Guid.NewGuid(),
         EventType = "test.event.v1",
         Payload = "{}",
         CorrelationId = Guid.NewGuid().ToString(),
-        CreatedAt = DateTimeOffset.UtcNow
+        CreatedAt = createdAt ?? DateTimeOffset.UtcNow
     };
 }

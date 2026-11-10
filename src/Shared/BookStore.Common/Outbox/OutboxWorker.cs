@@ -1,8 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
 namespace BookStore.Common.Outbox;
 
 public sealed class OutboxWorker<TStore>(
@@ -48,11 +43,10 @@ public sealed class OutboxWorker<TStore>(
                 if (active.Count > 0)
                 {
                     await Task.WhenAny(Task.WhenAny(active), Task.Delay(_options.PollInterval, clock, stoppingToken));
+                    continue;
                 }
-                else
-                {
-                    await Task.Delay(_options.PollInterval, clock, stoppingToken);
-                }
+
+                await Task.Delay(_options.PollInterval, clock, stoppingToken);
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
@@ -78,25 +72,7 @@ public sealed class OutboxWorker<TStore>(
             var dispatch = await registry.Get(claim.EventType)
                 .DispatchAsync(scope.ServiceProvider, claim.Payload, clock.GetUtcNow(), timeout.Token);
             timeout.Token.ThrowIfCancellationRequested();
-            bool updated;
-            if (dispatch.Status is OutboxDispatchStatus.Completed)
-            {
-                updated = await store.CompleteAsync(claim, timeout.Token);
-            }
-            else if (dispatch.Status is OutboxDispatchStatus.Expired)
-            {
-                updated = await store.ExpireAsync(claim, timeout.Token);
-            }
-            else
-            {
-                var now = clock.GetUtcNow();
-                var retry = dispatch.RetryAfter is { } recovery && recovery > now
-                    ? recovery : now + _options.PreflightFallbackDelay;
-                retry += TimeSpan.FromSeconds(Random.Shared.NextDouble() * _options.PreflightFallbackDelay.TotalSeconds * 0.2);
-                updated = await store.DeferAsync(claim, retry, timeout.Token);
-                logger.Deferred(claim.Id, claim.CorrelationId);
-            }
-
+            var updated = await UpdateStatusAsync(store, claim, dispatch, timeout.Token);
             if (!updated) logger.StaleClaim(claim.Id, claim.CorrelationId);
         }
         catch (OperationCanceledException) when (timeout.IsCancellationRequested)
@@ -122,6 +98,29 @@ public sealed class OutboxWorker<TStore>(
             await renewalStop.CancelAsync();
             await renewal;
         }
+    }
+
+    private async Task<bool> UpdateStatusAsync(TStore store, OutboxClaim claim, OutboxDispatchResult dispatch,
+        CancellationToken cancellationToken)
+    {
+        if (dispatch.Status is OutboxDispatchStatus.Completed)
+        {
+            return await store.CompleteAsync(claim, cancellationToken);
+        }
+
+        if (dispatch.Status is OutboxDispatchStatus.Expired)
+        {
+            return await store.ExpireAsync(claim, cancellationToken);
+        }
+
+        var now = clock.GetUtcNow();
+        var retry = dispatch.RetryAfter is { } recovery && recovery > now
+            ? recovery : now + _options.PreflightFallbackDelay;
+        retry += TimeSpan.FromSeconds(Random.Shared.NextDouble() * _options.PreflightFallbackDelay.TotalSeconds * 0.2);
+        var updated = await store.DeferAsync(claim, retry, cancellationToken);
+        logger.Deferred(claim.Id, claim.CorrelationId);
+
+        return updated;
     }
 
     private async Task RecordFailureAsync(OutboxClaim claim, string error, CancellationToken cancellationToken)
@@ -156,6 +155,7 @@ public sealed class OutboxWorker<TStore>(
                 if (!await scope.ServiceProvider.GetRequiredService<TStore>().RenewAsync(claim, _options, cancellationToken))
                 {
                     logger.StaleClaim(claim.Id, claim.CorrelationId);
+
                     return;
                 }
             }

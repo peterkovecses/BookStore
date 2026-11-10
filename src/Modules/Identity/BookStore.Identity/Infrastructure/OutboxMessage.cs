@@ -11,11 +11,11 @@ internal enum OutboxStatus
 
 internal sealed class OutboxMessage
 {
-    public Guid Id { get; set; }
-    public required string EventType { get; set; }
-    public required string Payload { get; set; }
-    public required string CorrelationId { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
+    public Guid Id { get; init; }
+    public required string EventType { get; init; }
+    public required string Payload { get; init; }
+    public required string CorrelationId { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
     public OutboxStatus Status { get; set; }
     public int AttemptCount { get; set; }
     public long CumulativeAttemptCount { get; set; }

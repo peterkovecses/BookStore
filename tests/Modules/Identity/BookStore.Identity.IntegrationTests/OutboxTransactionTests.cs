@@ -1,5 +1,3 @@
-using BookStore.Common.Outbox;
-
 namespace BookStore.Identity.IntegrationTests;
 
 [Collection("Outbox integration")]

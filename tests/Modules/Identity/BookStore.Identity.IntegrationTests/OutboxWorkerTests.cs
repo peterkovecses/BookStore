@@ -1,12 +1,3 @@
-using System.Text.Json;
-using BookStore.Api;
-using BookStore.Common.Outbox;
-using BookStore.EmailDispatcher.Contracts;
-using Kovecses.Requests;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
-
 namespace BookStore.Identity.IntegrationTests;
 
 [Collection("Outbox integration")]
@@ -167,9 +158,8 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         var db = setup.ServiceProvider.GetRequiredService<IdentityDbContext>();
         await db.OutboxMessages.ExecuteDeleteAsync(TestContext.Current.CancellationToken);
         var dependent = Message(new TestEvent(Slow: false));
-        var unrelated = Message();
-        unrelated.EventType = "independent.event.v1";
-        unrelated.Payload = JsonSerializer.Serialize(new IndependentEvent());
+        var unrelated = Message(eventType: "independent.event.v1",
+            payload: JsonSerializer.Serialize(new IndependentEvent()));
         db.OutboxMessages.AddRange(dependent, unrelated);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var control = new WorkerControl();
@@ -281,7 +271,13 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         recent.Status = OutboxStatus.Completed;
         recent.CompletedAt = DateTimeOffset.UtcNow;
         var otherStates = new[] { OutboxStatus.Pending, OutboxStatus.Processing, OutboxStatus.Failed, OutboxStatus.Expired }
-            .Select(status => { var item = Message(); item.Status = status; return item; }).ToArray();
+            .Select(status =>
+            {
+                var item = Message();
+                item.Status = status;
+
+                return item;
+            }).ToArray();
         db.OutboxMessages.AddRange([old, recent, .. otherStates]);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         await using var services = CreateServices(db.Database.GetConnectionString()!, new WorkerControl());
@@ -438,9 +434,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         using var setup = factory.Services.CreateScope();
         var db = setup.ServiceProvider.GetRequiredService<IdentityDbContext>();
         await db.OutboxMessages.ExecuteDeleteAsync(TestContext.Current.CancellationToken);
-        var message = Message();
-        message.EventType = eventType;
-        message.Payload = payload;
+        var message = Message(eventType: eventType, payload: payload);
         db.OutboxMessages.Add(message);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var control = new WorkerControl();
@@ -466,8 +460,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         using var setup = factory.Services.CreateScope();
         var db = setup.ServiceProvider.GetRequiredService<IdentityDbContext>();
         await db.OutboxMessages.ExecuteDeleteAsync(TestContext.Current.CancellationToken);
-        var message = Message();
-        message.Payload = $$"""{"Slow":false,"secret":"{{secret}}"}""";
+        var message = Message(payload: $$"""{"Slow":false,"secret":"{{secret}}"}""");
         db.OutboxMessages.Add(message);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         var control = new WorkerControl();
@@ -650,7 +643,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
             if (shortTimeout) options.HandlerTimeout = TimeSpan.FromMilliseconds(500);
         });
         services.AddSingleton(control);
-        services.AddRequests(Array.Empty<System.Reflection.Assembly>());
+        services.AddRequests(Array.Empty<Assembly>());
         if (registerHandler) services.AddScoped<IEventHandler<TestEvent>, TestHandler>();
         if (brokenDependency) services.AddScoped<IEventHandler<TestEvent>>(_ => throw new InvalidOperationException("sensitive-test-token"));
         if (secondHandler) services.AddScoped<IEventHandler<TestEvent>, SecondHandler>();
@@ -684,16 +677,20 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
             using var scope = factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
             var message = await db.OutboxMessages.AsNoTracking().SingleAsync(item => item.Id == id, deadline.Token);
-            if (message.Status == status) return message;
+            if (message.Status == status)
+            {
+                return message;
+            }
+
             await Task.Delay(50, deadline.Token);
         }
     }
 
-    private static OutboxMessage Message(TestEvent? value = null) => new()
+    private static OutboxMessage Message(TestEvent? value = null, string eventType = "test.event.v1", string? payload = null) => new()
     {
         Id = Guid.NewGuid(),
-        EventType = "test.event.v1",
-        Payload = JsonSerializer.Serialize(value ?? new TestEvent()),
+        EventType = eventType,
+        Payload = payload ?? JsonSerializer.Serialize(value ?? new TestEvent()),
         CorrelationId = Guid.NewGuid().ToString(),
         CreatedAt = DateTimeOffset.UtcNow
     };
@@ -706,7 +703,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         public int Active;
         public int MaxConcurrent;
         public int CleanupCalls;
-        public bool IgnoreCancellation { get; set; }
+        public bool IgnoreCancellation { get; init; }
         public RecordingProvider Logger { get; } = new();
         public ConcurrentQueue<string> Logs => Logger.Messages;
         public ConcurrentBag<Guid> ScopeIds { get; } = [];
@@ -738,8 +735,9 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
             {
                 if (@event.Slow)
                 {
-                    if (control.IgnoreCancellation) await control.Release.Task;
-                    else await control.Release.Task.WaitAsync(cancellationToken);
+                    await (control.IgnoreCancellation
+                        ? control.Release.Task
+                        : control.Release.Task.WaitAsync(cancellationToken));
                 }
             }
             finally { Interlocked.Decrement(ref control.Active); }
@@ -780,6 +778,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         public Task HandleAsync(IndependentEvent @event, CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref control.Calls);
+
             return Task.CompletedTask;
         }
     }

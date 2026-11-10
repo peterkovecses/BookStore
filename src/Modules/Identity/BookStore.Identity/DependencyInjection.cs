@@ -1,5 +1,3 @@
-using BookStore.Common.Outbox;
-
 namespace BookStore.Identity;
 
 public static class DependencyInjection

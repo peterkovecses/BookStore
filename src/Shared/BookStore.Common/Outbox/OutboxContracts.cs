@@ -1,5 +1,3 @@
-using Kovecses.Requests;
-
 namespace BookStore.Common.Outbox;
 
 public sealed record OutboxClaim(Guid Id, string EventType, string Payload, string CorrelationId,

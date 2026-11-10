@@ -1,7 +1,3 @@
-using BookStore.Common.Outbox;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-
 namespace BookStore.Common.UnitTests.Outbox;
 
 public class OutboxCleanerTests
@@ -16,8 +12,13 @@ public class OutboxCleanerTests
         store.CleanupAsync(Arg.Any<DateTimeOffset>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
-                if (Interlocked.Increment(ref calls) == 1) return Task.FromException<int>(new InvalidOperationException());
+                if (Interlocked.Increment(ref calls) == 1)
+                {
+                    return Task.FromException<int>(new InvalidOperationException());
+                }
+
                 recovered.TrySetResult();
+
                 return Task.FromResult(0);
             });
         var services = new ServiceCollection().AddScoped(_ => store).BuildServiceProvider();

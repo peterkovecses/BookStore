@@ -1,5 +1,3 @@
-using BookStore.Common.Outbox;
-
 namespace BookStore.Common.UnitTests.Outbox;
 
 public class OutboxOptionsTests

@@ -1,6 +1,3 @@
-using BookStore.Common.Outbox;
-using Microsoft.Extensions.Logging;
-
 namespace BookStore.Identity.Infrastructure;
 
 internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<IdentityOutboxStore> logger) : IOutboxStore, IIdentityOutboxOperations
@@ -159,7 +156,7 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
         return correlationId is not null;
     }
 
-    private static void AddParameter(System.Data.Common.DbCommand command, string name, object value)
+    private static void AddParameter(DbCommand command, string name, object value)
     {
         var parameter = command.CreateParameter();
         parameter.ParameterName = name;

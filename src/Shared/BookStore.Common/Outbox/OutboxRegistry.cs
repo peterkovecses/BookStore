@@ -1,7 +1,3 @@
-using System.Text.Json;
-using Kovecses.Requests;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace BookStore.Common.Outbox;
 
 public sealed class OutboxRegistry<TStore> where TStore : class, IOutboxStore
