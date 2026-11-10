@@ -15,12 +15,15 @@ public static class DependencyInjection
             options.User.RequireUniqueEmail = true;
             options.User.AllowedUserNameCharacters = string.Empty;
             options.SignIn.RequireConfirmedEmail = true;
-            options.Password.RequiredLength = 6;
-            options.Password.RequireDigit = true;
-            options.Password.RequireLowercase = true;
-            options.Password.RequireUppercase = true;
-            options.Password.RequireNonAlphanumeric = true;
         }).AddEntityFrameworkStores<IdentityDbContext>();
+
+        builder.Services.AddOptions<IdentityOptions>()
+            .Configure(options => builder.Configuration.GetSection("Identity:Password").Bind(options.Password))
+            .Validate(options => options.Password.RequiredLength >= 6,
+                "Identity:Password:RequiredLength must be at least 6.")
+            .Validate(options => options.Password.RequiredUniqueChars >= 1,
+                "Identity:Password:RequiredUniqueChars must be at least 1.")
+            .ValidateOnStart();
 
         builder.Services.AddSingleton<IUserIdGenerator, UserIdGenerator>();
         builder.Services.AddRequests(Assembly.GetExecutingAssembly());

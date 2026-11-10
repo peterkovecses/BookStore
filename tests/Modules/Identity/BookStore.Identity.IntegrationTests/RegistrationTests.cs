@@ -6,6 +6,7 @@ using BookStore.Identity.Infrastructure;
 using BookStore.Testing.Common.Integration;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -182,5 +183,27 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
         var applied = await db.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken);
         applied.Should().ContainSingle(migration => migration.EndsWith("_InitialIdentity", StringComparison.Ordinal));
         (await db.Database.GetPendingMigrationsAsync(TestContext.Current.CancellationToken)).Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ConfiguredPasswordPolicyControlsValidationAndIdentity()
+    {
+        await using var configuredFactory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("Identity:Password:RequiredLength", "12");
+            builder.UseSetting("Identity:Password:RequireDigit", "false");
+        });
+        using var client = configuredFactory.CreateClient();
+        var shortPassword = await client.PostAsJsonAsync("/api/identity/registration",
+            Request($"{Guid.NewGuid()}@example.com", "Short1!"), TestContext.Current.CancellationToken);
+        var longPassword = await client.PostAsJsonAsync("/api/identity/registration",
+            Request($"{Guid.NewGuid()}@example.com", "LongPassword!"), TestContext.Current.CancellationToken);
+
+        shortPassword.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        longPassword.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var scope = configuredFactory.Services.CreateScope();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        users.Options.Password.RequiredLength.Should().Be(12);
+        users.Options.Password.RequireDigit.Should().BeFalse();
     }
 }

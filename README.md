@@ -77,9 +77,14 @@ To run the multi-service application locally:
 ### Customer registration (backend only)
 
 `POST /api/identity/registration` accepts JSON containing `email`, `password`,
-`firstName`, and `lastName`. Names are required and limited to 50 characters;
-the password must be at least six characters and include an uppercase letter,
-a lowercase letter, a digit, and a non-alphanumeric character. Invalid input
+`firstName`, and `lastName`. Names are required and limited to 50 characters.
+Password rules are configured under `Identity:Password` in the API configuration
+and apply to both registration validation and ASP.NET Identity. The defaults
+require at least six characters, including an uppercase letter, a lowercase
+letter, a digit, and a non-alphanumeric character. `RequiredLength` must be at
+least six and `RequiredUniqueChars` at least one; invalid settings fail startup.
+Standard configuration providers can override these settings, for example
+`Identity__Password__RequiredLength` as an environment variable. Invalid input
 returns the standard validation problem response. A valid request returns
 `204 No Content` whether the normalized email is new or already
 registered. Existing accounts are not modified by duplicate requests.
