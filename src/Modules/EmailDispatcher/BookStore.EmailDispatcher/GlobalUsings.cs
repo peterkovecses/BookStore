@@ -1,0 +1,11 @@
+global using System.Net.Sockets;
+global using BookStore.EmailDispatcher.Contracts;
+global using MailKit;
+global using MailKit.Net.Smtp;
+global using MailKit.Security;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.DependencyInjection.Extensions;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Options;
+global using MimeKit;

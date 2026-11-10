@@ -1,0 +1,13 @@
+global using System.Net.Sockets;
+global using BookStore.EmailDispatcher.Contracts;
+global using FluentAssertions;
+global using MailKit;
+global using MailKit.Net.Smtp;
+global using MailKit.Security;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging.Abstractions;
+global using Microsoft.Extensions.Options;
+global using Microsoft.Extensions.Time.Testing;
+global using MimeKit;
+global using NSubstitute;
+global using Xunit;

@@ -20,6 +20,16 @@ var bookStoreApi = builder.AddProject<Projects.BookStore_Api>("bookstore-api")
     .WaitFor(blobs)
     .WaitFor(bookStoreDb);
 
+if (builder.Environment.IsDevelopment())
+{
+    var mailpit = builder.AddMailPit("mailpit");
+    bookStoreApi
+        .WithEnvironment("EmailDispatcher__Smtp__Host", mailpit.GetEndpoint("smtp").Property(EndpointProperty.Host))
+        .WithEnvironment("EmailDispatcher__Smtp__Port", mailpit.GetEndpoint("smtp").Property(EndpointProperty.Port))
+        .WithEnvironment("EmailDispatcher__Smtp__Security", "None")
+        .WaitFor(mailpit);
+}
+
 var bookStoreUi = builder.AddProject<Projects.BookStore_UI>("bookstore-ui")
     .WithReference(bookStoreApi)
     .WaitFor(bookStoreApi);
