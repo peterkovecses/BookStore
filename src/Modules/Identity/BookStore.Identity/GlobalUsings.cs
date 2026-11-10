@@ -1,5 +1,7 @@
 global using System.Reflection;
+global using System.Data.Common;
 global using BookStore.Common;
+global using BookStore.Common.Outbox;
 global using BookStore.Identity.Contracts;
 global using BookStore.Identity.Features.Registration;
 global using BookStore.Identity.Infrastructure;
@@ -17,5 +19,6 @@ global using Microsoft.EntityFrameworkCore.Design;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Options;
 global using IdentityUserDbContext = Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityDbContext<BookStore.Identity.Infrastructure.ApplicationUser>;

@@ -11,4 +11,6 @@ global using BookStore.Catalog.Infrastructure.Seeding;
 global using Serilog;
 global using Kovecses.Requests;
 global using BookStore.Common;
+global using BookStore.Common.Outbox;
+global using BookStore.EmailDispatcher.Contracts;
 global using System.Reflection;

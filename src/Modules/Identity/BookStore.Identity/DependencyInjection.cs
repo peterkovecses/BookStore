@@ -26,6 +26,8 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         builder.Services.AddSingleton<IUserIdGenerator, UserIdGenerator>();
+        builder.Services.AddOutbox<IdentityOutboxStore>(builder.Configuration);
+        builder.Services.AddScoped<IIdentityOutboxOperations>(services => services.GetRequiredService<IdentityOutboxStore>());
         builder.Services.AddRequests(Assembly.GetExecutingAssembly());
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly(), includeInternalTypes: true);
 
