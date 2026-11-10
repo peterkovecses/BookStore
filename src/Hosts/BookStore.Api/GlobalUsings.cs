@@ -5,6 +5,7 @@ global using BookStore.ServiceDefaults;
 global using BookStore.Api;
 global using BookStore.Catalog;
 global using BookStore.Identity;
+global using BookStore.EmailDispatcher;
 global using BookStore.Catalog.Common.Extensions;
 global using BookStore.Catalog.Infrastructure.Seeding;
 global using Serilog;

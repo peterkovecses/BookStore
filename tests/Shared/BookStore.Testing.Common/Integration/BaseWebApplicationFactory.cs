@@ -11,6 +11,9 @@ public abstract class BaseWebApplicationFactory<TMarker> : WebApplicationFactory
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("IntegrationTesting");
+        builder.UseSetting("EmailDispatcher:Smtp:Host", "localhost");
+        builder.UseSetting("EmailDispatcher:Smtp:Username", "test-user");
+        builder.UseSetting("EmailDispatcher:Smtp:Password", "test-password");
 
         builder.ConfigureLogging(logging =>
         {

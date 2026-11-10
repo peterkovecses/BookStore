@@ -3,6 +3,7 @@ builder.AddServiceDefaults();
 builder.Services.AddApiServices(builder.Configuration);
 builder.AddCatalogModuleServices();
 builder.AddIdentityModuleServices();
+builder.AddEmailDispatcherModuleServices();
 builder.Services.AddRequests(Array.Empty<Assembly>())
     .AddOpenTelemetry()
     .AddLoggingBehavior()
