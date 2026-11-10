@@ -1,12 +1,3 @@
-using BookStore.EmailDispatcher.Contracts;
-using System.Net.Sockets;
-using MailKit.Net.Smtp;
-using MailKit.Security;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Time.Testing;
-using MimeKit;
-
 namespace BookStore.EmailDispatcher.UnitTests;
 
 public sealed class EmailSenderTests
@@ -18,6 +9,36 @@ public sealed class EmailSenderTests
         var options = Options.Create(settings);
 
         return new(options, new SmtpCircuitBreaker(options, clock), clock, NullLogger<EmailSender>.Instance, factory);
+    }
+
+    [Fact]
+    public async Task SendAsync_WhenMessageContainsTextAndHtml_ShouldSendMatchingMimeMessage()
+    {
+        // Arrange
+        const string sender = "sender@example.com";
+        const string recipient = "recipient@example.com";
+        const string subject = "Subject";
+        const string text = "Plain text";
+        const string html = "<p>HTML</p>";
+        var message = new EmailMessage(sender, recipient, subject, text, html);
+        var client = Substitute.For<ISmtpClient>();
+        client.IsConnected.Returns(true);
+        var clock = new FakeTimeProvider();
+        await using var sut = CreateSender(new(), clock, () => client);
+
+        // Act
+        await sut.SendAsync(message, TestContext.Current.CancellationToken);
+
+        // Assert
+        await client.Received(1).SendAsync(
+            Arg.Is<MimeMessage>(mail =>
+                mail.From.Mailboxes.First().Address == sender &&
+                mail.To.Mailboxes.First().Address == recipient &&
+                mail.Subject == subject &&
+                mail.TextBody == text &&
+                mail.HtmlBody == html),
+            Arg.Any<CancellationToken>(),
+            Arg.Any<ITransferProgress>());
     }
 
     [Fact]
@@ -317,7 +338,13 @@ public sealed class EmailSenderTests
         var client = Substitute.For<ISmtpClient>();
         client.IsConnected.Returns(true);
         client.SendAsync(Arg.Any<MimeMessage>(), Arg.Any<CancellationToken>(), Arg.Any<ITransferProgress>())
-            .Returns(async _ => { entered.TrySetResult(); await release.Task; return "OK"; });
+            .Returns(async _ =>
+            {
+                entered.TrySetResult();
+                await release.Task;
+
+                return "OK";
+            });
         var clock = new FakeTimeProvider();
         await using var sut = CreateSender(new(), clock, () => client);
 
@@ -345,6 +372,7 @@ public sealed class EmailSenderTests
             {
                 entered.SetResult();
                 await Task.Delay(Timeout.InfiniteTimeSpan, call.Arg<CancellationToken>());
+
                 return "OK";
             });
         var sut = CreateSender(new(), new FakeTimeProvider(), () => client);
@@ -370,6 +398,7 @@ public sealed class EmailSenderTests
             .Returns(async call =>
             {
                 await Task.Delay(Timeout.InfiniteTimeSpan, call.Arg<CancellationToken>());
+
                 return "OK";
             });
         await using var sut = CreateSender(new() { OperationTimeoutSeconds = 1, MaxAttempts = 1 }, new FakeTimeProvider(), () => client);

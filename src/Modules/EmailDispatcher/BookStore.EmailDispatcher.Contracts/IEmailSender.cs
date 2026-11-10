@@ -4,7 +4,7 @@ public sealed record EmailMessage(string From, string To, string Subject, string
 
 public interface IEmailSender
 {
-    Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default);
+    Task SendAsync(EmailMessage message, CancellationToken cancellationToken);
 }
 
 public interface IEmailDispatchAvailability

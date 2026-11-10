@@ -1,6 +1,3 @@
-using BookStore.EmailDispatcher.Contracts;
-using Microsoft.Extensions.Options;
-
 namespace BookStore.EmailDispatcher;
 
 internal sealed class SmtpCircuitBreaker(IOptions<SmtpSettings> options, TimeProvider timeProvider) : IEmailDispatchAvailability
@@ -45,16 +42,19 @@ internal sealed class SmtpCircuitBreaker(IOptions<SmtpSettings> options, TimePro
                 if (transientFailure)
                 {
                     _until = timeProvider.GetUtcNow().AddSeconds(_settings.CircuitBreakSeconds);
+
                     return;
                 }
                 _until = null;
                 _failures = 0;
+
                 return;
             }
             if (cancelled || _until is not null) return;
             if (!transientFailure)
             {
                 _failures = 0;
+
                 return;
             }
             if (++_failures >= _settings.CircuitFailureThreshold)

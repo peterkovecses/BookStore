@@ -16,8 +16,4 @@
     <ProjectReference Include="..\..\..\..\src\Modules\EmailDispatcher\BookStore.EmailDispatcher\BookStore.EmailDispatcher.csproj" />
     <ProjectReference Include="..\..\..\Shared\BookStore.Testing.Common\BookStore.Testing.Common.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Using Include="Xunit" />
-    <Using Include="FluentAssertions" />
-  </ItemGroup>
 </Project>

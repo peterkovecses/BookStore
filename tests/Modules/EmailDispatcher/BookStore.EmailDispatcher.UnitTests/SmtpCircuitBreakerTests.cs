@@ -1,7 +1,3 @@
-using BookStore.EmailDispatcher.Contracts;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Time.Testing;
-
 namespace BookStore.EmailDispatcher.UnitTests;
 
 public sealed class SmtpCircuitBreakerTests

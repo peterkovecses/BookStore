@@ -1,7 +1,3 @@
-using MailKit.Security;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-
 namespace BookStore.EmailDispatcher;
 
 internal sealed class SmtpSettings

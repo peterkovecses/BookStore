@@ -1,6 +1,3 @@
-using MailKit.Security;
-using Microsoft.Extensions.Hosting;
-
 namespace BookStore.EmailDispatcher.UnitTests;
 
 public sealed class SmtpSettingsValidatorTests

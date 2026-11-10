@@ -1,9 +1,3 @@
-using BookStore.EmailDispatcher.Contracts;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-
 namespace BookStore.EmailDispatcher;
 
 public static class DependencyInjection

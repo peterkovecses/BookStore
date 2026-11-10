@@ -1,9 +1,3 @@
-using BookStore.EmailDispatcher.Contracts;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using DotNet.Testcontainers.Builders;
-
 namespace BookStore.EmailDispatcher.IntegrationTests;
 
 public sealed class MailpitTests

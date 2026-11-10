@@ -1,11 +1,3 @@
-using System.Net.Sockets;
-using BookStore.EmailDispatcher.Contracts;
-using MailKit;
-using MailKit.Net.Smtp;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MimeKit;
-
 namespace BookStore.EmailDispatcher;
 
 internal sealed class EmailSender : IEmailSender, IAsyncDisposable
@@ -36,15 +28,11 @@ internal sealed class EmailSender : IEmailSender, IAsyncDisposable
         _idleTask = DisconnectWhenIdleAsync();
     }
 
-    public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
+    public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
         ArgumentNullException.ThrowIfNull(message);
-        var mail = new MimeMessage();
-        mail.From.Add(MailboxAddress.Parse(message.From));
-        mail.To.Add(MailboxAddress.Parse(message.To));
-        mail.Subject = message.Subject;
-        mail.Body = new BodyBuilder { TextBody = message.TextBody, HtmlBody = message.HtmlBody }.ToMessageBody();
+        var mail = CreateMimeMessage(message);
 
         using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _shutdown.Token);
         for (var attempt = 1; ; attempt++)
@@ -52,6 +40,7 @@ internal sealed class EmailSender : IEmailSender, IAsyncDisposable
             try
             {
                 await SendAttemptAsync(mail, lifetime.Token);
+
                 return;
             }
             catch (Exception ex) when (IsTransient(ex) && attempt < _settings.MaxAttempts && !lifetime.IsCancellationRequested)
@@ -60,6 +49,17 @@ internal sealed class EmailSender : IEmailSender, IAsyncDisposable
                 await Task.Delay(delay, _clock, lifetime.Token);
             }
         }
+    }
+
+    private static MimeMessage CreateMimeMessage(EmailMessage message)
+    {
+        var mail = new MimeMessage();
+        mail.From.Add(MailboxAddress.Parse(message.From));
+        mail.To.Add(MailboxAddress.Parse(message.To));
+        mail.Subject = message.Subject;
+        mail.Body = new BodyBuilder { TextBody = message.TextBody, HtmlBody = message.HtmlBody }.ToMessageBody();
+
+        return mail;
     }
 
     private async Task SendAttemptAsync(MimeMessage message, CancellationToken cancellationToken)
