@@ -26,8 +26,8 @@ internal sealed class RegistrationHandler(
             }
 
             var errors = result.Errors.ToList();
-            var otherErrors = errors.Where(error => !IsDuplicateError(error)).ToList();
-            if (errors.Count > 0 && otherErrors.Count == 0)
+            var validationErrors = errors.Where(error => !IsDuplicateError(error)).ToList();
+            if (errors.Count > 0 && validationErrors.Count == 0)
             {
                 if (await EmailExistsAsync(users.NormalizeEmail(request.Email), cancellationToken))
                 {
@@ -39,7 +39,7 @@ internal sealed class RegistrationHandler(
 
             var metadata = new Dictionary<string, object>
             {
-                ["Registration"] = otherErrors.Select(error => error.Description).ToList()
+                ["Registration"] = validationErrors.Select(error => error.Description).ToList()
             };
 
             return Result.Failure(Error.Validation("Validation", "Validation failed.", metadata));
