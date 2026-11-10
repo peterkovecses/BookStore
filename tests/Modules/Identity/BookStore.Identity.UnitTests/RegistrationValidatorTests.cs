@@ -23,7 +23,7 @@ public class RegistrationValidatorTests
     public void Validate_WhenRegistrationIsInvalid_ShouldRejectIt(string email, string password, string firstName, string lastName)
     {
         // Arrange
-        var request = new RegisterCustomer(new RegistrationRequest
+        var request = new RegisterCommand(new RegistrationRequest
         {
             Email = email, Password = password, FirstName = firstName, LastName = lastName
         });
@@ -43,7 +43,7 @@ public class RegistrationValidatorTests
         const string password = "Password1!";
         const string firstName = "Jane";
         const string lastName = "Doe";
-        var request = new RegisterCustomer(new RegistrationRequest
+        var request = new RegisterCommand(new RegistrationRequest
         {
             Email = email, Password = password, FirstName = firstName, LastName = lastName
         });

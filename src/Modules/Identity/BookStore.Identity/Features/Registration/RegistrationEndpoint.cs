@@ -11,7 +11,7 @@ internal static class RegistrationEndpoint
 
     private static async Task<IResult> HandleAsync(
         RegistrationRequest request,
-        IRequestHandler<RegisterCustomer, Result> handler,
+        IRequestHandler<RegisterCommand, Result> handler,
         CancellationToken cancellationToken) =>
-        await handler.HandleAsync(new RegisterCustomer(request), cancellationToken).ToMinimalApiResultAsync();
+        await handler.HandleAsync(new RegisterCommand(request), cancellationToken).ToMinimalApiResultAsync();
 }

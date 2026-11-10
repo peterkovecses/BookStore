@@ -6,9 +6,9 @@ internal sealed class RegistrationHandler(
     UserManager<ApplicationUser> users,
     IdentityDbContext context,
     IUserIdGenerator idGenerator)
-    : IRequestHandler<RegisterCustomer, Result>
+    : IRequestHandler<RegisterCommand, Result>
 {
-    public async Task<Result> HandleAsync(RegisterCustomer request, CancellationToken cancellationToken)
+    public async Task<Result> HandleAsync(RegisterCommand request, CancellationToken cancellationToken)
     {
         var user = new ApplicationUser
         {

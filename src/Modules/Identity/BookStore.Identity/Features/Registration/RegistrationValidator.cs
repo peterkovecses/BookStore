@@ -1,6 +1,6 @@
 namespace BookStore.Identity.Features.Registration;
 
-internal sealed class RegistrationValidator : AbstractValidator<RegisterCustomer>
+internal sealed class RegistrationValidator : AbstractValidator<RegisterCommand>
 {
     public RegistrationValidator(IOptions<IdentityOptions> options)
     {

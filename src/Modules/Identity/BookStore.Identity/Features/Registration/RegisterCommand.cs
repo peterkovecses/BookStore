@@ -1,6 +1,6 @@
 namespace BookStore.Identity.Features.Registration;
 
-internal sealed class RegisterCustomer(RegistrationRequest request) : IRequest<Result>
+internal sealed class RegisterCommand(RegistrationRequest request) : IRequest<Result>
 {
     public string Email { get; } = request.Email ?? string.Empty;
     public string Password { get; } = request.Password ?? string.Empty;
