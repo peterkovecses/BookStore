@@ -1,20 +1,3 @@
-using System.Collections.Concurrent;
-using System.Net;
-using System.Net.Http.Json;
-using BookStore.Identity.Contracts;
-using BookStore.Identity.Infrastructure;
-using BookStore.Testing.Common.Integration;
-using FluentAssertions;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
-using Testcontainers.MsSql;
-
 namespace BookStore.Identity.IntegrationTests;
 
 public sealed class IdentityFactory : BaseWebApplicationFactory<Program>
@@ -174,6 +157,220 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
         await act.Should().ThrowAsync<DbUpdateException>();
     }
 
+    [Fact]
+    public async Task Register_WhenUsernameBelongsToAnotherEmail_ShouldNotReturnSuccessOrDiscloseAccount()
+    {
+        // Arrange
+        const HttpStatusCode expected = HttpStatusCode.InternalServerError;
+        using var sut = factory.CreateClient();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var email = $"{Guid.NewGuid()}@example.com";
+        var otherEmail = $"{Guid.NewGuid()}@example.com";
+        db.Users.Add(new ApplicationUser
+        {
+            Id = Guid.NewGuid().ToString(), FirstName = FirstName, LastName = LastName,
+            Email = otherEmail, NormalizedEmail = otherEmail.ToUpperInvariant(),
+            UserName = email, NormalizedUserName = email.ToUpperInvariant()
+        });
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        using var actual = await sut.PostAsJsonAsync(RegistrationPath, Request(email), TestContext.Current.CancellationToken);
+        var actualBody = await actual.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.StatusCode.Should().Be(expected);
+        actualBody.Should().NotContain(email).And.NotContain(otherEmail).And.NotContain("Duplicate");
+    }
+
+    [Theory]
+    [InlineData(nameof(IdentityErrorDescriber.DuplicateEmail))]
+    [InlineData(nameof(IdentityErrorDescriber.DuplicateUserName))]
+    public async Task HandleAsync_WhenIdentityReportsDuplicateAndEmailExists_ShouldReturnSuccess(string errorCode)
+    {
+        // Arrange
+        var email = $"{Guid.NewGuid()}@example.com";
+        var normalizedEmail = email.ToUpperInvariant();
+        await using var configuredFactory = CreateFactoryWithUserValidation(IdentityResult.Failed(
+            new IdentityError { Code = errorCode, Description = "Duplicate." }));
+        using var scope = configuredFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var ids = Substitute.For<IUserIdGenerator>();
+        ids.Create().Returns(Guid.NewGuid().ToString());
+        db.Users.Add(new ApplicationUser
+        {
+            Id = Guid.NewGuid().ToString(), FirstName = FirstName, LastName = LastName,
+            Email = email, NormalizedEmail = normalizedEmail,
+            UserName = email, NormalizedUserName = normalizedEmail
+        });
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        db.ChangeTracker.Clear();
+        var sut = new RegistrationHandler(users, db, ids);
+        var request = new RegisterCommand(Request(email));
+
+        // Act
+        var actual = await sut.HandleAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.Should().BeSuccess();
+    }
+
+    [Theory]
+    [InlineData(nameof(IdentityErrorDescriber.DuplicateEmail))]
+    [InlineData(nameof(IdentityErrorDescriber.DuplicateUserName))]
+    public async Task HandleAsync_WhenIdentityReportsDuplicateWithoutEmail_ShouldThrow(string errorCode)
+    {
+        // Arrange
+        var email = $"{Guid.NewGuid()}@example.com";
+        await using var configuredFactory = CreateFactoryWithUserValidation(IdentityResult.Failed(
+            new IdentityError { Code = errorCode, Description = "Duplicate." }));
+        using var scope = configuredFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var ids = Substitute.For<IUserIdGenerator>();
+        ids.Create().Returns(Guid.NewGuid().ToString());
+        var sut = new RegistrationHandler(users, db, ids);
+        var request = new RegisterCommand(Request(email));
+
+        // Act
+        var act = () => sut.HandleAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenDuplicateEmailIsDetectedByDatabase_ShouldReturnSuccessAndDetachUser()
+    {
+        // Arrange
+        var email = $"{Guid.NewGuid()}@example.com";
+        var normalizedEmail = email.ToUpperInvariant();
+        await using var configuredFactory = CreateFactoryWithoutUserValidation();
+        using var scope = configuredFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var ids = Substitute.For<IUserIdGenerator>();
+        ids.Create().Returns(Guid.NewGuid().ToString());
+        db.Users.Add(new ApplicationUser
+        {
+            Id = Guid.NewGuid().ToString(), FirstName = FirstName, LastName = LastName,
+            Email = email, NormalizedEmail = normalizedEmail,
+            UserName = email, NormalizedUserName = normalizedEmail
+        });
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        db.ChangeTracker.Clear();
+        var sut = new RegistrationHandler(users, db, ids);
+        var request = new RegisterCommand(Request(email));
+
+        // Act
+        var actual = await sut.HandleAsync(request, TestContext.Current.CancellationToken);
+        var actualCount = await db.Users.CountAsync(user => user.NormalizedEmail == normalizedEmail, TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.Should().BeSuccess();
+        actualCount.Should().Be(1);
+        db.ChangeTracker.Entries<ApplicationUser>().Should().NotContain(entry => entry.State == EntityState.Added);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HandleAsync_WhenPrimaryKeyCollides_ShouldThrowEvenIfEmailExists(bool emailExists)
+    {
+        // Arrange
+        var email = $"{Guid.NewGuid()}@example.com";
+        var normalizedEmail = email.ToUpperInvariant();
+        var otherEmail = $"{Guid.NewGuid()}@example.com";
+        var collidingId = Guid.NewGuid().ToString();
+        await using var configuredFactory = CreateFactoryWithoutUserValidation();
+        using var scope = configuredFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var ids = Substitute.For<IUserIdGenerator>();
+        ids.Create().Returns(collidingId);
+        db.Users.Add(new ApplicationUser
+        {
+            Id = collidingId, FirstName = FirstName, LastName = LastName,
+            Email = otherEmail, NormalizedEmail = otherEmail.ToUpperInvariant(),
+            UserName = otherEmail, NormalizedUserName = otherEmail.ToUpperInvariant()
+        });
+        if (emailExists)
+        {
+            db.Users.Add(new ApplicationUser
+            {
+                Id = Guid.NewGuid().ToString(), FirstName = FirstName, LastName = LastName,
+                Email = email, NormalizedEmail = normalizedEmail,
+                UserName = email, NormalizedUserName = normalizedEmail
+            });
+        }
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        db.ChangeTracker.Clear();
+        var sut = new RegistrationHandler(users, db, ids);
+        var request = new RegisterCommand(Request(email));
+
+        // Act
+        var act = () => sut.HandleAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<DbUpdateException>();
+        db.ChangeTracker.Entries<ApplicationUser>().Should().NotContain(entry => entry.State == EntityState.Added);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenUsernameBelongsToAnotherUserAndEmailExists_ShouldThrow()
+    {
+        // Arrange
+        var email = $"{Guid.NewGuid()}@example.com";
+        var normalizedEmail = email.ToUpperInvariant();
+        var otherEmail = $"{Guid.NewGuid()}@example.com";
+        var otherUsername = $"{Guid.NewGuid()}@example.com";
+        await using var configuredFactory = CreateFactoryWithoutUserValidation();
+        using var scope = configuredFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var ids = Substitute.For<IUserIdGenerator>();
+        ids.Create().Returns(Guid.NewGuid().ToString());
+        db.Users.AddRange(
+            new ApplicationUser
+            {
+                Id = Guid.NewGuid().ToString(), FirstName = FirstName, LastName = LastName,
+                Email = email, NormalizedEmail = normalizedEmail,
+                UserName = otherUsername, NormalizedUserName = otherUsername.ToUpperInvariant()
+            },
+            new ApplicationUser
+            {
+                Id = Guid.NewGuid().ToString(), FirstName = FirstName, LastName = LastName,
+                Email = otherEmail, NormalizedEmail = otherEmail.ToUpperInvariant(),
+                UserName = email, NormalizedUserName = normalizedEmail
+            });
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        db.ChangeTracker.Clear();
+        var sut = new RegistrationHandler(users, db, ids);
+        var request = new RegisterCommand(Request(email));
+
+        // Act
+        var act = () => sut.HandleAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<DbUpdateException>();
+        db.ChangeTracker.Entries<ApplicationUser>().Should().NotContain(entry => entry.State == EntityState.Added);
+    }
+
+    private WebApplicationFactory<Program> CreateFactoryWithoutUserValidation() =>
+        CreateFactoryWithUserValidation(IdentityResult.Success);
+
+    private WebApplicationFactory<Program> CreateFactoryWithUserValidation(IdentityResult result) =>
+        factory.WithWebHostBuilder(builder => builder.ConfigureServices(services =>
+        {
+            var validator = Substitute.For<IUserValidator<ApplicationUser>>();
+            validator.ValidateAsync(Arg.Any<UserManager<ApplicationUser>>(), Arg.Any<ApplicationUser>())
+                .Returns(result);
+            services.RemoveAll<IUserValidator<ApplicationUser>>();
+            services.AddScoped(_ => validator);
+        }));
+
     [Theory]
     [InlineData("invalid", "Password1!", "Jane")]
     [InlineData("jane@example.com", "password", "Jane")]
@@ -223,7 +420,7 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
         const string expectedContentType = "application/problem+json";
         string[] expectedFields = ["Email", "Password", "FirstName", "LastName"];
         using var sut = factory.CreateClient();
-        using var request = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        using var request = new StringContent(json, Encoding.UTF8, "application/json");
 
         // Act
         using var actual = await sut.PostAsync(RegistrationPath, request, TestContext.Current.CancellationToken);

@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-
 namespace BookStore.Identity.Infrastructure;
 
 internal sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options)
-    : IdentityDbContext<ApplicationUser>(options)
+    : IdentityUserDbContext(options)
 {
     protected override void OnModelCreating(ModelBuilder builder)
     {

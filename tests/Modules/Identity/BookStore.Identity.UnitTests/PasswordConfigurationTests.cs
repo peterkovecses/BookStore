@@ -1,11 +1,3 @@
-using BookStore.Identity.Infrastructure;
-using FluentAssertions;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-
 namespace BookStore.Identity.UnitTests;
 
 public class PasswordConfigurationTests

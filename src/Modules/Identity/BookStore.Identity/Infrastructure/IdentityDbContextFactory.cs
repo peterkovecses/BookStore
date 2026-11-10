@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore.Design;
-
 namespace BookStore.Identity.Infrastructure;
 
 internal sealed class IdentityDbContextFactory : IDesignTimeDbContextFactory<IdentityDbContext>

@@ -1,9 +1,3 @@
-using BookStore.Identity.Contracts;
-using BookStore.Identity.Features.Registration;
-using FluentAssertions;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
-
 namespace BookStore.Identity.UnitTests;
 
 public class RegistrationValidatorTests
