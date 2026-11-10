@@ -213,6 +213,31 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
         factory.Logs.Messages.Should().NotBeEmpty().And.NotContain(message => message.Contains(password, StringComparison.Ordinal));
     }
 
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("{\"email\":null,\"password\":null,\"firstName\":null,\"lastName\":null}")]
+    public async Task Register_WhenFieldsAreNullOrOmitted_ShouldReturnValidationProblem(string json)
+    {
+        // Arrange
+        const HttpStatusCode expected = HttpStatusCode.BadRequest;
+        const string expectedContentType = "application/problem+json";
+        string[] expectedFields = ["Email", "Password", "FirstName", "LastName"];
+        using var sut = factory.CreateClient();
+        using var request = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+        // Act
+        using var actual = await sut.PostAsync(RegistrationPath, request, TestContext.Current.CancellationToken);
+        var actualBody = await actual.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.StatusCode.Should().Be(expected);
+        actual.Content.Headers.ContentType?.MediaType.Should().Be(expectedContentType);
+        foreach (var expectedField in expectedFields)
+        {
+            actualBody.Should().Contain(expectedField);
+        }
+    }
+
     [Fact]
     public async Task Register_WhenPasswordIsProvided_ShouldNotLogIt()
     {

@@ -36,6 +36,21 @@ public class RegistrationValidatorTests
     }
 
     [Fact]
+    public void Validate_WhenFieldsAreNull_ShouldReportEachField()
+    {
+        // Arrange
+        string[] expected = ["Email", "Password", "FirstName", "LastName"];
+        var request = new RegisterCommand(new RegistrationRequest());
+
+        // Act
+        var actual = _sut.Validate(request);
+
+        // Assert
+        actual.IsValid.Should().BeFalse();
+        actual.Errors.Select(error => error.PropertyName).Should().BeEquivalentTo(expected);
+    }
+
+    [Fact]
     public void Validate_WhenRegistrationIsValid_ShouldAcceptIt()
     {
         // Arrange
