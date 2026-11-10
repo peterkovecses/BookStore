@@ -74,6 +74,30 @@ To run the multi-service application locally:
    ```
 4. Open the Aspire Dashboard URL shown in the console.
 
+### Customer registration (backend only)
+
+`POST /api/identity/registration` accepts JSON containing `email`, `password`,
+`firstName`, and `lastName`. Names are required and limited to 50 characters;
+the password must be at least six characters and include an uppercase letter,
+a lowercase letter, a digit, and a non-alphanumeric character. Invalid input
+returns the standard validation problem response. A valid request returns
+`204 No Content` whether the normalized email is new or already
+registered. Existing accounts are not modified by duplicate requests.
+
+Identity owns its tables and migration history in the `identity` schema of
+`BookStoreDb`. Development startup applies its migrations. In other environments,
+apply them before starting the API, supplying the target connection securely:
+
+```bash
+dotnet ef database update --project src/Modules/Identity/BookStore.Identity \
+  --startup-project src/Hosts/BookStore.Api --context IdentityDbContext \
+  --connection "$BOOKSTORE_DB_CONNECTION"
+```
+
+Accounts created by this intermediate backend slice remain unconfirmed: email
+verification, sign-in and onboarding UI are not yet available. No registration
+email is sent.
+
 ## 🤝 Let's Connect
 
 Feel free to reach out to discuss modern .NET architecture, software engineering, or potential opportunities.

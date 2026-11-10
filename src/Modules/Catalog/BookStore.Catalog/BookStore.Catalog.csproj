@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="13.6.4" />
     <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="13.6.4" />
-    <PackageReference Include="Kovecses.Requests" Version="2.2.0" />
+    <PackageReference Include="Kovecses.Requests" Version="2.4.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.12" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

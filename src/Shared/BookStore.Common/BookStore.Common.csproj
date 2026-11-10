@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Kovecses.Requests" Version="2.2.0" />
+    <PackageReference Include="Kovecses.Requests" Version="2.4.0" />
     <PackageReference Include="Kovecses.Result" Version="3.0.0" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.7.0" />
