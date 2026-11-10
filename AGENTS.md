@@ -41,6 +41,7 @@
 
 ## Testing
 
+- **Test-specific rules:** Before modifying files under `tests/`, read and follow `tests/AGENTS.md` and any more specific applicable instructions.
 - **Testing Requirement:** Every code change that introduces or modifies application logic MUST include appropriate **Unit Tests** and **Integration Tests** where applicable. Exceptions include pure glue code that only connects existing components without introducing new logic. When modifying an existing feature, update its existing tests to reflect the changes and ensure that the expected behavior remains covered.
 - **Test Execution Strategy:** Run only the relevant tests affected by the changes during development and before every commit. When changes affect shared components, module boundaries, cross-cutting concerns, or multiple features, run all potentially affected tests. Run the complete test suite for significant changes, especially when changes affect architecture, shared infrastructure, or multiple modules. Avoid running the entire test suite for isolated changes when targeted tests provide sufficient coverage. If no tests are relevant, such as for a documentation-only change, state this explicitly.
 - **Visual Presentation:** The user verifies visual presentation manually; do not require or run visual presentation tests. This does not exempt other relevant functional tests.

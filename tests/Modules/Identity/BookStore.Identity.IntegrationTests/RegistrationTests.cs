@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Testcontainers.MsSql;
 
 namespace BookStore.Identity.IntegrationTests;
@@ -19,7 +20,7 @@ namespace BookStore.Identity.IntegrationTests;
 public sealed class IdentityFactory : BaseWebApplicationFactory<Program>
 {
     private readonly MsSqlContainer _database = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest").Build();
-    public RecordingIdGenerator Ids { get; } = new();
+    public ConcurrentBag<string> GeneratedIds { get; } = [];
     public RecordingLoggerProvider Logs { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -29,8 +30,16 @@ public sealed class IdentityFactory : BaseWebApplicationFactory<Program>
         builder.UseSetting("ConnectionStrings:book-covers", "UseDevelopmentStorage=true");
         builder.ConfigureServices(services =>
         {
+            var idGenerator = Substitute.For<IUserIdGenerator>();
+            idGenerator.Create().Returns(_ =>
+            {
+                var id = Guid.NewGuid().ToString();
+                GeneratedIds.Add(id);
+
+                return id;
+            });
             services.RemoveAll<IUserIdGenerator>();
-            services.AddSingleton<IUserIdGenerator>(Ids);
+            services.AddSingleton(idGenerator);
         });
     }
 
@@ -71,139 +80,202 @@ public sealed class IdentityFactory : BaseWebApplicationFactory<Program>
     }
 }
 
-public sealed class RecordingIdGenerator : IUserIdGenerator
-{
-    public ConcurrentBag<string> Generated { get; } = [];
-    public string Create()
-    {
-        var id = Guid.NewGuid().ToString();
-        Generated.Add(id);
-
-        return id;
-    }
-}
-
 public class RegistrationTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
-    private static RegistrationRequest Request(string email, string password = "Password1!") => new()
+    private const string RegistrationPath = "/api/identity/registration";
+    private const string DefaultPassword = "Password1!";
+    private const string FirstName = "Jane";
+    private const string LastName = "Doe";
+
+    private static RegistrationRequest Request(string email, string password = DefaultPassword) => new()
     {
-        Email = email, Password = password, FirstName = "Jane", LastName = "Doe"
+        Email = email, Password = password, FirstName = FirstName, LastName = LastName
     };
 
     [Fact]
-    public async Task RegistrationPersistsUnconfirmedUserAndMakesDuplicatesIndistinguishable()
+    public async Task Register_WhenEmailAlreadyExists_ShouldPreserveAccountAndReturnSameResponse()
     {
-        using var client = factory.CreateClient();
-        var email = $"{Guid.NewGuid()}@example.com";
-        var created = await client.PostAsJsonAsync("/api/identity/registration", Request(email), TestContext.Current.CancellationToken);
-        var duplicate = await client.PostAsJsonAsync("/api/identity/registration", Request(email.ToUpperInvariant(), "OtherPass2!"), TestContext.Current.CancellationToken);
-
-        created.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        duplicate.StatusCode.Should().Be(created.StatusCode);
-        (await created.Content.ReadAsStringAsync(TestContext.Current.CancellationToken))
-            .Should().Be(await duplicate.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+        // Arrange
+        const string duplicatePassword = "OtherPass2!";
+        const HttpStatusCode expected = HttpStatusCode.NoContent;
+        using var sut = factory.CreateClient();
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        var user = await db.Users.SingleAsync(u => u.NormalizedEmail == email.ToUpperInvariant(), TestContext.Current.CancellationToken);
-        factory.Ids.Generated.Should().Contain(user.Id);
-        user.EmailConfirmed.Should().BeFalse();
-        user.FirstName.Should().Be("Jane");
-        user.LastName.Should().Be("Doe");
-        user.PasswordHash.Should().NotBe("Password1!");
         var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        (await users.CheckPasswordAsync(user, "Password1!")).Should().BeTrue();
-        (await users.CheckPasswordAsync(user, "OtherPass2!")).Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task ConcurrentDuplicateRequestsCreateOneUser()
-    {
-        using var client = factory.CreateClient();
         var email = $"{Guid.NewGuid()}@example.com";
-        var responses = await Task.WhenAll(Enumerable.Range(0, 5).Select(_ =>
-            client.PostAsJsonAsync("/api/identity/registration", Request(email), TestContext.Current.CancellationToken)));
-        responses.Should().OnlyContain(response => response.StatusCode == HttpStatusCode.NoContent);
-        var bodies = await Task.WhenAll(responses.Select(response =>
-            response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)));
-        bodies.Distinct().Should().ContainSingle();
-        using var scope = factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        (await db.Users.CountAsync(u => u.NormalizedEmail == email.ToUpperInvariant(), TestContext.Current.CancellationToken)).Should().Be(1);
+        var normalizedEmail = email.ToUpperInvariant();
+
+        // Act
+        using var created = await sut.PostAsJsonAsync(RegistrationPath, Request(email), TestContext.Current.CancellationToken);
+        using var actual = await sut.PostAsJsonAsync(RegistrationPath, Request(normalizedEmail, duplicatePassword), TestContext.Current.CancellationToken);
+        var expectedBody = await created.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var actualBody = await actual.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var actualUser = await db.Users.SingleAsync(u => u.NormalizedEmail == normalizedEmail, TestContext.Current.CancellationToken);
+        var actualOriginalPasswordMatches = await users.CheckPasswordAsync(actualUser, DefaultPassword);
+        var actualDuplicatePasswordMatches = await users.CheckPasswordAsync(actualUser, duplicatePassword);
+
+        // Assert
+        created.StatusCode.Should().Be(expected);
+        actual.StatusCode.Should().Be(created.StatusCode);
+        actualBody.Should().Be(expectedBody);
+        factory.GeneratedIds.Should().Contain(actualUser.Id);
+        actualUser.EmailConfirmed.Should().BeFalse();
+        actualUser.FirstName.Should().Be(FirstName);
+        actualUser.LastName.Should().Be(LastName);
+        actualUser.PasswordHash.Should().NotBe(DefaultPassword);
+        actualOriginalPasswordMatches.Should().BeTrue();
+        actualDuplicatePasswordMatches.Should().BeFalse();
     }
 
     [Fact]
-    public async Task DatabaseEnforcesNormalizedEmailUniqueness()
+    public async Task Register_WhenRequestsAreConcurrentAndDuplicate_ShouldCreateOneUser()
     {
+        // Arrange
+        const int requestCount = 5;
+        const int expectedUserCount = 1;
+        const HttpStatusCode expected = HttpStatusCode.NoContent;
+        using var sut = factory.CreateClient();
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var email = $"{Guid.NewGuid()}@example.com";
+        var normalizedEmail = email.ToUpperInvariant();
+
+        // Act
+        var actual = await Task.WhenAll(Enumerable.Range(0, requestCount).Select(_ =>
+            sut.PostAsJsonAsync(RegistrationPath, Request(email), TestContext.Current.CancellationToken)));
+        var actualBodies = await Task.WhenAll(actual.Select(response =>
+            response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken)));
+        var actualUserCount = await db.Users.CountAsync(u => u.NormalizedEmail == normalizedEmail, TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.Should().OnlyContain(response => response.StatusCode == expected);
+        actualBodies.Distinct().Should().ContainSingle();
+        actualUserCount.Should().Be(expectedUserCount);
+        foreach (var response in actual) response.Dispose();
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_WhenNormalizedEmailsAreDuplicate_ShouldRejectThem()
+    {
+        // Arrange
+        const string firstName = "A";
+        const string lastName = "B";
+        using var scope = factory.Services.CreateScope();
+        var sut = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         var email = $"{Guid.NewGuid()}@example.com".ToUpperInvariant();
-        db.Users.AddRange(
-            new ApplicationUser { Id = Guid.NewGuid().ToString(), FirstName = "A", LastName = "B", NormalizedEmail = email },
-            new ApplicationUser { Id = Guid.NewGuid().ToString(), FirstName = "A", LastName = "B", NormalizedEmail = email });
-        var save = () => db.SaveChangesAsync(TestContext.Current.CancellationToken);
-        await save.Should().ThrowAsync<DbUpdateException>();
+        sut.Users.AddRange(
+            new ApplicationUser { Id = Guid.NewGuid().ToString(), FirstName = firstName, LastName = lastName, NormalizedEmail = email },
+            new ApplicationUser { Id = Guid.NewGuid().ToString(), FirstName = firstName, LastName = lastName, NormalizedEmail = email });
+
+        // Act
+        var act = () => sut.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<DbUpdateException>();
     }
 
     [Theory]
     [InlineData("invalid", "Password1!", "Jane")]
     [InlineData("jane@example.com", "password", "Jane")]
     [InlineData("jane@example.com", "Password1!", "")]
-    public async Task InvalidInputReturnsValidationProblem(string email, string password, string firstName)
+    public async Task Register_WhenInputIsInvalid_ShouldReturnValidationProblemWithoutPassword(string email, string password, string firstName)
     {
-        using var client = factory.CreateClient();
-        var request = new RegistrationRequest { Email = email, Password = password, FirstName = firstName, LastName = "Doe" };
-        var response = await client.PostAsJsonAsync("/api/identity/registration", request, TestContext.Current.CancellationToken);
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        body.Should().NotContain(password);
+        // Arrange
+        const HttpStatusCode expected = HttpStatusCode.BadRequest;
+        using var sut = factory.CreateClient();
+        var request = new RegistrationRequest { Email = email, Password = password, FirstName = firstName, LastName = LastName };
+
+        // Act
+        using var actual = await sut.PostAsJsonAsync(RegistrationPath, request, TestContext.Current.CancellationToken);
+        var actualBody = await actual.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.StatusCode.Should().Be(expected);
+        actualBody.Should().NotContain(password);
     }
 
     [Fact]
-    public async Task MissingFieldsUseStandardValidationAndPasswordsAreNotLogged()
+    public async Task Register_WhenFieldsAreMissing_ShouldReturnValidationProblem()
     {
-        using var client = factory.CreateClient();
+        // Arrange
         const string password = "UniqueSecret42!";
-        var response = await client.PostAsJsonAsync("/api/identity/registration",
-            new { email = $"{Guid.NewGuid()}@example.com", password }, TestContext.Current.CancellationToken);
-        var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        const HttpStatusCode expected = HttpStatusCode.BadRequest;
+        using var sut = factory.CreateClient();
+        var request = new { email = $"{Guid.NewGuid()}@example.com", password };
 
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        body.Should().Contain("FirstName").And.Contain("LastName").And.NotContain(password);
-        var successful = await client.PostAsJsonAsync("/api/identity/registration",
-            Request($"{Guid.NewGuid()}@example.com", password), TestContext.Current.CancellationToken);
-        successful.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        // Act
+        using var actual = await sut.PostAsJsonAsync(RegistrationPath, request, TestContext.Current.CancellationToken);
+        var actualBody = await actual.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.StatusCode.Should().Be(expected);
+        actualBody.Should().Contain("FirstName").And.Contain("LastName").And.NotContain(password);
         factory.Logs.Messages.Should().NotBeEmpty().And.NotContain(message => message.Contains(password, StringComparison.Ordinal));
     }
 
     [Fact]
-    public async Task IdentityMigrationWasApplied()
+    public async Task Register_WhenPasswordIsProvided_ShouldNotLogIt()
     {
-        using var scope = factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        var applied = await db.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken);
-        applied.Should().ContainSingle(migration => migration.EndsWith("_InitialIdentity", StringComparison.Ordinal));
-        (await db.Database.GetPendingMigrationsAsync(TestContext.Current.CancellationToken)).Should().BeEmpty();
+        // Arrange
+        const string password = "UniqueSecret42!";
+        const HttpStatusCode expected = HttpStatusCode.NoContent;
+        using var sut = factory.CreateClient();
+        var request = Request($"{Guid.NewGuid()}@example.com", password);
+
+        // Act
+        using var actual = await sut.PostAsJsonAsync(RegistrationPath, request, TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.StatusCode.Should().Be(expected);
+        factory.Logs.Messages.Should().NotBeEmpty().And.NotContain(message => message.Contains(password, StringComparison.Ordinal));
     }
 
     [Fact]
-    public async Task ConfiguredPasswordPolicyControlsValidationAndIdentity()
+    public async Task MigrateAsync_WhenDatabaseIsInitialised_ShouldApplyIdentityMigration()
     {
+        // Arrange
+        const string migrationSuffix = "_InitialIdentity";
+        using var scope = factory.Services.CreateScope();
+        var sut = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+
+        // Act
+        var actual = await sut.Database.GetAppliedMigrationsAsync(TestContext.Current.CancellationToken);
+        var actualPending = await sut.Database.GetPendingMigrationsAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.Should().ContainSingle(migration => migration.EndsWith(migrationSuffix, StringComparison.Ordinal));
+        actualPending.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Register_WhenPasswordPolicyIsConfigured_ShouldApplyItToValidationAndIdentity()
+    {
+        // Arrange
+        const int expectedLength = 12;
+        const string shortPassword = "Short1!";
+        const string validPassword = "LongPassword!";
+        const HttpStatusCode expectedInvalidStatus = HttpStatusCode.BadRequest;
+        const HttpStatusCode expectedValidStatus = HttpStatusCode.NoContent;
         await using var configuredFactory = factory.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("Identity:Password:RequiredLength", "12");
             builder.UseSetting("Identity:Password:RequireDigit", "false");
         });
-        using var client = configuredFactory.CreateClient();
-        var shortPassword = await client.PostAsJsonAsync("/api/identity/registration",
-            Request($"{Guid.NewGuid()}@example.com", "Short1!"), TestContext.Current.CancellationToken);
-        var longPassword = await client.PostAsJsonAsync("/api/identity/registration",
-            Request($"{Guid.NewGuid()}@example.com", "LongPassword!"), TestContext.Current.CancellationToken);
-
-        shortPassword.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-        longPassword.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        using var sut = configuredFactory.CreateClient();
         using var scope = configuredFactory.Services.CreateScope();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        users.Options.Password.RequiredLength.Should().Be(12);
-        users.Options.Password.RequireDigit.Should().BeFalse();
+        var invalidRequest = Request($"{Guid.NewGuid()}@example.com", shortPassword);
+        var validRequest = Request($"{Guid.NewGuid()}@example.com", validPassword);
+
+        // Act
+        using var actualInvalid = await sut.PostAsJsonAsync(RegistrationPath, invalidRequest, TestContext.Current.CancellationToken);
+        using var actualValid = await sut.PostAsJsonAsync(RegistrationPath, validRequest, TestContext.Current.CancellationToken);
+        var actualOptions = users.Options.Password;
+
+        // Assert
+        actualInvalid.StatusCode.Should().Be(expectedInvalidStatus);
+        actualValid.StatusCode.Should().Be(expectedValidStatus);
+        actualOptions.RequiredLength.Should().Be(expectedLength);
+        actualOptions.RequireDigit.Should().BeFalse();
     }
 }

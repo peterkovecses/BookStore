@@ -1,4 +1,5 @@
 using BookStore.Identity.Infrastructure;
+using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,8 +11,11 @@ namespace BookStore.Identity.UnitTests;
 public class PasswordConfigurationTests
 {
     [Fact]
-    public async Task ConfiguredPasswordOptionsAreUsedByIdentity()
+    public async Task AddIdentityModuleServices_WhenPasswordPolicyIsConfigured_ShouldApplyItToIdentity()
     {
+        // Arrange
+        const int expectedLength = 12;
+        const int expectedUniqueCharacters = 3;
         var builder = CreateBuilder(new Dictionary<string, string?>
         {
             ["Identity:Password:RequiredLength"] = "12",
@@ -21,31 +25,36 @@ public class PasswordConfigurationTests
             ["Identity:Password:RequireUppercase"] = "false",
             ["Identity:Password:RequireNonAlphanumeric"] = "false"
         });
-        using var host = builder.Build();
-        await host.StartAsync(TestContext.Current.CancellationToken);
+        using var sut = builder.Build();
 
-        using var scope = host.Services.CreateScope();
-        var options = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>().Options.Password;
-        Assert.Equal(12, options.RequiredLength);
-        Assert.Equal(3, options.RequiredUniqueChars);
-        Assert.False(options.RequireDigit);
-        Assert.False(options.RequireLowercase);
-        Assert.False(options.RequireUppercase);
-        Assert.False(options.RequireNonAlphanumeric);
-        await host.StopAsync(TestContext.Current.CancellationToken);
+        // Act
+        await sut.StartAsync(TestContext.Current.CancellationToken);
+        using var scope = sut.Services.CreateScope();
+        var actual = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>().Options.Password;
+
+        // Assert
+        actual.RequiredLength.Should().Be(expectedLength);
+        actual.RequiredUniqueChars.Should().Be(expectedUniqueCharacters);
+        actual.RequireDigit.Should().BeFalse();
+        actual.RequireLowercase.Should().BeFalse();
+        actual.RequireUppercase.Should().BeFalse();
+        actual.RequireNonAlphanumeric.Should().BeFalse();
     }
 
     [Theory]
     [InlineData("Identity:Password:RequiredLength", "5")]
     [InlineData("Identity:Password:RequiredUniqueChars", "0")]
-    public async Task InvalidPolicyFailsAtStartup(string key, string value)
+    public async Task StartAsync_WhenPasswordPolicyIsInvalid_ShouldThrowOptionsValidationException(string key, string value)
     {
+        // Arrange
         var builder = CreateBuilder(new Dictionary<string, string?> { [key] = value });
-        using var host = builder.Build();
+        using var sut = builder.Build();
 
-        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() =>
-            host.StartAsync(TestContext.Current.CancellationToken));
-        Assert.Contains(key, exception.Message);
+        // Act
+        var act = () => sut.StartAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<OptionsValidationException>();
     }
 
     private static HostApplicationBuilder CreateBuilder(Dictionary<string, string?> settings)

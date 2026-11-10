@@ -1,5 +1,6 @@
 using BookStore.Identity.Contracts;
 using BookStore.Identity.Features.Registration;
+using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
@@ -7,7 +8,7 @@ namespace BookStore.Identity.UnitTests;
 
 public class RegistrationValidatorTests
 {
-    private readonly RegistrationValidator _validator = new(Options.Create(new IdentityOptions()));
+    private readonly RegistrationValidator _sut = new(Options.Create(new IdentityOptions()));
 
     [Theory]
     [InlineData("", "Password1!", "Jane", "Doe")]
@@ -19,24 +20,38 @@ public class RegistrationValidatorTests
     [InlineData("jane@example.com", "PASSWORD1!", "Jane", "Doe")]
     [InlineData("jane@example.com", "Password!", "Jane", "Doe")]
     [InlineData("jane@example.com", "Password1", "Jane", "Doe")]
-    public void InvalidRegistrationIsRejected(string email, string password, string firstName, string lastName)
+    public void Validate_WhenRegistrationIsInvalid_ShouldRejectIt(string email, string password, string firstName, string lastName)
     {
-        var result = _validator.Validate(new RegisterCustomer(new RegistrationRequest
+        // Arrange
+        var request = new RegisterCustomer(new RegistrationRequest
         {
             Email = email, Password = password, FirstName = firstName, LastName = lastName
-        }));
+        });
 
-        Assert.False(result.IsValid);
+        // Act
+        var actual = _sut.Validate(request);
+
+        // Assert
+        actual.IsValid.Should().BeFalse();
     }
 
     [Fact]
-    public void ValidRegistrationIsAccepted()
+    public void Validate_WhenRegistrationIsValid_ShouldAcceptIt()
     {
-        var result = _validator.Validate(new RegisterCustomer(new RegistrationRequest
+        // Arrange
+        const string email = "jane@example.com";
+        const string password = "Password1!";
+        const string firstName = "Jane";
+        const string lastName = "Doe";
+        var request = new RegisterCustomer(new RegistrationRequest
         {
-            Email = "jane@example.com", Password = "Password1!", FirstName = "Jane", LastName = "Doe"
-        }));
+            Email = email, Password = password, FirstName = firstName, LastName = lastName
+        });
 
-        Assert.True(result.IsValid);
+        // Act
+        var actual = _sut.Validate(request);
+
+        // Assert
+        actual.IsValid.Should().BeTrue();
     }
 }
