@@ -1,4 +1,4 @@
-namespace BookStore.EmailDispatcher;
+namespace BookStore.EmailDispatcher.Infrastructure.Smtp;
 
 internal sealed class EmailSender : IEmailSender, IAsyncDisposable
 {
@@ -183,9 +183,6 @@ internal sealed class EmailSender : IEmailSender, IAsyncDisposable
         }
     }
 }
-
-internal sealed class SmtpAuthenticationFailedException(Exception innerException)
-    : Exception("SMTP authentication failed.", innerException);
 
 internal static partial class EmailSenderLogger
 {

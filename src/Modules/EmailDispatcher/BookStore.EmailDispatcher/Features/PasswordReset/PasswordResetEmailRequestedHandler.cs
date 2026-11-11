@@ -1,4 +1,4 @@
-namespace BookStore.EmailDispatcher;
+namespace BookStore.EmailDispatcher.Features.PasswordReset;
 
 internal sealed class PasswordResetEmailRequestedHandler(
     IEmailSender sender,
@@ -14,11 +14,7 @@ internal sealed class PasswordResetEmailRequestedHandler(
 
         var link = protection.CreateProtector("BookStore.Identity.PasswordResetLink.v1")
             .CreateProtector(value.UserId).CreateProtector(value.Email).Unprotect(value.ProtectedLink);
-        var encodedName = HtmlEncoder.Default.Encode(value.FirstName);
-        var encodedLink = HtmlEncoder.Default.Encode(link);
-        var message = new EmailMessage(settings.Value.FromAddress, value.Email, "Reset your BookStore password",
-            $"Hello {value.FirstName},\n\nReset your password by visiting:\n{link}\n\nIf you did not request this, you can ignore this email.",
-            $"<p>Hello {encodedName},</p><p>Reset your password by following <a href=\"{encodedLink}\">this link</a>.</p><p>If you did not request this, you can ignore this email.</p>");
+        var message = PasswordResetEmailTemplate.Create(settings.Value.FromAddress, value.Email, value.FirstName, link);
 
         return sender.SendAsync(message, cancellationToken);
     }

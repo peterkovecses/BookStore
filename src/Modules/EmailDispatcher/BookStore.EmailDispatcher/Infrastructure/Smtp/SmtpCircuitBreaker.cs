@@ -1,4 +1,4 @@
-namespace BookStore.EmailDispatcher;
+namespace BookStore.EmailDispatcher.Infrastructure.Smtp;
 
 internal sealed class SmtpCircuitBreaker(IOptions<SmtpSettings> options, TimeProvider timeProvider) : IEmailDispatchAvailability
 {
