@@ -19,9 +19,11 @@ public sealed class MailpitTests
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["EmailDispatcher:Smtp:Host"] = container.Hostname,
+            ["EmailDispatcher:Smtp:FromAddress"] = "sender@example.com",
             ["EmailDispatcher:Smtp:Port"] = container.GetMappedPublicPort(smtpPort).ToString(),
             ["EmailDispatcher:Smtp:Security"] = "None"
         });
+        builder.Services.AddSingleton<IDataProtectionProvider>(new EphemeralDataProtectionProvider());
         builder.AddEmailDispatcherModuleServices();
         using var host = builder.Build();
         await host.StartAsync(TestContext.Current.CancellationToken);

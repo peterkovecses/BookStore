@@ -1,9 +1,12 @@
 global using System.Net.Sockets;
+global using System.Security.Cryptography;
 global using BookStore.EmailDispatcher.Contracts;
+global using BookStore.Identity.Contracts;
 global using FluentAssertions;
 global using MailKit;
 global using MailKit.Net.Smtp;
 global using MailKit.Security;
+global using Microsoft.AspNetCore.DataProtection;
 global using Microsoft.Extensions.Hosting;
 global using Microsoft.Extensions.Logging.Abstractions;
 global using Microsoft.Extensions.Options;

@@ -13,6 +13,7 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IEmailDispatchAvailability>(sp => sp.GetRequiredService<SmtpCircuitBreaker>());
         builder.Services.AddSingleton<EmailSender>();
         builder.Services.AddSingleton<IEmailSender>(sp => sp.GetRequiredService<EmailSender>());
+        builder.Services.AddScoped<IEventHandler<VerificationEmailRequested>, VerificationEmailRequestedHandler>();
 
         return builder;
     }

@@ -1,0 +1,10 @@
+global using System.Security.Cryptography;
+global using System.Security.Cryptography.X509Certificates;
+global using BookStore.Api;
+global using Microsoft.AspNetCore.DataProtection;
+global using Microsoft.AspNetCore.DataProtection.KeyManagement;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using NSubstitute;

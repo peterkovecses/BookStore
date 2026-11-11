@@ -53,7 +53,9 @@ public class PasswordConfigurationTests
     {
         var builder = Host.CreateApplicationBuilder();
         settings["ConnectionStrings:BookStoreDb"] = "Server=localhost;Database=BookStore;Trusted_Connection=True";
+        settings["Identity:Verification:LinkBaseUrl"] = "https://localhost/verify-email";
         builder.Configuration.AddInMemoryCollection(settings);
+        builder.Services.AddSingleton<IDataProtectionProvider>(new EphemeralDataProtectionProvider());
         builder.AddIdentityModuleServices();
 
         return builder;

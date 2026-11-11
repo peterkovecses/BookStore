@@ -8,10 +8,33 @@ namespace BookStore.Testing.Common.Integration;
 public abstract class BaseWebApplicationFactory<TMarker> : WebApplicationFactory<TMarker>, IAsyncLifetime
     where TMarker : class
 {
+    private readonly string _dataProtectionDirectory = Path.Combine(
+        Directory.GetCurrentDirectory(), ".data-protection-keys", Guid.NewGuid().ToString("N"));
+    private readonly Lock _dataProtectionLock = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        var certificatePath = Path.Combine(_dataProtectionDirectory, "test-certificate.pfx");
+        lock (_dataProtectionLock)
+        {
+            Directory.CreateDirectory(_dataProtectionDirectory);
+            if (!File.Exists(certificatePath))
+            {
+                using var rsa = RSA.Create(2048);
+                var request = new CertificateRequest("CN=BookStore integration test", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+                using var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1));
+                File.WriteAllBytes(certificatePath, certificate.Export(X509ContentType.Pkcs12, "test-only"));
+            }
+        }
+
         builder.UseEnvironment("IntegrationTesting");
+        builder.UseSetting("DataProtection:ApplicationName", "BookStore.Api.IntegrationTesting");
+        builder.UseSetting("DataProtection:KeyRingPath", _dataProtectionDirectory);
+        builder.UseSetting("DataProtection:Certificate:Path", certificatePath);
+        builder.UseSetting("DataProtection:Certificate:Password", "test-only");
+        builder.UseSetting("Identity:Verification:LinkBaseUrl", "https://localhost/verify-email");
         builder.UseSetting("EmailDispatcher:Smtp:Host", "localhost");
+        builder.UseSetting("EmailDispatcher:Smtp:FromAddress", "sender@example.com");
         builder.UseSetting("EmailDispatcher:Smtp:Username", "test-user");
         builder.UseSetting("EmailDispatcher:Smtp:Password", "test-password");
 
@@ -80,6 +103,11 @@ public abstract class BaseWebApplicationFactory<TMarker> : WebApplicationFactory
         catch (ObjectDisposedException)
         {
             // Ignore ObjectDisposedException on host disposal due to physical file provider watcher issues in some environments.
+        }
+
+        if (Directory.Exists(_dataProtectionDirectory))
+        {
+            Directory.Delete(_dataProtectionDirectory, recursive: true);
         }
     }
 }

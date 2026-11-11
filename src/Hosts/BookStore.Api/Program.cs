@@ -1,6 +1,7 @@
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddApiServices(builder.Configuration);
+builder.AddApiDataProtection();
 builder.AddCatalogModuleServices();
 builder.AddIdentityModuleServices();
 builder.AddEmailDispatcherModuleServices();
@@ -11,6 +12,7 @@ builder.Services.AddRequests(Array.Empty<Assembly>())
     .AddValidationBehavior();
 
 var app = builder.Build();
+app.VerifyApiDataProtection();
 await app.InitialiseCatalogModuleAsync();
 await app.InitialiseIdentityModuleAsync();
 app.UseSerilogRequestLogging();
@@ -21,7 +23,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 app.UseHttpsRedirection();
+app.UseRouting();
 app.UseCors();
+app.UseRateLimiter();
 app.MapCatalogEndpoints();
 app.MapIdentityEndpoints();
 

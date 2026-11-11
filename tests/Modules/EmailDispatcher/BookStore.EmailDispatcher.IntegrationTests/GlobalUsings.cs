@@ -1,7 +1,13 @@
 global using BookStore.EmailDispatcher.Contracts;
+global using BookStore.Identity.Contracts;
 global using DotNet.Testcontainers.Builders;
 global using FluentAssertions;
+global using Kovecses.Requests;
+global using MailKit.Security;
+global using Microsoft.AspNetCore.DataProtection;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Options;
+global using NSubstitute;
 global using Xunit;

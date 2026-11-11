@@ -14,3 +14,6 @@ global using BookStore.Common;
 global using BookStore.Common.Outbox;
 global using BookStore.EmailDispatcher.Contracts;
 global using System.Reflection;
+global using System.Security.Cryptography.X509Certificates;
+global using System.Xml.Linq;
+global using Microsoft.AspNetCore.DataProtection;

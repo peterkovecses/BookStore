@@ -435,6 +435,9 @@ test-results/
 # Icon must end with two \r
 Icon
 
+# Local ASP.NET Core Data Protection keys
+.data-protection-keys/
+
 
 # Thumbnails
 ._*

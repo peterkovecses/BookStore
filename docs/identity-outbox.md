@@ -2,7 +2,8 @@
 
 The Identity outbox is a module-owned SQL Server table. Producers must add the
 outbox row using the same Identity context and transaction as their state
-change; no registration event is emitted by this story. Other modules must
+change. Registration verification is described in [Identity verification](identity-verification.md).
+Other modules must
 implement their own `IOutboxStore` over their own context and table and register
 it with `AddOutbox<TStore>`. Never use the Identity table for another module.
 
