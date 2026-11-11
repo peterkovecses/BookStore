@@ -1,4 +1,4 @@
-namespace BookStore.Identity.Features.PasswordRecovery;
+namespace BookStore.Identity.Features.ForgotPassword;
 
 internal sealed class ForgotPasswordHandler(IdentityDbContext context, IDataProtectionProvider protection, TimeProvider clock)
     : IRequestHandler<ForgotPasswordCommand, Result>

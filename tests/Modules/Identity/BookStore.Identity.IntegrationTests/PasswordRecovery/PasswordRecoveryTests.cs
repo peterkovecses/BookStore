@@ -108,7 +108,7 @@ public sealed class PasswordRecoveryTests(IdentityFactory factory) : IClassFixtu
         {
             var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var sut = new ResetPasswordHandler(db, users);
-            var command = new ResetPasswordCommand(new ResetPasswordRequest { UserId = userId, Token = token, NewPassword = NewPassword });
+            var command = new ResetPasswordCommand(userId, token, NewPassword);
 
             // Act
             var act = () => sut.HandleAsync(command, TestContext.Current.CancellationToken);
@@ -168,6 +168,32 @@ public sealed class PasswordRecoveryTests(IdentityFactory factory) : IClassFixtu
         // Assert
         first.StatusCode.Should().Be(HttpStatusCode.NoContent);
         second.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+    }
+
+    [Theory]
+    [InlineData(ForgotPath, "{}")]
+    [InlineData(ForgotPath, """{"email":null}""")]
+    [InlineData(ForgotPath, """{"email":""}""")]
+    [InlineData(ResetPath, "{}")]
+    [InlineData(ResetPath, """{"userId":null,"token":"token","newPassword":"Password1!"}""")]
+    [InlineData(ResetPath, """{"userId":"user","token":null,"newPassword":"Password1!"}""")]
+    [InlineData(ResetPath, """{"userId":"user","token":"token","newPassword":null}""")]
+    [InlineData(ResetPath, """{"userId":"","token":"","newPassword":""}""")]
+    public async Task Endpoint_WhenRequiredFieldsAreMissingNullOrEmpty_ShouldReturnBadRequest(string path, string json)
+    {
+        // Arrange
+        using var sut = factory.CreateClient();
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        // Act
+        using var actual = await sut.PostAsync(path, content, TestContext.Current.CancellationToken);
+        var body = await actual.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        body.ToLowerInvariant().Should().NotContain("exception");
+        using var problem = JsonDocument.Parse(body);
+        problem.RootElement.GetProperty("status").GetInt32().Should().Be((int)HttpStatusCode.BadRequest);
     }
 
     [Fact]

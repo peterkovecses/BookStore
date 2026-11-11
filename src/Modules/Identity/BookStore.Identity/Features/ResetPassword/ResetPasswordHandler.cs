@@ -1,4 +1,4 @@
-namespace BookStore.Identity.Features.PasswordRecovery;
+namespace BookStore.Identity.Features.ResetPassword;
 
 internal sealed class ResetPasswordHandler(IdentityDbContext context, UserManager<ApplicationUser> users)
     : IRequestHandler<ResetPasswordCommand, Result>
