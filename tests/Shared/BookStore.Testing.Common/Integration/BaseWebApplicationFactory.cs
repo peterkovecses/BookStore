@@ -33,6 +33,11 @@ public abstract class BaseWebApplicationFactory<TMarker> : WebApplicationFactory
         builder.UseSetting("DataProtection:Certificate:Path", certificatePath);
         builder.UseSetting("DataProtection:Certificate:Password", "test-only");
         builder.UseSetting("Identity:Verification:LinkBaseUrl", "https://localhost/verify-email");
+        builder.UseSetting("Identity:Authentication:Issuer", "https://api.example.test");
+        builder.UseSetting("Identity:Authentication:Audience", "bookstore-test");
+        builder.UseSetting("Identity:Authentication:SigningKey", Convert.ToBase64String(new byte[32]));
+        builder.UseSetting("Identity:Authentication:AllowedOrigins:0", "https://ui.example.test");
+        builder.UseSetting("Identity:Authentication:LoginPermitLimit", "1000");
         builder.UseSetting("EmailDispatcher:Smtp:Host", "localhost");
         builder.UseSetting("EmailDispatcher:Smtp:FromAddress", "sender@example.com");
         builder.UseSetting("EmailDispatcher:Smtp:Username", "test-user");

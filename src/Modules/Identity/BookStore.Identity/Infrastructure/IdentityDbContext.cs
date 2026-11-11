@@ -4,6 +4,7 @@ internal sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> opti
     : IdentityUserDbContext(options)
 {
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -29,6 +30,15 @@ internal sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> opti
             entity.Property(message => message.LastReplayedBy).HasMaxLength(256);
             entity.HasIndex(message => new { message.Status, message.NextAttemptAt, message.CreatedAt });
             entity.HasIndex(message => new { message.Status, message.CompletedAt });
+        });
+        builder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("RefreshTokens");
+            entity.HasKey(token => token.Hash);
+            entity.Property(token => token.Hash).HasMaxLength(64).IsUnicode(false);
+            entity.Property(token => token.UserId).HasMaxLength(450).IsRequired();
+            entity.HasIndex(token => token.FamilyId);
+            entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(token => token.UserId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

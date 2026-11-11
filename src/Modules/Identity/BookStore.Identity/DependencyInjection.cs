@@ -33,6 +33,36 @@ public static class DependencyInjection
                 "Identity:Password:RequiredUniqueChars must be at least 1.")
             .ValidateOnStart();
 
+        builder.Services.AddOptions<AuthenticationOptions>()
+            .Bind(builder.Configuration.GetSection("Identity:Authentication"))
+            .Validate(options => options.IsValid(), "Identity authentication configuration is invalid.")
+            .ValidateOnStart();
+        builder.Services.AddOptions<IdentityOptions>()
+            .Configure<IOptions<AuthenticationOptions>>((identity, authentication) =>
+            {
+                identity.Lockout.AllowedForNewUsers = true;
+                identity.Lockout.MaxFailedAccessAttempts = authentication.Value.LockoutAttempts;
+                identity.Lockout.DefaultLockoutTimeSpan = authentication.Value.LockoutDuration;
+            });
+        var authentication = builder.Configuration.GetSection("Identity:Authentication").Get<AuthenticationOptions>() ?? new();
+        builder.Services.AddCors(options => options.AddPolicy(IdentityAuthenticationPolicies.Cors, policy =>
+            policy.WithOrigins(authentication.AllowedOrigins).WithMethods("POST").WithHeaders("Content-Type", "X-BookStore-Request")
+                .AllowCredentials()));
+        builder.Services.AddRateLimiter(options =>
+            options.AddPolicy(IdentityAuthenticationPolicies.LoginRateLimit, context =>
+                RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ =>
+                    new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = authentication.LoginPermitLimit,
+                        Window = TimeSpan.FromSeconds(authentication.LoginWindowSeconds),
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    })));
+        builder.Services.AddScoped<IdentitySessionService>();
+        builder.Services.AddScoped<OriginAndCsrfEndpointFilter>();
+        builder.Services.AddScoped<LoginHandler>();
+        builder.Services.AddScoped<RefreshHandler>();
+        builder.Services.AddScoped<LogoutHandler>();
         builder.Services.AddVerificationRateLimiting(builder.Configuration);
         builder.Services.AddSingleton<IUserIdGenerator, UserIdGenerator>();
         builder.Services.AddScoped<IVerificationRequestFactory, VerificationRequestFactory>();
@@ -64,6 +94,7 @@ public static class DependencyInjection
         var group = app.MapGroup("api/identity").WithTags("Identity");
         RegistrationEndpoint.MapEndpoint(group);
         VerificationEndpoint.MapVerificationEndpoints(group);
+        AuthenticationEndpoints.MapEndpoints(group);
 
         return app;
     }

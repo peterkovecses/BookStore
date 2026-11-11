@@ -2,8 +2,8 @@ namespace BookStore.Identity.Infrastructure;
 
 internal sealed class VerificationOptions
 {
-    public string LinkBaseUrl { get; set; } = string.Empty;
-    public TimeSpan TokenLifetime { get; set; } = TimeSpan.FromHours(24);
+    public string LinkBaseUrl { get; init; } = string.Empty;
+    public TimeSpan TokenLifetime { get; init; } = TimeSpan.FromHours(24);
 
     public bool IsValid() =>
         TokenLifetime > TimeSpan.Zero &&
