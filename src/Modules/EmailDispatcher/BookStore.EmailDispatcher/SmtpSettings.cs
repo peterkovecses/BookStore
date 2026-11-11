@@ -3,6 +3,7 @@ namespace BookStore.EmailDispatcher;
 internal sealed class SmtpSettings
 {
     public string Host { get; set; } = "";
+    public string FromAddress { get; set; } = "";
     public int Port { get; set; } = 587;
     public SecureSocketOptions Security { get; set; } = SecureSocketOptions.StartTls;
     public string? Username { get; set; }

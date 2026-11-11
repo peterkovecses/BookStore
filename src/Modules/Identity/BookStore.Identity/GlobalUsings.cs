@@ -4,6 +4,7 @@ global using BookStore.Common;
 global using BookStore.Common.Outbox;
 global using BookStore.Identity.Contracts;
 global using BookStore.Identity.Features.Registration;
+global using BookStore.Identity.Features.Verification;
 global using BookStore.Identity.Infrastructure;
 global using FluentValidation;
 global using Kovecses.Requests;

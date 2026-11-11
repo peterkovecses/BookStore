@@ -207,7 +207,7 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
         });
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         db.ChangeTracker.Clear();
-        var sut = new RegistrationHandler(users, db, ids);
+        var sut = new RegistrationHandler(users, db, ids, scope.ServiceProvider.GetRequiredService<IVerificationRequestFactory>());
         var request = new RegisterCommand(Request(email));
 
         // Act
@@ -231,7 +231,7 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
         var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var ids = Substitute.For<IUserIdGenerator>();
         ids.Create().Returns(Guid.NewGuid().ToString());
-        var sut = new RegistrationHandler(users, db, ids);
+        var sut = new RegistrationHandler(users, db, ids, scope.ServiceProvider.GetRequiredService<IVerificationRequestFactory>());
         var request = new RegisterCommand(Request(email));
 
         // Act
@@ -261,7 +261,7 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
         });
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         db.ChangeTracker.Clear();
-        var sut = new RegistrationHandler(users, db, ids);
+        var sut = new RegistrationHandler(users, db, ids, scope.ServiceProvider.GetRequiredService<IVerificationRequestFactory>());
         var request = new RegisterCommand(Request(email));
 
         // Act
@@ -307,7 +307,7 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
         }
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         db.ChangeTracker.Clear();
-        var sut = new RegistrationHandler(users, db, ids);
+        var sut = new RegistrationHandler(users, db, ids, scope.ServiceProvider.GetRequiredService<IVerificationRequestFactory>());
         var request = new RegisterCommand(Request(email));
 
         // Act
@@ -347,7 +347,7 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
             });
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
         db.ChangeTracker.Clear();
-        var sut = new RegistrationHandler(users, db, ids);
+        var sut = new RegistrationHandler(users, db, ids, scope.ServiceProvider.GetRequiredService<IVerificationRequestFactory>());
         var request = new RegisterCommand(Request(email));
 
         // Act

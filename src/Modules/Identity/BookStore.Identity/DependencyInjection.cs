@@ -15,7 +15,15 @@ public static class DependencyInjection
             options.User.RequireUniqueEmail = true;
             options.User.AllowedUserNameCharacters = string.Empty;
             options.SignIn.RequireConfirmedEmail = true;
-        }).AddEntityFrameworkStores<IdentityDbContext>();
+        }).AddEntityFrameworkStores<IdentityDbContext>().AddDefaultTokenProviders();
+
+        builder.Services.AddOptions<VerificationOptions>()
+            .Bind(builder.Configuration.GetSection("Identity:Verification"))
+            .Validate(options => options.IsValid(), "Identity verification configuration is invalid.")
+            .ValidateOnStart();
+        builder.Services.AddOptions<DataProtectionTokenProviderOptions>()
+            .Configure<IOptions<VerificationOptions>>((options, verification) =>
+                options.TokenLifespan = verification.Value.TokenLifetime);
 
         builder.Services.AddOptions<IdentityOptions>()
             .Configure(options => builder.Configuration.GetSection("Identity:Password").Bind(options.Password))
@@ -25,7 +33,12 @@ public static class DependencyInjection
                 "Identity:Password:RequiredUniqueChars must be at least 1.")
             .ValidateOnStart();
 
+        builder.Services.AddVerificationRateLimiting(builder.Configuration);
         builder.Services.AddSingleton<IUserIdGenerator, UserIdGenerator>();
+        builder.Services.AddScoped<IVerificationRequestFactory, VerificationRequestFactory>();
+        builder.Services.AddSingleton<IOutboxExpiry<VerificationEmailRequested>, VerificationRequestExpiry>();
+        builder.Services.AddSingleton(new OutboxRegistry<IdentityOutboxStore>()
+            .Register<VerificationEmailRequested>(VerificationRequestFactory.EventType));
         builder.Services.AddOutbox<IdentityOutboxStore>(builder.Configuration);
         builder.Services.AddScoped<IIdentityOutboxOperations>(services => services.GetRequiredService<IdentityOutboxStore>());
         builder.Services.AddRequests(Assembly.GetExecutingAssembly());
@@ -49,6 +62,7 @@ public static class DependencyInjection
     {
         var group = app.MapGroup("api/identity").WithTags("Identity");
         RegistrationEndpoint.MapEndpoint(group);
+        VerificationEndpoint.MapVerificationEndpoints(group);
 
         return app;
     }

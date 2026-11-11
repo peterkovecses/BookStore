@@ -5,13 +5,15 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="MailKit" Version="4.18.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.12" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.12" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BookStore.EmailDispatcher.Contracts\BookStore.EmailDispatcher.Contracts.csproj" />
+    <ProjectReference Include="..\..\Identity\BookStore.Identity.Contracts\BookStore.Identity.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

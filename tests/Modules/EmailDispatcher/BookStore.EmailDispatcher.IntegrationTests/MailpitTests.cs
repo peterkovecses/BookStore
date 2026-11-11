@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.DataProtection;
+
 namespace BookStore.EmailDispatcher.IntegrationTests;
 
 public sealed class MailpitTests
@@ -22,6 +24,7 @@ public sealed class MailpitTests
             ["EmailDispatcher:Smtp:Port"] = container.GetMappedPublicPort(smtpPort).ToString(),
             ["EmailDispatcher:Smtp:Security"] = "None"
         });
+        builder.Services.AddSingleton<IDataProtectionProvider>(new EphemeralDataProtectionProvider());
         builder.AddEmailDispatcherModuleServices();
         using var host = builder.Build();
         await host.StartAsync(TestContext.Current.CancellationToken);

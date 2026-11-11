@@ -3,28 +3,19 @@ namespace BookStore.Identity.UnitTests;
 public class RegistrationHandlerTests
 {
     [Fact]
-    public async Task HandleAsync_WhenIdentityReturnsMixedErrors_ShouldReturnOnlyNonDuplicateErrors()
+    public void ToValidationResult_WhenIdentityReturnsMixedErrors_ShouldReturnOnlyNonDuplicateErrors()
     {
         // Arrange
         const string expectedMessage = "Password is not acceptable.";
         const string duplicateMessage = "Sensitive duplicate detail";
-        const string password = "Password1!";
-        var store = Substitute.For<IUserStore<ApplicationUser>>();
-        var users = Substitute.For<UserManager<ApplicationUser>>(store, null!, null!, null!, null!, null!, null!, null!, null!);
-        users.CreateAsync(Arg.Any<ApplicationUser>(), password).Returns(IdentityResult.Failed(
-            new IdentityError { Code = nameof(IdentityErrorDescriber.DuplicateUserName), Description = duplicateMessage },
-            new IdentityError { Code = "PasswordRejected", Description = expectedMessage }));
-        var options = new DbContextOptionsBuilder<IdentityDbContext>().UseSqlServer().Options;
-        using var context = new IdentityDbContext(options);
-        var ids = Substitute.For<IUserIdGenerator>();
-        var sut = new RegistrationHandler(users, context, ids);
-        var request = new RegisterCommand(new RegistrationRequest
+        var errors = new[]
         {
-            Email = "customer@example.com", Password = password, FirstName = "Jane", LastName = "Doe"
-        });
+            new IdentityError { Code = nameof(IdentityErrorDescriber.DuplicateUserName), Description = duplicateMessage },
+            new IdentityError { Code = "PasswordRejected", Description = expectedMessage }
+        };
 
         // Act
-        var actual = await sut.HandleAsync(request, TestContext.Current.CancellationToken);
+        var actual = RegistrationHandler.ToValidationResult(errors);
 
         // Assert
         actual.Should().BeFailure().HaveError("Validation").HaveValidationProperty("Registration");

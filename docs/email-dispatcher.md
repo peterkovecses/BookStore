@@ -19,9 +19,14 @@ Outside Development, a host, username, password and required TLS are mandatory.
 Use `Security=StartTls` (default) or `SslOnConnect`; automatic or opportunistic
 TLS is rejected. Store credentials in user secrets during local testing or in
 the deployment's secret provider, never in source control. The default port is 587.
+Set `EmailDispatcher:Smtp:FromAddress` to a valid sender mailbox for verification
+emails. If it is missing or invalid, verification dispatch fails without sending.
+The subscriber also requires the same configured Data Protection provider and key
+ring used to protect the verification link; it does not configure a key ring.
 
 | Setting | Default | Allowed range / meaning |
 | --- | --- | --- |
+| `FromAddress` | empty | Sender mailbox for verification emails |
 | `OperationTimeoutSeconds` | 15 | 1–300; bounds connect, authentication and send together per attempt |
 | `IdleTimeoutSeconds` | 60 | 1–86400; close an idle connection |
 | `MaxAttempts` | 2 | 1–5 total SMTP attempts per invocation |

@@ -4,4 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Kovecses.Requests" Version="2.4.0" />
+  </ItemGroup>
 </Project>
