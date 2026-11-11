@@ -1,7 +1,3 @@
-using System.Security.Cryptography;
-using BookStore.Identity.Contracts;
-using Microsoft.AspNetCore.DataProtection;
-
 namespace BookStore.EmailDispatcher.UnitTests;
 
 public sealed class VerificationEmailRequestedHandlerTests

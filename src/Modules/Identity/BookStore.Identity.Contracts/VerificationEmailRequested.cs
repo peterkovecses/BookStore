@@ -1,5 +1,3 @@
-using Kovecses.Requests;
-
 namespace BookStore.Identity.Contracts;
 
 public sealed record VerificationEmailRequested(

@@ -4,6 +4,8 @@ global using System.Globalization;
 global using System.IdentityModel.Tokens.Jwt;
 global using System.Net.Http.Headers;
 global using System.Security.Claims;
+global using System.Security.Cryptography;
+global using System.Security.Cryptography.X509Certificates;
 global using System.Text;
 global using BookStore.Common.Pagination;
 global using BookStore.Testing.Common.Integration.Auth;

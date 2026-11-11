@@ -1,6 +1,3 @@
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-
 namespace BookStore.Testing.Common.Integration;
 
 /// <summary>
@@ -37,6 +34,7 @@ public abstract class BaseWebApplicationFactory<TMarker> : WebApplicationFactory
         builder.UseSetting("DataProtection:Certificate:Password", "test-only");
         builder.UseSetting("Identity:Verification:LinkBaseUrl", "https://localhost/verify-email");
         builder.UseSetting("EmailDispatcher:Smtp:Host", "localhost");
+        builder.UseSetting("EmailDispatcher:Smtp:FromAddress", "sender@example.com");
         builder.UseSetting("EmailDispatcher:Smtp:Username", "test-user");
         builder.UseSetting("EmailDispatcher:Smtp:Password", "test-password");
 

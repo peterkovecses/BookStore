@@ -1,7 +1,5 @@
 namespace BookStore.Identity.IntegrationTests;
 
-using Microsoft.AspNetCore.DataProtection;
-
 public class RegistrationTransactionTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
     private const string FirstName = "Jane";

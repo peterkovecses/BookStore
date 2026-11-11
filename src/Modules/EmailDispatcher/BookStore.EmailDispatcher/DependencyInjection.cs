@@ -1,6 +1,3 @@
-using BookStore.Identity.Contracts;
-using Kovecses.Requests;
-
 namespace BookStore.EmailDispatcher;
 
 public static class DependencyInjection

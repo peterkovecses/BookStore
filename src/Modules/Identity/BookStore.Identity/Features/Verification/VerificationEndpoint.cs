@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.RateLimiting;
-
 namespace BookStore.Identity.Features.Verification;
 
 internal static class VerificationEndpoint

@@ -1,7 +1,3 @@
-using System.Text;
-using Microsoft.AspNetCore.WebUtilities;
-using BookStore.Identity.Features.Verification;
-
 namespace BookStore.Identity.UnitTests.Verification;
 
 public class ConfirmEmailHandlerTests

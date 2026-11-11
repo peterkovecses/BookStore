@@ -79,7 +79,7 @@ internal sealed class RegistrationHandler(
     private static bool IsDuplicateError(IdentityError error) =>
         error.Code is nameof(IdentityErrorDescriber.DuplicateEmail) or nameof(IdentityErrorDescriber.DuplicateUserName);
 
-    internal static Result ToValidationResult(IEnumerable<IdentityError> errors)
+    private static Result ToValidationResult(IEnumerable<IdentityError> errors)
     {
         var metadata = new Dictionary<string, object>
         {

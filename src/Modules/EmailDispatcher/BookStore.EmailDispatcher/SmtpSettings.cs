@@ -2,19 +2,19 @@ namespace BookStore.EmailDispatcher;
 
 internal sealed class SmtpSettings
 {
-    public string Host { get; set; } = "";
-    public string FromAddress { get; set; } = "";
-    public int Port { get; set; } = 587;
-    public SecureSocketOptions Security { get; set; } = SecureSocketOptions.StartTls;
-    public string? Username { get; set; }
-    public string? Password { get; set; }
-    public int OperationTimeoutSeconds { get; set; } = 15;
-    public int IdleTimeoutSeconds { get; set; } = 60;
-    public int MaxAttempts { get; set; } = 2;
-    public int RetryDelaySeconds { get; set; } = 2;
-    public bool CircuitEnabled { get; set; } = true;
-    public int CircuitFailureThreshold { get; set; } = 5;
-    public int CircuitBreakSeconds { get; set; } = 30;
+    public string Host { get; init; } = "";
+    public string FromAddress { get; init; } = "";
+    public int Port { get; init; } = 587;
+    public SecureSocketOptions Security { get; init; } = SecureSocketOptions.StartTls;
+    public string? Username { get; init; }
+    public string? Password { get; init; }
+    public int OperationTimeoutSeconds { get; init; } = 15;
+    public int IdleTimeoutSeconds { get; init; } = 60;
+    public int MaxAttempts { get; init; } = 2;
+    public int RetryDelaySeconds { get; init; } = 2;
+    public bool CircuitEnabled { get; init; } = true;
+    public int CircuitFailureThreshold { get; init; } = 5;
+    public int CircuitBreakSeconds { get; init; } = 30;
 }
 
 internal sealed class SmtpSettingsValidator(IHostEnvironment environment) : IValidateOptions<SmtpSettings>
@@ -23,6 +23,8 @@ internal sealed class SmtpSettingsValidator(IHostEnvironment environment) : IVal
     {
         var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(options.Host)) errors.Add("SMTP host is required.");
+        if (string.IsNullOrWhiteSpace(options.FromAddress) || !MailboxAddress.TryParse(options.FromAddress, out _))
+            errors.Add("SMTP sender address must be a valid mailbox.");
         if (options.Port is < 1 or > 65535) errors.Add("SMTP port must be between 1 and 65535.");
         if (options.Security is not (SecureSocketOptions.None or SecureSocketOptions.StartTls or SecureSocketOptions.SslOnConnect))
             errors.Add("SMTP security must be None, StartTls, or SslOnConnect.");

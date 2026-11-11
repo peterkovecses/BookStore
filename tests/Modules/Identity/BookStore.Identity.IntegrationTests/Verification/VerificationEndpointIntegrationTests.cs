@@ -1,6 +1,3 @@
-using System.Text;
-using Microsoft.AspNetCore.WebUtilities;
-
 namespace BookStore.Identity.IntegrationTests.Verification;
 
 public sealed class VerificationEndpointIntegrationTests(IdentityFactory factory) : IClassFixture<IdentityFactory>

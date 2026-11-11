@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.DataProtection;
-
 namespace BookStore.EmailDispatcher.IntegrationTests;
 
 public sealed class MailpitTests
@@ -21,6 +19,7 @@ public sealed class MailpitTests
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["EmailDispatcher:Smtp:Host"] = container.Hostname,
+            ["EmailDispatcher:Smtp:FromAddress"] = "sender@example.com",
             ["EmailDispatcher:Smtp:Port"] = container.GetMappedPublicPort(smtpPort).ToString(),
             ["EmailDispatcher:Smtp:Security"] = "None"
         });

@@ -1,8 +1,3 @@
-using System.Text;
-using System.Text.Json;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.WebUtilities;
-
 namespace BookStore.Identity.Infrastructure;
 
 internal sealed class VerificationOptions

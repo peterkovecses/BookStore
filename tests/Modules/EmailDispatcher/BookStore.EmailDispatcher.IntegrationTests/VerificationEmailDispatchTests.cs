@@ -1,8 +1,3 @@
-using BookStore.Identity.Contracts;
-using Kovecses.Requests;
-using Microsoft.AspNetCore.DataProtection;
-using NSubstitute;
-
 namespace BookStore.EmailDispatcher.IntegrationTests;
 
 public sealed class VerificationEmailDispatchTests

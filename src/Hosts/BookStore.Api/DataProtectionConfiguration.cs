@@ -1,7 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
-using System.Xml.Linq;
-using Microsoft.AspNetCore.DataProtection;
-
 namespace BookStore.Api;
 
 internal static class DataProtectionConfiguration

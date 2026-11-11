@@ -1,5 +1,3 @@
-using BookStore.Identity.Features.Verification;
-
 namespace BookStore.Identity.IntegrationTests.Verification;
 
 public class ResendVerificationHandlerTests(IdentityFactory factory) : IClassFixture<IdentityFactory>

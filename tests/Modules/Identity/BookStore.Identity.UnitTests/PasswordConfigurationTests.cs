@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.DataProtection;
-
 namespace BookStore.Identity.UnitTests;
 
 public class PasswordConfigurationTests

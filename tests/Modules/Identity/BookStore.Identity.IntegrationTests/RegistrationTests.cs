@@ -184,6 +184,33 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
         actualBody.Should().NotContain(email).And.NotContain(otherEmail).And.NotContain("Duplicate");
     }
 
+    [Fact]
+    public async Task HandleAsync_WhenIdentityReturnsMixedErrors_ShouldReturnOnlyNonDuplicateErrors()
+    {
+        // Arrange
+        const string expectedMessage = "Password is not acceptable.";
+        const string duplicateMessage = "Sensitive duplicate detail";
+        var email = $"{Guid.NewGuid()}@example.com";
+        await using var configuredFactory = CreateFactoryWithUserValidation(IdentityResult.Failed(
+            new IdentityError { Code = nameof(IdentityErrorDescriber.DuplicateUserName), Description = duplicateMessage },
+            new IdentityError { Code = "PasswordRejected", Description = expectedMessage }));
+        using var scope = configuredFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var ids = Substitute.For<IUserIdGenerator>();
+        ids.Create().Returns(Guid.NewGuid().ToString());
+        var sut = new RegistrationHandler(users, db, ids, scope.ServiceProvider.GetRequiredService<IVerificationRequestFactory>());
+
+        // Act
+        var actual = await sut.HandleAsync(new RegisterCommand(Request(email)), TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.Should().BeFailure().HaveError("Validation").HaveValidationProperty("Registration");
+        actual.Errors!.SelectMany(error => error.Metadata!.Values)
+            .OfType<List<string>>().SelectMany(messages => messages)
+            .Should().ContainSingle().Which.Should().Be(expectedMessage);
+    }
+
     [Theory]
     [InlineData(nameof(IdentityErrorDescriber.DuplicateEmail))]
     [InlineData(nameof(IdentityErrorDescriber.DuplicateUserName))]

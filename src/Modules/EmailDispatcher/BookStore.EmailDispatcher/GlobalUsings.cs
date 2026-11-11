@@ -1,8 +1,12 @@
 global using System.Net.Sockets;
+global using System.Text.Encodings.Web;
 global using BookStore.EmailDispatcher.Contracts;
+global using BookStore.Identity.Contracts;
+global using Kovecses.Requests;
 global using MailKit;
 global using MailKit.Net.Smtp;
 global using MailKit.Security;
+global using Microsoft.AspNetCore.DataProtection;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.DependencyInjection.Extensions;
 global using Microsoft.Extensions.Hosting;

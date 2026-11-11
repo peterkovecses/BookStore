@@ -1,6 +1,3 @@
-using System.Text;
-using Microsoft.AspNetCore.WebUtilities;
-
 namespace BookStore.Identity.Features.Verification;
 
 internal sealed class ConfirmEmailHandler(UserManager<ApplicationUser> users)

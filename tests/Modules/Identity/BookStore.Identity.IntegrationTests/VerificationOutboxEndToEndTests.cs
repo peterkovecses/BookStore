@@ -1,9 +1,3 @@
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Hosting;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
-
 namespace BookStore.Identity.IntegrationTests;
 
 public sealed class VerificationOutboxEndToEndFactory : BaseWebApplicationFactory<Program>
