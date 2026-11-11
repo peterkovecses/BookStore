@@ -45,11 +45,11 @@ public static class DependencyInjection
                 identity.Lockout.DefaultLockoutTimeSpan = authentication.Value.LockoutDuration;
             });
         var authentication = builder.Configuration.GetSection("Identity:Authentication").Get<AuthenticationOptions>() ?? new();
-        builder.Services.AddCors(options => options.AddPolicy(AuthenticationEndpointSupport.CorsPolicy, policy =>
+        builder.Services.AddCors(options => options.AddPolicy(IdentityAuthenticationPolicies.Cors, policy =>
             policy.WithOrigins(authentication.AllowedOrigins).WithMethods("POST").WithHeaders("Content-Type", "X-BookStore-Request")
                 .AllowCredentials()));
         builder.Services.AddRateLimiter(options =>
-            options.AddPolicy(AuthenticationEndpointSupport.LoginPolicy, context =>
+            options.AddPolicy(IdentityAuthenticationPolicies.LoginRateLimit, context =>
                 RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ =>
                     new FixedWindowRateLimiterOptions
                     {
@@ -59,6 +59,7 @@ public static class DependencyInjection
                         AutoReplenishment = true
                     })));
         builder.Services.AddScoped<IdentitySessionService>();
+        builder.Services.AddScoped<OriginAndCsrfEndpointFilter>();
         builder.Services.AddScoped<LoginHandler>();
         builder.Services.AddScoped<RefreshHandler>();
         builder.Services.AddScoped<LogoutHandler>();

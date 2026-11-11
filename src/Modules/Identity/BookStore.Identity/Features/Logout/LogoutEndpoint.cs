@@ -14,12 +14,12 @@ internal static class LogoutEndpoint
         IOptions<AuthenticationOptions> options,
         CancellationToken cancellationToken)
     {
-        if (AuthenticationEndpointSupport.TryReadRefreshToken(http, out var token))
+        if (http.Request.TryGetRefreshToken(out var token))
         {
             await handler.HandleAsync(token, cancellationToken);
         }
 
-        AuthenticationEndpointSupport.ClearRefreshCookie(http, options.Value);
+        http.Response.ClearRefreshToken(options.Value);
 
         return Results.NoContent();
     }

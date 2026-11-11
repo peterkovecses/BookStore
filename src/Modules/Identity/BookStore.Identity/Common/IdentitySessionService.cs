@@ -1,4 +1,4 @@
-namespace BookStore.Identity.Infrastructure;
+namespace BookStore.Identity.Common;
 
 internal sealed class IdentitySessionService(
     IdentityDbContext context,

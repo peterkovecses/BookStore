@@ -15,13 +15,13 @@ internal static class RefreshEndpoint
         IOptions<AuthenticationOptions> options,
         CancellationToken cancellationToken)
     {
-        if (!AuthenticationEndpointSupport.TryReadRefreshToken(http, out var token))
+        if (!http.Request.TryGetRefreshToken(out var token))
         {
             return Results.Unauthorized();
         }
 
         var result = await handler.HandleAsync(token, cancellationToken);
 
-        return AuthenticationEndpointSupport.ToResponse(result, http, options.Value);
+        return AuthenticationEndpoints.ToResponse(result, http, options.Value);
     }
 }

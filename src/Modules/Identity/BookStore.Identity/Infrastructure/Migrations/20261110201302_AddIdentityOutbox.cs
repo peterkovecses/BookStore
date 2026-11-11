@@ -1,3 +1,6 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
+
 #nullable disable
 
 namespace BookStore.Identity.Infrastructure.Migrations

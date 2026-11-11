@@ -4,7 +4,7 @@ internal static class LoginEndpoint
 {
     internal static void MapEndpoint(IEndpointRouteBuilder app) =>
         app.MapPost("login", HandleAsync)
-            .RequireRateLimiting(AuthenticationEndpointSupport.LoginPolicy)
+            .RequireRateLimiting(IdentityAuthenticationPolicies.LoginRateLimit)
             .WithName("IdentityLogin")
             .WithDescription("Authenticates a confirmed customer and issues an access token and refresh cookie.")
             .Produces<AccessTokenResponse>()
@@ -26,6 +26,6 @@ internal static class LoginEndpoint
 
         var result = await handler.HandleAsync(request, cancellationToken);
 
-        return AuthenticationEndpointSupport.ToResponse(result, http, options.Value);
+        return AuthenticationEndpoints.ToResponse(result, http, options.Value);
     }
 }
