@@ -112,7 +112,17 @@ public sealed class VerificationOutboxEndToEndTests(VerificationOutboxEndToEndFa
             emptyMessages!.RootElement.GetProperty("total").GetInt32().Should().Be(0);
             using var resend = await client.PostAsJsonAsync(resendPath, new { Email = email }, cancellationToken);
             resend.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var fresh = await db.OutboxMessages.AsNoTracking().SingleAsync(item => item.Id != original.Id, cancellationToken);
+            OutboxMessage? fresh;
+            using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            {
+                deadline.CancelAfter(TimeSpan.FromSeconds(30));
+                do
+                {
+                    fresh = await db.OutboxMessages.AsNoTracking().SingleOrDefaultAsync(
+                        item => item.Id != original.Id && item.EventType == VerificationRequestFactory.EventType, deadline.Token);
+                    if (fresh is null) await Task.Delay(100, deadline.Token);
+                } while (fresh is null);
+            }
             await WaitForStatusAsync(db, fresh.Id, OutboxStatus.Completed, cancellationToken);
             using var messages = await mailpit.GetFromJsonAsync<JsonDocument>("/api/v1/messages", cancellationToken);
             var id = messages!.RootElement.GetProperty("messages")[0].GetProperty("ID").GetString();

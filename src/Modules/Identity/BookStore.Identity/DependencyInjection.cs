@@ -38,6 +38,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IVerificationRequestFactory, VerificationRequestFactory>();
         builder.Services.AddSingleton<IOutboxExpiry<VerificationEmailRequested>, VerificationRequestExpiry>();
         builder.Services.AddSingleton(new OutboxRegistry<IdentityOutboxStore>()
+            .Register<VerificationResendRequested>(VerificationResendRequested.EventType)
             .Register<VerificationEmailRequested>(VerificationRequestFactory.EventType));
         builder.Services.AddOutbox<IdentityOutboxStore>(builder.Configuration);
         builder.Services.AddScoped<IIdentityOutboxOperations>(services => services.GetRequiredService<IdentityOutboxStore>());

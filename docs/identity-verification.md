@@ -39,8 +39,10 @@ protected. Protect and retain keys for pending messages and retained backups.
   validation error. Both fields are required; `userId` is limited to 256
   characters and `token` to 2048.
 - `POST /api/identity/verification/resend` accepts JSON with `email`. For an
-  unconfirmed account it queues a fresh verification request; for an unknown or
-  already confirmed account it does nothing. All three return `204 No Content`
+  accepted request it always persists a protected resend request without
+  looking up the account. The outbox worker subsequently creates a fresh
+  verification email event for an unconfirmed account; unknown and already
+  confirmed accounts receive no email. All three return `204 No Content`
   without disclosing account status or promising delivery. Email must be
   nonempty, valid and at most 256 characters; malformed input returns a
   validation error.
@@ -68,7 +70,11 @@ gateway limit where a deployment-wide limit is required.
 Registration queues a durable verification request; it does not synchronously
 send email. SMTP acceptance does not guarantee delivery. Outbox processing is
 at least once: crashes or retry after SMTP acceptance can produce duplicate
-emails. Do not promise delivery merely because an event was queued.
+emails. Resend requests are also retried, and a crash after a verification email
+event is saved may create another event on retry. Do not promise delivery merely
+because a request was queued. Resend processing checks the account's status at
+processing time. Monitor and recover failed resend events as described below;
+the protected address remains in the outbox until its normal retention cleanup.
 
 Before delivery, the verification expiry policy uses the earlier of the event's
 recorded expiry and its issue time plus the currently configured token lifetime.

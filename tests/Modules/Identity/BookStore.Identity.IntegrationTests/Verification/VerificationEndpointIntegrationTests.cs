@@ -18,6 +18,9 @@ public sealed class VerificationEndpointIntegrationTests(IdentityFactory factory
             confirmationPermitLimit: 1,
             resendPermitLimit: 1);
         using var sut = configuredFactory.CreateClient();
+        using var scope = configuredFactory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var initialCount = await context.OutboxMessages.CountAsync(TestContext.Current.CancellationToken);
         var cancellationToken = TestContext.Current.CancellationToken;
 
         // Act
@@ -39,6 +42,7 @@ public sealed class VerificationEndpointIntegrationTests(IdentityFactory factory
         secondConfirmation.StatusCode.Should().Be(expectedRejectedStatus);
         firstResend.StatusCode.Should().Be(HttpStatusCode.NoContent);
         secondResend.StatusCode.Should().Be(expectedRejectedStatus);
+        (await context.OutboxMessages.CountAsync(cancellationToken)).Should().Be(initialCount + 1);
     }
 
     [Fact]
@@ -77,7 +81,7 @@ public sealed class VerificationEndpointIntegrationTests(IdentityFactory factory
         confirmedResponse.StatusCode.Should().Be(expectedStatus);
         unconfirmedResponse.StatusCode.Should().Be(expectedStatus);
         confirmedBody.Should().Be(unknownBody).And.Be(unconfirmedBody);
-        actualOutboxCount.Should().Be(initialOutboxCount + 1);
+        actualOutboxCount.Should().Be(initialOutboxCount + 3);
     }
 
     [Fact]
