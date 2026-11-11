@@ -67,6 +67,32 @@ public class PasswordConfigurationTests
         await act.Should().ThrowAsync<OptionsValidationException>();
     }
 
+    [Fact]
+    public async Task StartAsync_WhenAuthenticationAndVerificationOptionsAreConfigured_ShouldBindInitOnlyProperties()
+    {
+        // Arrange
+        var builder = CreateBuilder(new Dictionary<string, string?>
+        {
+            ["Identity:Authentication:AccessTokenLifetime"] = "00:05:00",
+            ["Identity:Authentication:CookieSameSite"] = "Lax",
+            ["Identity:Authentication:LoginPermitLimit"] = "7",
+            ["Identity:Verification:TokenLifetime"] = "02:00:00"
+        });
+        using var sut = builder.Build();
+
+        // Act
+        await sut.StartAsync(TestContext.Current.CancellationToken);
+        var authentication = sut.Services.GetRequiredService<IOptions<AuthenticationOptions>>().Value;
+        var verification = sut.Services.GetRequiredService<IOptions<VerificationOptions>>().Value;
+
+        // Assert
+        authentication.AccessTokenLifetime.Should().Be(TimeSpan.FromMinutes(5));
+        authentication.CookieSameSite.Should().Be("Lax");
+        authentication.LoginPermitLimit.Should().Be(7);
+        verification.LinkBaseUrl.Should().Be("https://localhost/verify-email");
+        verification.TokenLifetime.Should().Be(TimeSpan.FromHours(2));
+    }
+
     private static HostApplicationBuilder CreateBuilder(Dictionary<string, string?> settings)
     {
         var builder = Host.CreateApplicationBuilder();

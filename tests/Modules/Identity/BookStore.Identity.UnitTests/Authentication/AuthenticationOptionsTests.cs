@@ -22,8 +22,7 @@ public sealed class AuthenticationOptionsTests
     public void IsValid_WhenSigningKeyIsInvalid_ShouldReturnFalse(string key)
     {
         // Arrange
-        var sut = CreateOptions();
-        sut.SigningKey = key;
+        var sut = CreateOptions(signingKey: key);
 
         // Act
         var actual = sut.IsValid();
@@ -40,8 +39,7 @@ public sealed class AuthenticationOptionsTests
     public void IsValid_WhenOriginIsUnsafe_ShouldReturnFalse(string origin)
     {
         // Arrange
-        var sut = CreateOptions();
-        sut.AllowedOrigins = [origin];
+        var sut = CreateOptions(origins: [origin]);
 
         // Act
         var actual = sut.IsValid();
@@ -54,8 +52,7 @@ public sealed class AuthenticationOptionsTests
     public void IsValid_WhenTokenLifetimesAreUnsafe_ShouldReturnFalse()
     {
         // Arrange
-        var sut = CreateOptions();
-        sut.AccessTokenLifetime = TimeSpan.FromMinutes(16);
+        var sut = CreateOptions(accessTokenLifetime: TimeSpan.FromMinutes(16));
 
         // Act
         var actual = sut.IsValid();
@@ -64,11 +61,15 @@ public sealed class AuthenticationOptionsTests
         actual.Should().BeFalse();
     }
 
-    private static AuthenticationOptions CreateOptions() => new()
+    private static AuthenticationOptions CreateOptions(
+        string? signingKey = null,
+        string[]? origins = null,
+        TimeSpan? accessTokenLifetime = null) => new()
     {
         Issuer = "https://api.example.test",
         Audience = "bookstore-test",
-        SigningKey = Convert.ToBase64String(new byte[32]),
-        AllowedOrigins = ["https://ui.example.test"]
+        SigningKey = signingKey ?? Convert.ToBase64String(new byte[32]),
+        AllowedOrigins = origins ?? ["https://ui.example.test"],
+        AccessTokenLifetime = accessTokenLifetime ?? TimeSpan.FromMinutes(10)
     };
 }

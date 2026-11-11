@@ -2,17 +2,17 @@ namespace BookStore.Identity.Common;
 
 internal sealed class AuthenticationOptions
 {
-    public string Audience { get; set; } = string.Empty;
-    public string Issuer { get; set; } = string.Empty;
-    public string SigningKey { get; set; } = string.Empty;
-    public string[] AllowedOrigins { get; set; } = [];
-    public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromMinutes(10);
-    public TimeSpan RefreshTokenLifetime { get; set; } = TimeSpan.FromDays(14);
-    public string CookieSameSite { get; set; } = "Strict";
-    public int LoginPermitLimit { get; set; } = 20;
-    public int LoginWindowSeconds { get; set; } = 60;
-    public int LockoutAttempts { get; set; } = 5;
-    public TimeSpan LockoutDuration { get; set; } = TimeSpan.FromMinutes(15);
+    public string Audience { get; init; } = string.Empty;
+    public string Issuer { get; init; } = string.Empty;
+    public string SigningKey { get; init; } = string.Empty;
+    public string[] AllowedOrigins { get; init; } = [];
+    public TimeSpan AccessTokenLifetime { get; init; } = TimeSpan.FromMinutes(10);
+    public TimeSpan RefreshTokenLifetime { get; init; } = TimeSpan.FromDays(14);
+    public string CookieSameSite { get; init; } = "Strict";
+    public int LoginPermitLimit { get; init; } = 20;
+    public int LoginWindowSeconds { get; init; } = 60;
+    public int LockoutAttempts { get; init; } = 5;
+    public TimeSpan LockoutDuration { get; init; } = TimeSpan.FromMinutes(15);
 
     public bool IsValid()
     {

@@ -128,12 +128,18 @@ public sealed class AuthenticationEndpointTests(IdentityFactory factory) : IClas
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         var stored = await context.RefreshTokens.SingleAsync(item => item.Hash == Hash(token), TestContext.Current.CancellationToken);
-        stored.ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(-1);
+        const string expiredToken = "expired-refresh-token-material-000000000000";
+        context.RefreshTokens.Add(new RefreshToken
+        {
+            Hash = Hash(expiredToken),
+            FamilyId = stored.FamilyId,
+            UserId = stored.UserId,
+            ExpiresAt = DateTimeOffset.UtcNow.AddSeconds(-1)
+        });
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
-        using var expired = await SendAsync(sut, RefreshPath, cookie: token);
-        stored.ExpiresAt = DateTimeOffset.UtcNow.AddDays(1);
+        using var expired = await SendAsync(sut, RefreshPath, cookie: expiredToken);
         stored.Revoked = true;
         await context.SaveChangesAsync(TestContext.Current.CancellationToken);
         using var revoked = await SendAsync(sut, RefreshPath, cookie: token);

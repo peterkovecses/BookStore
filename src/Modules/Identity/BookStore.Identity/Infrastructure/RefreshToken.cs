@@ -2,10 +2,10 @@ namespace BookStore.Identity.Infrastructure;
 
 internal sealed class RefreshToken
 {
-    public required string Hash { get; set; }
-    public Guid FamilyId { get; set; }
-    public required string UserId { get; set; }
-    public DateTimeOffset ExpiresAt { get; set; }
+    public required string Hash { get; init; }
+    public Guid FamilyId { get; init; }
+    public required string UserId { get; init; }
+    public DateTimeOffset ExpiresAt { get; init; }
     public bool Rotated { get; set; }
     public bool Revoked { get; set; }
 }

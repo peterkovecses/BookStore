@@ -1,4 +1,4 @@
-namespace BookStore.Identity.Common.Extensions;
+namespace BookStore.Identity.Common;
 
 internal static class IdentityRefreshCookieExtensions
 {
