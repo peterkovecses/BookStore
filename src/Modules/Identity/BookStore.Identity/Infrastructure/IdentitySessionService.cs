@@ -1,12 +1,6 @@
-using System.Security.Cryptography;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.IdentityModel.Tokens;
+namespace BookStore.Identity.Infrastructure;
 
-namespace BookStore.Identity.Features.Authentication;
-
-internal sealed class AuthenticationService(
+internal sealed class IdentitySessionService(
     IdentityDbContext context,
     UserManager<ApplicationUser> users,
     IOptions<AuthenticationOptions> options,

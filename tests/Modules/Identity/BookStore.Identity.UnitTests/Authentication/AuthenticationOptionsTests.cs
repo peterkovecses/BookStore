@@ -1,5 +1,3 @@
-using BookStore.Identity.Features.Authentication;
-
 namespace BookStore.Identity.UnitTests.Authentication;
 
 public sealed class AuthenticationOptionsTests

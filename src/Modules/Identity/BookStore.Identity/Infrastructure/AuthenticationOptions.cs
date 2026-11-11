@@ -1,9 +1,9 @@
-namespace BookStore.Identity.Features.Authentication;
+namespace BookStore.Identity.Infrastructure;
 
 internal sealed class AuthenticationOptions
 {
-    public string Issuer { get; set; } = string.Empty;
     public string Audience { get; set; } = string.Empty;
+    public string Issuer { get; set; } = string.Empty;
     public string SigningKey { get; set; } = string.Empty;
     public string[] AllowedOrigins { get; set; } = [];
     public TimeSpan AccessTokenLifetime { get; set; } = TimeSpan.FromMinutes(10);

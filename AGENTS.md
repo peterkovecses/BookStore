@@ -10,7 +10,7 @@
 
 ## C# Coding Standards
 
-- **Global Usings:** Use Global Usings consistently across the solution for commonly used namespaces. Avoid unnecessary duplication of using directives. Keep project-specific or rarely used namespaces local when appropriate.
+- **Global Usings:** Put every project namespace import and alias in that project's `GlobalUsings.cs` as a `global using` directive. Do not put file-scoped `using` directives in source files; when names conflict, define an appropriate alias in `GlobalUsings.cs`.
 - **Namespace Structure:** Namespaces MUST follow the project structure, starting from the project name (e.g., `BookStore.Api...`).
 - **Architectural Integrity:** This is a Modular Monolith. Modules MUST communicate exclusively through their respective `Contracts` projects. Use `internal` for implementation classes within modules to maintain encapsulation.
 - **Testability:** ALWAYS write testable code. Use `TimeProvider` (introduced in .NET 8) for non-deterministic time-based logic. Avoid direct calls to `DateTime.Now`. Use abstractions for time-dependent or randomly generated values (e.g., `Guid.NewGuid()`) when necessary to ensure deterministic and testable behavior.

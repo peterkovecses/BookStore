@@ -1,6 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-
 namespace BookStore.Identity.IntegrationTests.Authentication;
 
 public sealed class AuthenticationEndpointTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
