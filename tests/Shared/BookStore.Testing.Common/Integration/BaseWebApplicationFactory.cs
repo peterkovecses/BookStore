@@ -33,6 +33,7 @@ public abstract class BaseWebApplicationFactory<TMarker> : WebApplicationFactory
         builder.UseSetting("DataProtection:Certificate:Path", certificatePath);
         builder.UseSetting("DataProtection:Certificate:Password", "test-only");
         builder.UseSetting("Identity:Verification:LinkBaseUrl", "https://localhost/verify-email");
+        builder.UseSetting("Identity:PasswordRecovery:LinkBaseUrl", "https://localhost/reset-password");
         builder.UseSetting("Identity:Authentication:Issuer", "https://api.example.test");
         builder.UseSetting("Identity:Authentication:Audience", "bookstore-test");
         builder.UseSetting("Identity:Authentication:SigningKey", Convert.ToBase64String(new byte[32]));

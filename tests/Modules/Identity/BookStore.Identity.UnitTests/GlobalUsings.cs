@@ -4,6 +4,7 @@ global using BookStore.Identity.Contracts;
 global using BookStore.Identity.Common;
 global using BookStore.Identity.Features.Registration;
 global using BookStore.Identity.Features.Verification;
+global using BookStore.Identity.Features.PasswordRecovery;
 global using BookStore.Identity.Infrastructure;
 global using FluentAssertions;
 global using Kovecses.Result.FluentAssertions;

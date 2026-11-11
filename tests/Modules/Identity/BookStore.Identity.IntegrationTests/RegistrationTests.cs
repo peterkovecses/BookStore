@@ -11,6 +11,8 @@ public sealed class IdentityFactory : BaseWebApplicationFactory<Program>
         base.ConfigureWebHost(builder);
         builder.UseSetting("ConnectionStrings:BookStoreDb", _database.GetConnectionString());
         builder.UseSetting("ConnectionStrings:book-covers", "UseDevelopmentStorage=true");
+        builder.UseSetting("Identity:PasswordRecovery:RateLimiting:Forgot:PermitLimit", "1000");
+        builder.UseSetting("Identity:PasswordRecovery:RateLimiting:Reset:PermitLimit", "1000");
         builder.ConfigureServices(services =>
         {
             var idGenerator = Substitute.For<IUserIdGenerator>();

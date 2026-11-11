@@ -98,6 +98,7 @@ public class PasswordConfigurationTests
         var builder = Host.CreateApplicationBuilder();
         settings["ConnectionStrings:BookStoreDb"] = "Server=localhost;Database=BookStore;Trusted_Connection=True";
         settings["Identity:Verification:LinkBaseUrl"] = "https://localhost/verify-email";
+        settings["Identity:PasswordRecovery:LinkBaseUrl"] = "https://localhost/reset-password";
         settings["Identity:Authentication:Issuer"] = "https://api.example.test";
         settings["Identity:Authentication:Audience"] = "bookstore-test";
         settings["Identity:Authentication:SigningKey"] = Convert.ToBase64String(new byte[32]);

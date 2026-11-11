@@ -15,7 +15,8 @@ public static class DependencyInjection
             options.User.RequireUniqueEmail = true;
             options.User.AllowedUserNameCharacters = string.Empty;
             options.SignIn.RequireConfirmedEmail = true;
-        }).AddEntityFrameworkStores<IdentityDbContext>().AddDefaultTokenProviders();
+        }).AddEntityFrameworkStores<IdentityDbContext>().AddDefaultTokenProviders()
+            .AddTokenProvider<PasswordResetTokenProvider>("BookStorePasswordReset");
 
         builder.Services.AddOptions<VerificationOptions>()
             .Bind(builder.Configuration.GetSection("Identity:Verification"))
@@ -24,6 +25,15 @@ public static class DependencyInjection
         builder.Services.AddOptions<DataProtectionTokenProviderOptions>()
             .Configure<IOptions<VerificationOptions>>((options, verification) =>
                 options.TokenLifespan = verification.Value.TokenLifetime);
+        builder.Services.AddOptions<PasswordRecoveryOptions>()
+            .Bind(builder.Configuration.GetSection("Identity:PasswordRecovery"))
+            .Validate(options => options.IsValid(), "Identity password recovery configuration is invalid.")
+            .ValidateOnStart();
+        builder.Services.AddOptions<PasswordResetTokenProviderOptions>()
+            .Configure<IOptions<PasswordRecoveryOptions>>((options, recovery) =>
+                options.TokenLifespan = recovery.Value.TokenLifetime);
+        builder.Services.Configure<IdentityOptions>(options =>
+            options.Tokens.PasswordResetTokenProvider = "BookStorePasswordReset");
 
         builder.Services.AddOptions<IdentityOptions>()
             .Configure(options => builder.Configuration.GetSection("Identity:Password").Bind(options.Password))
@@ -64,12 +74,16 @@ public static class DependencyInjection
         builder.Services.AddScoped<RefreshHandler>();
         builder.Services.AddScoped<LogoutHandler>();
         builder.Services.AddVerificationRateLimiting(builder.Configuration);
+        builder.Services.AddPasswordRecoveryRateLimiting(builder.Configuration);
         builder.Services.AddSingleton<IUserIdGenerator, UserIdGenerator>();
         builder.Services.AddScoped<IVerificationRequestFactory, VerificationRequestFactory>();
         builder.Services.AddSingleton<IOutboxExpiry<VerificationEmailRequested>, VerificationRequestExpiry>();
+        builder.Services.AddSingleton<IOutboxExpiry<PasswordResetEmailRequested>, PasswordResetRequestExpiry>();
         builder.Services.AddSingleton(new OutboxRegistry<IdentityOutboxStore>()
             .Register<VerificationResendRequested>(VerificationResendRequested.EventType)
-            .Register<VerificationEmailRequested>(VerificationRequestFactory.EventType));
+            .Register<VerificationEmailRequested>(VerificationRequestFactory.EventType)
+            .Register<PasswordRecoveryRequested>(PasswordRecoveryRequested.EventType)
+            .Register<PasswordResetEmailRequested>(PasswordRecoveryRequestedHandler.EmailEventType));
         builder.Services.AddOutbox<IdentityOutboxStore>(builder.Configuration);
         builder.Services.AddScoped<IIdentityOutboxOperations>(services => services.GetRequiredService<IdentityOutboxStore>());
         builder.Services.AddRequests(Assembly.GetExecutingAssembly());
@@ -94,6 +108,7 @@ public static class DependencyInjection
         var group = app.MapGroup("api/identity").WithTags("Identity");
         RegistrationEndpoint.MapEndpoint(group);
         VerificationEndpoint.MapVerificationEndpoints(group);
+        PasswordRecoveryEndpoint.MapEndpoints(group);
         AuthenticationEndpoints.MapEndpoints(group);
 
         return app;
