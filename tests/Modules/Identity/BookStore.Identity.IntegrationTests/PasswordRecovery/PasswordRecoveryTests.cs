@@ -1,5 +1,6 @@
 namespace BookStore.Identity.IntegrationTests.PasswordRecovery;
 
+[Collection("Identity Integration")]
 public sealed class PasswordRecoveryTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
     private const string OldPassword = "Password1!";

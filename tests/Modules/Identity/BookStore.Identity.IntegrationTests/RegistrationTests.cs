@@ -65,6 +65,7 @@ public sealed class IdentityFactory : BaseWebApplicationFactory<Program>
     }
 }
 
+[Collection("Identity Integration")]
 public class RegistrationTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
     private const string RegistrationPath = "/api/identity/registration";

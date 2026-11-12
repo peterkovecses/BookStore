@@ -48,5 +48,3 @@ global using Microsoft.Extensions.Logging.Abstractions;
 global using Microsoft.IdentityModel.Tokens;
 global using NSubstitute;
 global using Testcontainers.MsSql;
-
-[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly)]

@@ -1,5 +1,6 @@
 namespace BookStore.Identity.IntegrationTests.PasswordRecovery;
 
+[Collection("Identity Integration")]
 public sealed class PasswordRecoveryRetryTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
     [Fact]

@@ -1,6 +1,6 @@
 namespace BookStore.Catalog.IntegrationTests.Infrastructure;
 
-[Collection("Catalog")]
+[Collection("Catalog Integration")]
 public abstract class CatalogIntegrationTestBase(CatalogWebApplicationFactory factory)
     : IntegrationTestBase<Program, CatalogWebApplicationFactory>(factory)
 {

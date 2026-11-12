@@ -1,5 +1,6 @@
 namespace BookStore.Identity.IntegrationTests.Verification;
 
+[Collection("Identity Integration")]
 public class ResendVerificationHandlerTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
     [Fact]

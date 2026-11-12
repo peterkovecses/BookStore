@@ -1,5 +1,6 @@
 namespace BookStore.EmailDispatcher.IntegrationTests;
 
+[Collection("Email Integration")]
 public sealed class VerificationEmailDispatchTests
 {
     [Fact]

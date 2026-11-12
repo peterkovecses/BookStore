@@ -1,5 +1,6 @@
 namespace BookStore.Identity.IntegrationTests;
 
+[Collection("Identity Integration")]
 public sealed class VerificationOutboxIntegrationTests(IdentityOutboxTestApplicationFactory factory)
     : IClassFixture<IdentityOutboxTestApplicationFactory>
 {

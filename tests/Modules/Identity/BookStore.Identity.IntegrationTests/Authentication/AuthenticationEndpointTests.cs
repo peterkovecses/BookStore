@@ -1,5 +1,6 @@
 namespace BookStore.Identity.IntegrationTests.Authentication;
 
+[Collection("Identity Integration")]
 public sealed class AuthenticationEndpointTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
     private const string Origin = "https://ui.example.test";

@@ -1,6 +1,6 @@
 namespace BookStore.Identity.EndToEndTests.PasswordRecovery;
 
-[Collection("Outbox integration")]
+[Collection("Identity E2E")]
 public sealed class PasswordRecoveryBrowserFlowTests(IdentityOutboxTestApplicationFactory factory)
     : IClassFixture<IdentityOutboxTestApplicationFactory>
 {

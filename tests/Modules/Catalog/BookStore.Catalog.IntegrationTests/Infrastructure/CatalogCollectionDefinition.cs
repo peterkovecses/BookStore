@@ -1,6 +1,6 @@
 namespace BookStore.Catalog.IntegrationTests.Infrastructure;
 
-[CollectionDefinition("Catalog")]
+[CollectionDefinition("Catalog Integration")]
 public class CatalogCollectionDefinition : ICollectionFixture<CatalogWebApplicationFactory>
 {
 }

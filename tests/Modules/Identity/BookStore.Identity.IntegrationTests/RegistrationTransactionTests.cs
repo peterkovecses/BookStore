@@ -1,5 +1,6 @@
 namespace BookStore.Identity.IntegrationTests;
 
+[Collection("Identity Integration")]
 public class RegistrationTransactionTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
     private const string FirstName = "Jane";

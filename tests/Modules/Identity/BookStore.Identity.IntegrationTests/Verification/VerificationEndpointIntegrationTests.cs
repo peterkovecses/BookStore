@@ -1,5 +1,6 @@
 namespace BookStore.Identity.IntegrationTests.Verification;
 
+[Collection("Identity Integration")]
 public sealed class VerificationEndpointIntegrationTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
     private const string ConfirmationPath = "/api/identity/verification/confirmation";
