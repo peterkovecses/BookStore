@@ -3,9 +3,10 @@ namespace BookStore.EmailDispatcher.Features.Verification;
 internal sealed class VerificationEmailRequestedHandler(
     IEmailSender sender,
     IDataProtectionProvider dataProtectionProvider,
-    IOptions<SmtpSettings> settings) : IEventHandler<VerificationEmailRequested>
+    IOptions<SmtpSettings> settings,
+    EmailBodyRenderer renderer) : IEventHandler<VerificationEmailRequested>
 {
-    public Task HandleAsync(VerificationEmailRequested @event, CancellationToken cancellationToken)
+    public async Task HandleAsync(VerificationEmailRequested @event, CancellationToken cancellationToken)
     {
         if (!MailboxAddress.TryParse(settings.Value.FromAddress, out _))
         {
@@ -16,8 +17,9 @@ internal sealed class VerificationEmailRequestedHandler(
             .CreateProtector(@event.UserId)
             .CreateProtector(@event.Email)
             .Unprotect(@event.ProtectedLink);
-        var message = VerificationEmailTemplate.Create(settings.Value.FromAddress, @event.Email, @event.FirstName, link);
+        var body = await renderer.RenderVerificationAsync(@event.FirstName, link, cancellationToken);
+        var message = new EmailMessage(settings.Value.FromAddress, @event.Email, "Verify your BookStore email address", body.TextBody, body.HtmlBody);
 
-        return sender.SendAsync(message, cancellationToken);
+        await sender.SendAsync(message, cancellationToken);
     }
 }

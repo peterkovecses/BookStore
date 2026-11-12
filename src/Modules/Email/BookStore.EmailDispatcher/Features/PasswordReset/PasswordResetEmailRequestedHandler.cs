@@ -3,9 +3,10 @@ namespace BookStore.EmailDispatcher.Features.PasswordReset;
 internal sealed class PasswordResetEmailRequestedHandler(
     IEmailSender sender,
     IDataProtectionProvider protection,
-    IOptions<SmtpSettings> settings) : IEventHandler<PasswordResetEmailRequested>
+    IOptions<SmtpSettings> settings,
+    EmailBodyRenderer renderer) : IEventHandler<PasswordResetEmailRequested>
 {
-    public Task HandleAsync(PasswordResetEmailRequested value, CancellationToken cancellationToken)
+    public async Task HandleAsync(PasswordResetEmailRequested value, CancellationToken cancellationToken)
     {
         if (!MailboxAddress.TryParse(settings.Value.FromAddress, out _))
         {
@@ -24,8 +25,9 @@ internal sealed class PasswordResetEmailRequestedHandler(
                 .CreateProtector(value.UserId).CreateProtector(value.Email).Unprotect(value.ProtectedLink);
         }
 
-        var message = PasswordResetEmailTemplate.Create(settings.Value.FromAddress, value.Email, value.FirstName, link);
+        var body = await renderer.RenderPasswordResetAsync(value.FirstName, link, cancellationToken);
+        var message = new EmailMessage(settings.Value.FromAddress, value.Email, "Reset your BookStore password", body.TextBody, body.HtmlBody);
 
-        return sender.SendAsync(message, cancellationToken);
+        await sender.SendAsync(message, cancellationToken);
     }
 }

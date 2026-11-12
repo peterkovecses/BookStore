@@ -10,6 +10,7 @@ public static class DependencyInjection
             .ValidateOnStart();
         builder.Services.AddSingleton<IValidateOptions<SmtpSettings>, SmtpSettingsValidator>();
         builder.Services.TryAddSingleton(TimeProvider.System);
+        builder.Services.AddScoped<EmailBodyRenderer>();
         builder.Services.AddSingleton<SmtpCircuitBreaker>();
         builder.Services.AddSingleton<IEmailDispatchAvailability>(sp => sp.GetRequiredService<SmtpCircuitBreaker>());
         builder.Services.AddSingleton<EmailSender>();

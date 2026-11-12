@@ -10,5 +10,8 @@ global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
 global using Microsoft.Extensions.Options;
+global using MimeKit;
 global using NSubstitute;
 global using Xunit;
+global using System.Text.Encodings.Web;
+global using System.Text.Json;
