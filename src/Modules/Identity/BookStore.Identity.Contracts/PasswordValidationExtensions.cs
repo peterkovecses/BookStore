@@ -1,7 +1,13 @@
 namespace BookStore.Identity.Contracts;
 
+/// <summary>Provides password validation rules based on the configured policy.</summary>
 public static class PasswordValidationExtensions
 {
+    /// <summary>Applies the password policy to a FluentValidation rule.</summary>
+    /// <typeparam name="T">The type being validated.</typeparam>
+    /// <param name="rule">The initial password rule to configure.</param>
+    /// <param name="policy">The password requirements to apply.</param>
+    /// <returns>The configured rule, which can be further customized.</returns>
     public static IRuleBuilderOptions<T, string> ApplyPasswordRules<T>(
         this IRuleBuilderInitial<T, string> rule, PasswordPolicy policy)
     {

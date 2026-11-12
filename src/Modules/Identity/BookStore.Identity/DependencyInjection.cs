@@ -1,7 +1,12 @@
 namespace BookStore.Identity;
 
+/// <summary>Provides registration, initialization, and endpoint mapping for the Identity module.</summary>
 public static class DependencyInjection
 {
+    /// <summary>Registers Identity services, configuration, outbox processing, and request handlers.</summary>
+    /// <param name="builder">The host application builder to configure.</param>
+    /// <returns>The same builder for chaining.</returns>
+    /// <exception cref="InvalidOperationException">The BookStoreDb connection string is missing.</exception>
     public static IHostApplicationBuilder AddIdentityModuleServices(this IHostApplicationBuilder builder)
     {
         var connectionString = builder.Configuration.GetConnectionString("BookStoreDb")
@@ -95,6 +100,9 @@ public static class DependencyInjection
         return builder;
     }
 
+    /// <summary>Applies Identity database migrations in development; does nothing in other environments.</summary>
+    /// <param name="host">The host providing the environment and Identity database context.</param>
+    /// <returns>A task that completes when initialization finishes.</returns>
     public static async Task InitialiseIdentityModuleAsync(this IHost host)
     {
         if (!host.Services.GetRequiredService<IHostEnvironment>().IsDevelopment())
@@ -106,6 +114,9 @@ public static class DependencyInjection
         await scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Database.MigrateAsync();
     }
 
+    /// <summary>Maps the Identity endpoints under <c>api/identity</c>.</summary>
+    /// <param name="app">The endpoint route builder to configure.</param>
+    /// <returns>The same route builder for chaining.</returns>
     public static IEndpointRouteBuilder MapIdentityEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("api/identity").WithTags("Identity");
