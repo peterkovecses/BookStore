@@ -20,7 +20,8 @@ public static class DependencyInjection
                 {
                     builder.WithOrigins(allowedOrigins)
                            .AllowAnyMethod()
-                           .AllowAnyHeader();
+                           .AllowAnyHeader()
+                           .WithExposedHeaders("Retry-After");
                 }
             });
         });

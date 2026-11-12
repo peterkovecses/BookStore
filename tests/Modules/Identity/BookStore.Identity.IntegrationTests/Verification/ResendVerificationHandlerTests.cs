@@ -3,6 +3,48 @@ namespace BookStore.Identity.IntegrationTests.Verification;
 public class ResendVerificationHandlerTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
     [Fact]
+    public async Task EnqueueAsync_WhenOutboxInsertFails_ShouldRollBackCooldown()
+    {
+        // Arrange
+        using var scope = factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var store = scope.ServiceProvider.GetRequiredService<IVerificationResendStore>();
+        var id = Guid.NewGuid();
+        var email = $"{Guid.NewGuid():N}@example.com";
+        var existing = new OutboxMessage
+        {
+            Id = id,
+            EventType = VerificationResendRequested.EventType,
+            Payload = "{}",
+            CorrelationId = id.ToString(),
+            CreatedAt = scope.ServiceProvider.GetRequiredService<TimeProvider>().GetUtcNow(),
+            Status = OutboxStatus.Completed
+        };
+        context.OutboxMessages.Add(existing);
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        context.ChangeTracker.Clear();
+        var duplicate = new OutboxMessage
+        {
+            Id = id,
+            EventType = VerificationResendRequested.EventType,
+            Payload = "{}",
+            CorrelationId = id.ToString(),
+            CreatedAt = existing.CreatedAt
+        };
+        Func<Task> act = async () => await store.EnqueueAsync(email, duplicate, TestContext.Current.CancellationToken);
+
+        // Act
+        await act.Should().ThrowAsync<DbUpdateException>();
+
+        // Assert
+        using var verificationScope = factory.Services.CreateScope();
+        var verification = verificationScope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(email.ToUpperInvariant())));
+        (await verification.VerificationResendCooldowns.AnyAsync(item => item.EmailHash == hash,
+            TestContext.Current.CancellationToken)).Should().BeFalse();
+    }
+
+    [Fact]
     public async Task HandleAsync_WhenAccountStatesDiffer_ShouldQueueSameProtectedRequestForEach()
     {
         // Arrange
@@ -17,11 +59,12 @@ public class ResendVerificationHandlerTests(IdentityFactory factory) : IClassFix
         (await users.CreateAsync(confirmed, "Password1!")).Succeeded.Should().BeTrue();
         (await users.CreateAsync(unconfirmed, "Password1!")).Succeeded.Should().BeTrue();
         var emails = new[] { unknownEmail, confirmed.Email!, unconfirmed.Email! };
-        var sut = new ResendVerificationHandler(context, protection, clock);
+        var store = scope.ServiceProvider.GetRequiredService<IVerificationResendStore>();
+        var sut = new ResendVerificationHandler(store, protection, clock);
         var initialIds = await context.OutboxMessages.Select(item => item.Id).ToListAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var results = new List<Kovecses.Result.Result>();
+        var results = new List<Kovecses.Result.Result<ResendVerificationOutcome>>();
         foreach (var email in emails)
         {
             results.Add(await sut.HandleAsync(new ResendVerificationCommand(new ResendVerificationRequest { Email = email }),

@@ -222,6 +222,23 @@ namespace BookStore.Identity.Infrastructure.Migrations
                     b.ToTable("RefreshTokens", "identity");
                 });
 
+            modelBuilder.Entity("BookStore.Identity.Infrastructure.VerificationResendCooldown", b =>
+                {
+                    b.Property<string>("EmailHash")
+                        .HasMaxLength(64)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("EmailHash");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.ToTable("VerificationResendCooldowns", "identity");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")

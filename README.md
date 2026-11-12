@@ -148,6 +148,8 @@ The certificate is valid for one year. Before expiry, rotate to a new certificat
 
 Back up and restore the complete `.data-protection-keys` key ring with all required PFX certificates and their passwords, and keep the same `DataProtection:ApplicationName`. Without them, protected tokens and outbox payloads may become unreadable. Restore the database too if it contains pending outbox messages. The key-ring directory is git-ignored and is not included in a fresh checkout.
 
+Verification email resend requests have a 60-second cooldown after an accepted request; the first resend is immediate. The API applies this to every submitted address, including unknown and already verified addresses, without confirming delivery. Cooldown records use a hash of the normalized address and are removed after expiry when another resend is requested. All API instances must use the same Identity SQL Server database and synchronized clocks so the cooldown survives restarts and works across instances; the existing IP-based rate limit still applies.
+
 ### 4. Start the application
 
 Aspire starts the API, UI, SQL Server, Azurite, and development Mailpit. On its first start, the API creates its encrypted key ring in `.data-protection-keys`.

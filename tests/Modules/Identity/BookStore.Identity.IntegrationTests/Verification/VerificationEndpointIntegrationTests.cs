@@ -71,6 +71,9 @@ public sealed class VerificationEndpointIntegrationTests(IdentityFactory factory
         using var unknownResponse = await sut.PostAsJsonAsync(ResendPath, new { Email = unknownEmail }, TestContext.Current.CancellationToken);
         using var confirmedResponse = await sut.PostAsJsonAsync(ResendPath, new { Email = confirmedEmail }, TestContext.Current.CancellationToken);
         using var unconfirmedResponse = await sut.PostAsJsonAsync(ResendPath, new { Email = unconfirmedEmail }, TestContext.Current.CancellationToken);
+        using var unknownRepeated = await sut.PostAsJsonAsync(ResendPath, new { Email = unknownEmail }, TestContext.Current.CancellationToken);
+        using var confirmedRepeated = await sut.PostAsJsonAsync(ResendPath, new { Email = confirmedEmail }, TestContext.Current.CancellationToken);
+        using var unconfirmedRepeated = await sut.PostAsJsonAsync(ResendPath, new { Email = unconfirmedEmail }, TestContext.Current.CancellationToken);
         var unknownBody = await unknownResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var confirmedBody = await confirmedResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         var unconfirmedBody = await unconfirmedResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
@@ -80,8 +83,97 @@ public sealed class VerificationEndpointIntegrationTests(IdentityFactory factory
         unknownResponse.StatusCode.Should().Be(expectedStatus);
         confirmedResponse.StatusCode.Should().Be(expectedStatus);
         unconfirmedResponse.StatusCode.Should().Be(expectedStatus);
+        unknownRepeated.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+        confirmedRepeated.StatusCode.Should().Be(unknownRepeated.StatusCode);
+        unconfirmedRepeated.StatusCode.Should().Be(unknownRepeated.StatusCode);
+        unknownRepeated.Headers.RetryAfter!.Delta.Should().BeGreaterThan(TimeSpan.Zero);
+        confirmedRepeated.Headers.RetryAfter.Should().NotBeNull();
+        unconfirmedRepeated.Headers.RetryAfter.Should().NotBeNull();
         confirmedBody.Should().Be(unknownBody).And.Be(unconfirmedBody);
         actualOutboxCount.Should().Be(initialOutboxCount + 3);
+    }
+
+    [Fact]
+    public async Task Resend_WhenConcurrentAcrossHostsAndCooldownExpires_ShouldQueueOnlyOncePerWindow()
+    {
+        // Arrange
+        var now = new DateTimeOffset(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
+        var clock = Substitute.For<TimeProvider>();
+        clock.GetUtcNow().Returns(_ => now);
+        await using var firstFactory = CreateFactory(100, 100, clock: clock);
+        await using var secondFactory = CreateFactory(100, 100, clock: clock);
+        using var first = firstFactory.CreateClient();
+        using var second = secondFactory.CreateClient();
+        using var scope = firstFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var initialCount = await db.OutboxMessages.CountAsync(message => message.EventType == VerificationResendRequested.EventType,
+            TestContext.Current.CancellationToken);
+        var email = $"{Guid.NewGuid():N}@example.com";
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        // Act
+        var responses = await Task.WhenAll(Enumerable.Range(0, 8).Select(index =>
+            (index % 2 == 0 ? first : second).PostAsJsonAsync(ResendPath, new { Email = email }, cancellationToken)));
+        await using var restartedFactory = CreateFactory(100, 100, clock: clock);
+        using var restarted = restartedFactory.CreateClient();
+        now = now.AddSeconds(59);
+        using var beforeExpiry = await restarted.PostAsJsonAsync(ResendPath, new { Email = email.ToUpperInvariant() }, cancellationToken);
+        now = now.AddSeconds(1);
+        using var atExpiry = await restarted.PostAsJsonAsync(ResendPath, new { Email = email }, cancellationToken);
+
+        // Assert
+        responses.Count(response => response.StatusCode == HttpStatusCode.NoContent).Should().Be(1);
+        responses.Count(response => response.StatusCode == HttpStatusCode.TooManyRequests).Should().Be(7);
+        beforeExpiry.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+        beforeExpiry.Headers.RetryAfter!.Delta.Should().Be(TimeSpan.FromSeconds(1));
+        atExpiry.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        (await db.OutboxMessages.CountAsync(message => message.EventType == VerificationResendRequested.EventType,
+            cancellationToken)).Should().Be(initialCount + 2);
+        foreach (var response in responses)
+        {
+            response.Dispose();
+        }
+    }
+
+    [Fact]
+    public async Task Resend_WhenCalledFromAllowedOrigin_ShouldExposeRetryAfter()
+    {
+        // Arrange
+        const string origin = "https://ui.example.test";
+        await using var configuredFactory = CreateFactory(100, 100).WithWebHostBuilder(builder =>
+            builder.UseSetting("AllowedOrigins", origin));
+        using var sut = configuredFactory.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, ResendPath)
+        {
+            Content = JsonContent.Create(new { Email = $"{Guid.NewGuid():N}@example.com" })
+        };
+        request.Headers.Add("Origin", origin);
+
+        // Act
+        using var actual = await sut.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        actual.Headers.GetValues("Access-Control-Expose-Headers").Should().Contain(value => value.Contains("Retry-After"));
+    }
+
+    [Fact]
+    public async Task Resend_WhenEmailIsInvalid_ShouldReturnValidationProblemWithoutQueueing()
+    {
+        // Arrange
+        await using var configuredFactory = CreateFactory(100, 100);
+        using var sut = configuredFactory.CreateClient();
+        using var scope = configuredFactory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var initialCount = await db.OutboxMessages.CountAsync(cancellationToken);
+
+        // Act
+        using var actual = await sut.PostAsJsonAsync(ResendPath, new { Email = "invalid" }, cancellationToken);
+
+        // Assert
+        actual.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await db.OutboxMessages.CountAsync(cancellationToken)).Should().Be(initialCount);
     }
 
     [Fact]
@@ -200,7 +292,7 @@ public sealed class VerificationEndpointIntegrationTests(IdentityFactory factory
         actualUser.EmailConfirmed.Should().BeTrue();
     }
 
-    private WebApplicationFactory<Program> CreateFactory(int confirmationPermitLimit, int resendPermitLimit, string tokenLifetime = "1.00:00:00") =>
+    private WebApplicationFactory<Program> CreateFactory(int confirmationPermitLimit, int resendPermitLimit, string tokenLifetime = "1.00:00:00", TimeProvider? clock = null) =>
         factory.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("Identity:Verification:TokenLifetime", tokenLifetime);
@@ -208,6 +300,14 @@ public sealed class VerificationEndpointIntegrationTests(IdentityFactory factory
             builder.UseSetting("Identity:Verification:RateLimiting:Confirmation:WindowSeconds", "60");
             builder.UseSetting("Identity:Verification:RateLimiting:Resend:PermitLimit", resendPermitLimit.ToString());
             builder.UseSetting("Identity:Verification:RateLimiting:Resend:WindowSeconds", "60");
+            if (clock is not null)
+            {
+                builder.ConfigureServices(services =>
+                {
+                    services.RemoveAll<TimeProvider>();
+                    services.AddSingleton(clock);
+                });
+            }
         });
 
     private static ApplicationUser CreateUser(string email) => new()

@@ -6,6 +6,7 @@ internal sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> opti
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordRecoveryRequestReceipt> PasswordRecoveryRequestReceipts => Set<PasswordRecoveryRequestReceipt>();
+    public DbSet<VerificationResendCooldown> VerificationResendCooldowns => Set<VerificationResendCooldown>();
 
     public void ClearChangeTracker() => ChangeTracker.Clear();
 
@@ -85,6 +86,13 @@ internal sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> opti
             entity.HasOne<OutboxMessage>().WithOne()
                 .HasForeignKey<PasswordRecoveryRequestReceipt>(receipt => receipt.RequestEventId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<VerificationResendCooldown>(entity =>
+        {
+            entity.ToTable("VerificationResendCooldowns");
+            entity.HasKey(cooldown => cooldown.EmailHash);
+            entity.Property(cooldown => cooldown.EmailHash).HasMaxLength(64).IsUnicode(false);
+            entity.HasIndex(cooldown => cooldown.ExpiresAt);
         });
     }
 }

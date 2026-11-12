@@ -54,8 +54,31 @@ internal sealed class RegistrationClient(HttpClient client)
         return await SendAsync("api/identity/verification/confirmation", link);
     }
 
-    internal Task<VerificationStatus> ResendAsync(string email) =>
-        SendAsync("api/identity/verification/resend", new { email });
+    internal async Task<ResendResult> ResendAsync(string email)
+    {
+        try
+        {
+            using var response = await client.PostAsJsonAsync("api/identity/verification/resend", new { email });
+            var seconds = response.Headers.RetryAfter?.Delta?.TotalSeconds;
+            var retryAfter = seconds is > 0 and <= 3600 ? (int)Math.Ceiling(seconds.Value) : (int?)null;
+
+            return response.StatusCode switch
+            {
+                HttpStatusCode.NoContent => new(VerificationStatus.Success, retryAfter ?? 60),
+                HttpStatusCode.BadRequest => new(VerificationStatus.Invalid, null),
+                HttpStatusCode.TooManyRequests => new(VerificationStatus.RateLimited, retryAfter),
+                _ => new(VerificationStatus.Unavailable, null)
+            };
+        }
+        catch (HttpRequestException)
+        {
+            return new(VerificationStatus.Unavailable, null);
+        }
+        catch (OperationCanceledException)
+        {
+            return new(VerificationStatus.Unavailable, null);
+        }
+    }
 
     private async Task<VerificationStatus> SendAsync<T>(string path, T request)
     {
@@ -79,6 +102,8 @@ internal sealed class RegistrationClient(HttpClient client)
 
 internal sealed record RegistrationResult(RegistrationStatus Status, IDictionary<string, string[]>? Errors = null);
 
+internal sealed record ResendResult(VerificationStatus Status, int? RetryAfterSeconds);
+
 internal enum RegistrationStatus { Success, Invalid, Unavailable }
 
-internal enum VerificationStatus { Success, Invalid, Unavailable }
+internal enum VerificationStatus { Success, Invalid, Unavailable, RateLimited }

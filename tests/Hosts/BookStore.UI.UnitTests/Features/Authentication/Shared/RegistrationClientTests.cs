@@ -82,7 +82,7 @@ public class RegistrationClientTests
     [Theory]
     [InlineData(HttpStatusCode.NoContent, "Success")]
     [InlineData(HttpStatusCode.BadRequest, "Invalid")]
-    [InlineData(HttpStatusCode.TooManyRequests, "Unavailable")]
+    [InlineData(HttpStatusCode.TooManyRequests, "RateLimited")]
     public async Task ResendAsync_WhenServerResponds_ShouldReturnSafeStatus(HttpStatusCode response, string expected)
     {
         // Arrange
@@ -94,9 +94,31 @@ public class RegistrationClientTests
         var actual = await sut.ResendAsync(email);
 
         // Assert
-        actual.ToString().Should().Be(expected);
+        actual.Status.ToString().Should().Be(expected);
         handler.Path.Should().Be("/api/identity/verification/resend");
         handler.Body.Should().Contain(email);
+    }
+
+    [Fact]
+    public async Task ResendAsync_WhenRateLimitedWithRetryAfter_ShouldReturnRemainingSeconds()
+    {
+        // Arrange
+        const int expected = 17;
+        var handler = new Handler(_ =>
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+            response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.FromSeconds(expected));
+
+            return response;
+        });
+        var sut = CreateClient(handler);
+
+        // Act
+        var actual = await sut.ResendAsync("jane@example.com");
+
+        // Assert
+        actual.Status.Should().Be(VerificationStatus.RateLimited);
+        actual.RetryAfterSeconds.Should().Be(expected);
     }
 
     [Fact]

@@ -6,6 +6,7 @@ internal interface IIdentityDbContext
     DbSet<OutboxMessage> OutboxMessages { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<PasswordRecoveryRequestReceipt> PasswordRecoveryRequestReceipts { get; }
+    DbSet<VerificationResendCooldown> VerificationResendCooldowns { get; }
 
     void ClearChangeTracker();
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);

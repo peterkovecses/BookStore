@@ -1,5 +1,9 @@
 @page "/verification-pending"
 @inject RegistrationClient Client
+@inject IJSRuntime JS
+@inject TimeProvider Clock
+@inject ILogger<VerificationPending> Logger
+@implements IDisposable
 
 <PageTitle>Email confirmation - BookStore</PageTitle>
 <div class="row justify-content-center">
@@ -19,7 +23,11 @@
                         <InputText id="resendEmail" type="email" class="form-control" autocomplete="email" @bind-Value="_model.Email" />
                         <ValidationMessage For="@(() => _model.Email)" />
                     </div>
-                    <button class="btn btn-primary rounded-pill px-4" type="submit" disabled="@_loading">Request email</button>
+                    <button class="btn btn-primary rounded-pill px-4" type="submit" disabled="@(_loading || _restoring || RemainingSeconds > 0)">Request email</button>
+                    @if (RemainingSeconds > 0)
+                    {
+                        <p role="status" aria-live="polite">You can request another email in @RemainingSeconds second@(RemainingSeconds == 1 ? "" : "s").</p>
+                    }
                     <a href="login" class="btn btn-link">Login</a>
                 </EditForm>
             </div>
@@ -29,28 +37,97 @@
 
 @code {
     private readonly ResendModel _model = new();
+    private const string StorageKey = "bookstore.verification-resend-until";
+    private readonly CancellationTokenSource _dispose = new();
+    private DateTimeOffset? _until;
+    private bool _restoring = true;
     private bool _loading;
     private bool _success;
     private string? _message;
 
+    private int RemainingSeconds => _until is { } until
+        ? Math.Max(0, (int)Math.Ceiling((until - Clock.GetUtcNow()).TotalSeconds))
+        : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var stored = await JS.InvokeAsync<string?>("sessionStorage.getItem", StorageKey);
+            if (long.TryParse(stored, out var milliseconds) &&
+                milliseconds > Clock.GetUtcNow().ToUnixTimeMilliseconds() &&
+                milliseconds <= Clock.GetUtcNow().AddHours(1).ToUnixTimeMilliseconds())
+            {
+                _until = DateTimeOffset.FromUnixTimeMilliseconds(milliseconds);
+                _ = UpdateCountdownAsync();
+            }
+        }
+        catch (JSException exception)
+        {
+            Logger.LogStorageUnavailable(exception);
+            _message = "The wait may not be shown after refreshing this page.";
+        }
+        finally
+        {
+            _restoring = false;
+        }
+    }
+
     private async Task ResendAsync()
     {
-        if (_loading) return;
+        if (_loading || _restoring || RemainingSeconds > 0) return;
         _loading = true;
         try
         {
             var result = await Client.ResendAsync(_model.Email);
-            _success = result == VerificationStatus.Success;
-            _message = result switch
+            _success = result.Status == VerificationStatus.Success;
+            _message = result.Status switch
             {
                 VerificationStatus.Success => "If the address is eligible, a confirmation email may be sent. Please check your inbox.",
                 VerificationStatus.Invalid => "Please enter a valid email address.",
+                VerificationStatus.RateLimited => "Too many requests. Please wait before trying again.",
                 _ => "The request could not be completed. Please try again later."
             };
+            if (result.RetryAfterSeconds is { } seconds && !_dispose.IsCancellationRequested)
+            {
+                _until = Clock.GetUtcNow().AddSeconds(seconds);
+                try
+                {
+                    await JS.InvokeVoidAsync("sessionStorage.setItem", StorageKey, _until.Value.ToUnixTimeMilliseconds().ToString());
+                }
+                catch (JSException exception)
+                {
+                    Logger.LogStorageUnavailable(exception);
+                    _message += " The wait may not be shown after refreshing this page.";
+                }
+
+                _ = UpdateCountdownAsync();
+            }
         }
         finally
         {
             _loading = false;
         }
+    }
+
+    private async Task UpdateCountdownAsync()
+    {
+        try
+        {
+            while (RemainingSeconds > 0)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1), Clock, _dispose.Token);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException) when (_dispose.IsCancellationRequested)
+        {
+        }
+    }
+
+    public void Dispose()
+    {
+        _dispose.Cancel();
+        _dispose.Dispose();
     }
 }

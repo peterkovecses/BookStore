@@ -167,6 +167,8 @@ public class AuthenticationPagesTests
     private static ServiceProvider CreateServices() =>
         new ServiceCollection()
             .AddLogging()
+            .AddSingleton(Substitute.For<IJSRuntime>())
+            .AddSingleton(TimeProvider.System)
             .AddSingleton<NavigationManager>(new TestNavigationManager())
             .AddSingleton(new RegistrationClient(new HttpClient(new Handler(HttpStatusCode.NoContent)) { BaseAddress = new Uri("https://api.example.com") }))
             .AddSingleton(provider => new PasswordPolicyClient(
