@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\BookStore.Common\BookStore.Common.csproj" />
     <ProjectReference Include="..\..\Modules\Catalog\BookStore.Catalog.Contracts\BookStore.Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\Modules\Identity\BookStore.Identity.Contracts\BookStore.Identity.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

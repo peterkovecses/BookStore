@@ -13,6 +13,9 @@ internal sealed class RegistrationModel
 
     [Required]
     public string Password { get; set; } = string.Empty;
+
+    [Required, Compare(nameof(Password), ErrorMessage = "The passwords do not match.")]
+    public string ConfirmPassword { get; set; } = string.Empty;
 }
 
 internal sealed class ResendModel
