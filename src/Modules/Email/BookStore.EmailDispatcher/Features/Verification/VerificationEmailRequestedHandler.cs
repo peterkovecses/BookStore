@@ -13,13 +13,16 @@ internal sealed class VerificationEmailRequestedHandler(
             throw new InvalidOperationException("EmailDispatcher:Smtp:FromAddress must be configured with a valid email address.");
         }
 
-        var link = dataProtectionProvider.CreateProtector("BookStore.Identity.VerificationLink.v1")
-            .CreateProtector(@event.UserId)
-            .CreateProtector(@event.Email)
-            .Unprotect(@event.ProtectedLink);
+        var link = UnprotectLink(@event);
         var body = await renderer.RenderVerificationAsync(@event.FirstName, link, cancellationToken);
         var message = new EmailMessage(settings.Value.FromAddress, @event.Email, "Verify your BookStore email address", body.TextBody, body.HtmlBody);
 
         await sender.SendAsync(message, cancellationToken);
     }
+
+    private string UnprotectLink(VerificationEmailRequested @event) =>
+        dataProtectionProvider.CreateProtector("BookStore.Identity.VerificationLink.v1")
+            .CreateProtector(@event.UserId)
+            .CreateProtector(@event.Email)
+            .Unprotect(@event.ProtectedLink);
 }

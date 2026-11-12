@@ -13,21 +13,24 @@ internal sealed class PasswordResetEmailRequestedHandler(
             throw new InvalidOperationException("EmailDispatcher:Smtp:FromAddress must be configured with a valid email address.");
         }
 
-        string link;
-        try
-        {
-            link = protection.CreateProtector("BookStore.Identity.PasswordResetLink.v2")
-                .CreateProtector(value.UserId).Unprotect(value.ProtectedLink);
-        }
-        catch (CryptographicException)
-        {
-            link = protection.CreateProtector("BookStore.Identity.PasswordResetLink.v1")
-                .CreateProtector(value.UserId).CreateProtector(value.Email).Unprotect(value.ProtectedLink);
-        }
-
+        var link = UnprotectLink(value);
         var body = await renderer.RenderPasswordResetAsync(value.FirstName, link, cancellationToken);
         var message = new EmailMessage(settings.Value.FromAddress, value.Email, "Reset your BookStore password", body.TextBody, body.HtmlBody);
 
         await sender.SendAsync(message, cancellationToken);
+    }
+
+    private string UnprotectLink(PasswordResetEmailRequested value)
+    {
+        try
+        {
+            return protection.CreateProtector("BookStore.Identity.PasswordResetLink.v2")
+                .CreateProtector(value.UserId).Unprotect(value.ProtectedLink);
+        }
+        catch (CryptographicException)
+        {
+            return protection.CreateProtector("BookStore.Identity.PasswordResetLink.v1")
+                .CreateProtector(value.UserId).CreateProtector(value.Email).Unprotect(value.ProtectedLink);
+        }
     }
 }

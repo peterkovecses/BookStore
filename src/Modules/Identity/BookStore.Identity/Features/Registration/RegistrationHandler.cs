@@ -13,31 +13,8 @@ internal sealed class RegistrationHandler(
 
         try
         {
-            var attempt = await context.ExecuteInTransactionAsync(async (transaction, token) =>
-            {
-                var user = new ApplicationUser
-                {
-                    Id = userId,
-                    Email = request.Email,
-                    UserName = request.Email,
-                    FirstName = request.FirstName,
-                    LastName = request.LastName
-                };
-                var result = await users.CreateAsync(user, request.Password);
-                if (result.Succeeded)
-                {
-                    var message = await verificationRequests.CreateAsync(user, token);
-                    context.OutboxMessages.Add(message);
-                    await context.SaveChangesAsync(token);
-                    await transaction.CommitAsync(token);
-
-                    return new RegistrationAttempt(null);
-                }
-
-                await transaction.RollbackAsync(token);
-
-                return new RegistrationAttempt(result);
-            }, cancellationToken);
+            var attempt = await context.ExecuteInTransactionAsync(
+                (transaction, token) => RegisterAsync(request, userId, transaction, token), cancellationToken);
             if (attempt.Result is null)
             {
                 return Result.Success();
@@ -60,24 +37,56 @@ internal sealed class RegistrationHandler(
         catch (DbUpdateException exception) when (exception.InnerException is SqlException { Number: 2601 or 2627 })
         {
             context.ClearChangeTracker();
-            var normalizedEmail = users.NormalizeEmail(request.Email);
-            var normalizedUserName = users.NormalizeName(request.Email);
-            var matchingUser = await context.Users.AsNoTracking()
-                .Where(existing => existing.NormalizedEmail == normalizedEmail)
-                .Select(existing => new { existing.Id })
-                .SingleOrDefaultAsync(cancellationToken);
-            // Check the other unique keys in the current user model before treating this as an email duplicate.
-            if (matchingUser is not null &&
-                !await context.Users.AsNoTracking().AnyAsync(existing =>
-                    existing.Id == userId ||
-                    (existing.NormalizedUserName == normalizedUserName && existing.Id != matchingUser.Id),
-                    cancellationToken))
+            if (await IsEmailConflictAsync(request.Email, userId, cancellationToken))
             {
                 return Result.Success();
             }
 
             throw;
         }
+    }
+
+    private async Task<RegistrationAttempt> RegisterAsync(
+        RegisterCommand request, string userId, IIdentityDbTransaction transaction, CancellationToken cancellationToken)
+    {
+        var user = new ApplicationUser
+        {
+            Id = userId,
+            Email = request.Email,
+            UserName = request.Email,
+            FirstName = request.FirstName,
+            LastName = request.LastName
+        };
+        var result = await users.CreateAsync(user, request.Password);
+        if (result.Succeeded)
+        {
+            var message = await verificationRequests.CreateAsync(user, cancellationToken);
+            context.OutboxMessages.Add(message);
+            await context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return new RegistrationAttempt(null);
+        }
+
+        await transaction.RollbackAsync(cancellationToken);
+
+        return new RegistrationAttempt(result);
+    }
+
+    private async Task<bool> IsEmailConflictAsync(string email, string userId, CancellationToken cancellationToken)
+    {
+        var normalizedEmail = users.NormalizeEmail(email);
+        var normalizedUserName = users.NormalizeName(email);
+        var matchingUser = await context.Users.AsNoTracking()
+            .Where(existing => existing.NormalizedEmail == normalizedEmail)
+            .Select(existing => new { existing.Id })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return matchingUser is not null &&
+            !await context.Users.AsNoTracking().AnyAsync(existing =>
+                existing.Id == userId ||
+                (existing.NormalizedUserName == normalizedUserName && existing.Id != matchingUser.Id),
+                cancellationToken);
     }
 
     private static bool IsDuplicateError(IdentityError error) =>

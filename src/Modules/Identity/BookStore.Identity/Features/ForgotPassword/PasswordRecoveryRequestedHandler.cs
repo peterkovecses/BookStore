@@ -13,15 +13,9 @@ internal sealed class PasswordRecoveryRequestedHandler(
     public async Task HandleAsync(PasswordRecoveryRequested value, CancellationToken cancellationToken) =>
         await context.ExecuteInTransactionAsync(async (transaction, token) =>
         {
-            var resource = $"identity.password-recovery:{dispatchContext.EventId:N}";
-            var lockResult = await transaction.TryAcquireLockAsync(resource, 10_000, token);
-            if (lockResult is not int result || result < 0)
-            {
-                throw new TimeoutException("Unable to acquire the password recovery request lock.");
-            }
+            await AcquireRequestLockAsync(transaction, token);
 
-            if (await context.PasswordRecoveryRequestReceipts.AnyAsync(
-                receipt => receipt.RequestEventId == dispatchContext.EventId, token))
+            if (await WasProcessedAsync(token))
             {
                 await transaction.CommitAsync(token);
 
@@ -44,12 +38,7 @@ internal sealed class PasswordRecoveryRequestedHandler(
             }
 
             var now = clock.GetUtcNow();
-            var resetToken = await users.GeneratePasswordResetTokenAsync(user);
-            var link = QueryHelpers.AddQueryString(options.Value.LinkBaseUrl, new Dictionary<string, string?>
-            {
-                ["userId"] = user.Id,
-                ["token"] = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken))
-            });
+            var link = await CreateResetLinkAsync(user);
             var id = Guid.NewGuid();
             var message = new PasswordResetEmailRequested(user.Id, user.Email!, user.FirstName,
                 protection.CreateProtector("BookStore.Identity.PasswordResetLink.v2")
@@ -73,6 +62,32 @@ internal sealed class PasswordRecoveryRequestedHandler(
             });
             await context.SaveChangesAsync(token);
             await transaction.CommitAsync(token);
+
             return true;
         }, cancellationToken);
+
+    private async Task AcquireRequestLockAsync(IIdentityDbTransaction transaction, CancellationToken cancellationToken)
+    {
+        var resource = $"identity.password-recovery:{dispatchContext.EventId:N}";
+        var lockResult = await transaction.TryAcquireLockAsync(resource, 10_000, cancellationToken);
+        if (lockResult is not int result || result < 0)
+        {
+            throw new TimeoutException("Unable to acquire the password recovery request lock.");
+        }
+    }
+
+    private Task<bool> WasProcessedAsync(CancellationToken cancellationToken) =>
+        context.PasswordRecoveryRequestReceipts.AnyAsync(
+            receipt => receipt.RequestEventId == dispatchContext.EventId, cancellationToken);
+
+    private async Task<string> CreateResetLinkAsync(ApplicationUser user)
+    {
+        var resetToken = await users.GeneratePasswordResetTokenAsync(user);
+
+        return QueryHelpers.AddQueryString(options.Value.LinkBaseUrl, new Dictionary<string, string?>
+        {
+            ["userId"] = user.Id,
+            ["token"] = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken))
+        });
+    }
 }
