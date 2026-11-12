@@ -9,15 +9,13 @@ public sealed class ResendVerificationHandlerTests
         const string email = "user@example.com";
         var now = new DateTimeOffset(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
         var protection = new EphemeralDataProtectionProvider();
-        var context = Substitute.For<IIdentityDbContext>();
-        var outboxMessages = Substitute.For<DbSet<OutboxMessage>>();
+        var store = Substitute.For<IVerificationResendStore>();
         OutboxMessage? actualMessage = null;
-        context.OutboxMessages.Returns(outboxMessages);
-        context.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
-        outboxMessages.Add(Arg.Do<OutboxMessage>(message => actualMessage = message));
+        store.EnqueueAsync(email, Arg.Do<OutboxMessage>(message => actualMessage = message), Arg.Any<CancellationToken>())
+            .Returns(new ResendVerificationOutcome(true, 60));
         var clock = Substitute.For<TimeProvider>();
         clock.GetUtcNow().Returns(now);
-        var sut = new ResendVerificationHandler(context, protection, clock);
+        var sut = new ResendVerificationHandler(store, protection, clock);
         var command = new ResendVerificationCommand(new ResendVerificationRequest { Email = email });
 
         // Act
@@ -33,6 +31,24 @@ public sealed class ResendVerificationHandlerTests
         request.Should().NotBeNull();
         protection.CreateProtector(VerificationResendRequested.ProtectionPurpose)
             .Unprotect(request!.ProtectedEmail).Should().Be(email);
-        await context.Received(1).SaveChangesAsync(TestContext.Current.CancellationToken);
+        await store.Received(1).EnqueueAsync(email, Arg.Any<OutboxMessage>(), TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenCooldownIsActive_ShouldReturnStoreOutcome()
+    {
+        // Arrange
+        const string email = "user@example.com";
+        var expected = new ResendVerificationOutcome(false, 23);
+        var store = Substitute.For<IVerificationResendStore>();
+        store.EnqueueAsync(email, Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>()).Returns(expected);
+        var sut = new ResendVerificationHandler(store, new EphemeralDataProtectionProvider(), TimeProvider.System);
+
+        // Act
+        var actual = await sut.HandleAsync(new ResendVerificationCommand(new ResendVerificationRequest { Email = email }),
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.Should().HaveData(value => value.Should().Be(expected));
     }
 }

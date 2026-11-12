@@ -24,6 +24,7 @@ internal static class VerificationEndpoint
             .WithDescription("Requests email verification without disclosing account status.")
             .RequireRateLimiting(VerificationRateLimitPolicies.Resend)
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .ProducesValidationProblem();
 
     private static async Task<IResult> HandleConfirmationAsync(
@@ -34,7 +35,19 @@ internal static class VerificationEndpoint
 
     private static async Task<IResult> HandleResendAsync(
         ResendVerificationRequest request,
-        IRequestHandler<ResendVerificationCommand, Result> handler,
-        CancellationToken cancellationToken) =>
-        await handler.HandleAsync(new ResendVerificationCommand(request), cancellationToken).ToMinimalApiResultAsync();
+        IRequestHandler<ResendVerificationCommand, Result<ResendVerificationOutcome>> handler,
+        HttpContext context,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(new ResendVerificationCommand(request), cancellationToken);
+        if (result.IsFailure)
+        {
+            return await Task.FromResult(result).ToMinimalApiResultAsync();
+        }
+
+        var outcome = result.Data!;
+        context.Response.Headers.RetryAfter = outcome.RetryAfterSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+        return outcome.Accepted ? Results.NoContent() : Results.StatusCode(StatusCodes.Status429TooManyRequests);
+    }
 }
