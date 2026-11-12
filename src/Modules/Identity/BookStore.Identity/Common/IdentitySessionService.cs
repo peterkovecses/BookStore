@@ -17,7 +17,15 @@ internal sealed class IdentitySessionService(
         {
             context.ChangeTracker.Clear();
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-            await AcquireLockAsync("login:" + lockKey, cancellationToken);
+            await IdentityTransactionLock.AcquireAsync(context, "login:" + lockKey, cancellationToken);
+            var userId = await context.Users.AsNoTracking().Where(item => item.NormalizedEmail == normalizedEmail)
+                .Select(item => item.Id).SingleOrDefaultAsync(cancellationToken);
+            if (userId is null)
+            {
+                return AuthenticationResult.Invalid;
+            }
+
+            await IdentityTransactionLock.AcquireAsync(context, IdentityTransactionLock.User(userId), cancellationToken);
             var user = await users.FindByEmailAsync(email);
             if (user is null || await users.IsLockedOutAsync(user))
             {
@@ -65,18 +73,19 @@ internal sealed class IdentitySessionService(
         {
             context.ChangeTracker.Clear();
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-            var family = await context.RefreshTokens.AsNoTracking().Where(token => token.Hash == hash)
-                .Select(token => (Guid?)token.FamilyId).SingleOrDefaultAsync(cancellationToken);
-            if (family is null)
+            var session = await context.RefreshTokens.AsNoTracking().Where(token => token.Hash == hash)
+                .Select(token => new { token.FamilyId, token.UserId }).SingleOrDefaultAsync(cancellationToken);
+            if (session is null)
             {
                 return AuthenticationResult.Invalid;
             }
 
-            await AcquireLockAsync("refresh:" + family.Value.ToString("N"), cancellationToken);
+            await IdentityTransactionLock.AcquireAsync(context, IdentityTransactionLock.User(session.UserId), cancellationToken);
+            await IdentityTransactionLock.AcquireAsync(context, "refresh:" + session.FamilyId.ToString("N"), cancellationToken);
             var token = await context.RefreshTokens.SingleAsync(item => item.Hash == hash, cancellationToken);
             if (token.Rotated)
             {
-                await context.RefreshTokens.Where(item => item.FamilyId == family.Value && !item.Revoked)
+                await context.RefreshTokens.Where(item => item.FamilyId == session.FamilyId && !item.Revoked)
                     .ExecuteUpdateAsync(setters => setters.SetProperty(item => item.Revoked, true), cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
@@ -95,7 +104,7 @@ internal sealed class IdentitySessionService(
             }
 
             token.Rotated = true;
-            var result = await IssueAsync(user, family.Value, cancellationToken);
+            var result = await IssueAsync(user, session.FamilyId, cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
             return result;
@@ -116,7 +125,7 @@ internal sealed class IdentitySessionService(
                 return;
             }
 
-            await AcquireLockAsync("refresh:" + family.Value.ToString("N"), cancellationToken);
+            await IdentityTransactionLock.AcquireAsync(context, "refresh:" + family.Value.ToString("N"), cancellationToken);
             await context.RefreshTokens.Where(token => token.FamilyId == family.Value && !token.Revoked)
                 .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.Revoked, true), cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -145,18 +154,6 @@ internal sealed class IdentitySessionService(
             new SigningCredentials(new SymmetricSecurityKey(Convert.FromBase64String(_options.SigningKey)), SecurityAlgorithms.HmacSha256));
 
         return new AuthenticationResult(new AccessTokenResponse(new JwtSecurityTokenHandler().WriteToken(jwt), expiresAt), rawToken, false);
-    }
-
-    private async Task AcquireLockAsync(string resource, CancellationToken cancellationToken)
-    {
-        await using var command = context.Database.GetDbConnection().CreateCommand();
-        command.Transaction = context.Database.CurrentTransaction!.GetDbTransaction();
-        command.CommandText = "DECLARE @result int; EXEC @result = sp_getapplock @Resource = @resource, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 15000; IF @result < 0 THROW 51000, 'Could not acquire identity lock.', 1;";
-        var parameter = command.CreateParameter();
-        parameter.ParameterName = "@resource";
-        parameter.Value = resource;
-        command.Parameters.Add(parameter);
-        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     private static string Hash(string token) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));

@@ -1,6 +1,10 @@
 global using System.Net.Sockets;
+global using System.Security.Cryptography;
 global using System.Text.Encodings.Web;
 global using BookStore.EmailDispatcher.Contracts;
+global using BookStore.EmailDispatcher.Features.PasswordReset;
+global using BookStore.EmailDispatcher.Features.Verification;
+global using BookStore.EmailDispatcher.Infrastructure.Smtp;
 global using BookStore.Identity.Contracts;
 global using Kovecses.Requests;
 global using MailKit;

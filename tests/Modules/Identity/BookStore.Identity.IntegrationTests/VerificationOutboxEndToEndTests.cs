@@ -32,7 +32,8 @@ public sealed class VerificationOutboxEndToEndFactory : BaseWebApplicationFactor
         builder.ConfigureServices(services =>
         {
             // Mailpit is a local, unauthenticated test sink; retain the production validator with a development environment.
-            var descriptor = services.Single(service => service.ImplementationType?.FullName == "BookStore.EmailDispatcher.SmtpSettingsValidator");
+            var descriptor = services.Single(service =>
+                service.ImplementationType?.FullName == "BookStore.EmailDispatcher.Infrastructure.Smtp.SmtpSettingsValidator");
             services.Remove(descriptor);
             var environment = Substitute.For<IHostEnvironment>();
             environment.EnvironmentName.Returns(Environments.Development);

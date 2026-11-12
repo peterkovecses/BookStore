@@ -3,11 +3,35 @@ namespace BookStore.EmailDispatcher.UnitTests;
 public sealed class SmtpCircuitBreakerTests
 {
     [Fact]
+    public void Complete_WhenCircuitOpensAndProbeRecovers_ShouldLogOnlyTransitions()
+    {
+        // Arrange
+        var clock = new FakeTimeProvider();
+        var logs = new RecordingLoggerProvider();
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(logs).SetMinimumLevel(LogLevel.Trace));
+        var settings = Options.Create(new SmtpSettings { CircuitFailureThreshold = 1, CircuitBreakSeconds = 30 });
+        var sut = new SmtpCircuitBreaker(settings, clock, loggerFactory.CreateLogger<SmtpCircuitBreaker>());
+
+        // Act
+        sut.Complete(sut.Enter(), true, false);
+        clock.Advance(TimeSpan.FromSeconds(30));
+        sut.Complete(sut.Enter(), true, false);
+        clock.Advance(TimeSpan.FromSeconds(30));
+        sut.Complete(sut.Enter(), false, false);
+
+        // Assert
+        logs.Messages.Should().ContainSingle(log => log.Contains("circuit opened after"));
+        logs.Messages.Should().ContainSingle(log => log.Contains("circuit reopened after"));
+        logs.Messages.Should().ContainSingle(log => log.Contains("circuit recovered after"));
+    }
+
+    [Fact]
     public void Enter_WhenThresholdReached_ShouldOpenAndAllowOnlyOneRecoveryProbe()
     {
         // Arrange
         var clock = new FakeTimeProvider();
-        var sut = new SmtpCircuitBreaker(Options.Create(new SmtpSettings { CircuitFailureThreshold = 2, CircuitBreakSeconds = 30 }), clock);
+        var sut = new SmtpCircuitBreaker(Options.Create(new SmtpSettings { CircuitFailureThreshold = 2, CircuitBreakSeconds = 30 }), clock,
+            NullLogger<SmtpCircuitBreaker>.Instance);
         sut.Complete(sut.Enter(), true, false);
         sut.Complete(sut.Enter(), true, false);
 
@@ -31,7 +55,8 @@ public sealed class SmtpCircuitBreakerTests
     {
         // Arrange
         var clock = new FakeTimeProvider();
-        var sut = new SmtpCircuitBreaker(Options.Create(new SmtpSettings { CircuitFailureThreshold = 1, CircuitBreakSeconds = 30 }), clock);
+        var sut = new SmtpCircuitBreaker(Options.Create(new SmtpSettings { CircuitFailureThreshold = 1, CircuitBreakSeconds = 30 }), clock,
+            NullLogger<SmtpCircuitBreaker>.Instance);
         sut.Complete(sut.Enter(), true, false);
         clock.Advance(TimeSpan.FromSeconds(30));
 
@@ -47,7 +72,8 @@ public sealed class SmtpCircuitBreakerTests
     {
         // Arrange
         var clock = new FakeTimeProvider();
-        var sut = new SmtpCircuitBreaker(Options.Create(new SmtpSettings { CircuitFailureThreshold = 1, CircuitBreakSeconds = 30 }), clock);
+        var sut = new SmtpCircuitBreaker(Options.Create(new SmtpSettings { CircuitFailureThreshold = 1, CircuitBreakSeconds = 30 }), clock,
+            NullLogger<SmtpCircuitBreaker>.Instance);
         sut.Complete(sut.Enter(), true, false);
         clock.Advance(TimeSpan.FromSeconds(30));
         var probe = sut.Enter();
@@ -58,5 +84,43 @@ public sealed class SmtpCircuitBreakerTests
         // Assert
         sut.GetAvailability().IsAvailable.Should().BeTrue();
         sut.Enter().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Complete_WhenSuccessfulOrCancelledAttemptsInterruptFailures_ShouldPreserveFailureCounting()
+    {
+        // Arrange
+        var clock = new FakeTimeProvider();
+        var sut = new SmtpCircuitBreaker(Options.Create(new SmtpSettings { CircuitFailureThreshold = 2, CircuitBreakSeconds = 30 }), clock,
+            NullLogger<SmtpCircuitBreaker>.Instance);
+        sut.Complete(sut.Enter(), true, false);
+        sut.Complete(sut.Enter(), false, false);
+        sut.Complete(sut.Enter(), true, false);
+
+        // Act
+        sut.Complete(sut.Enter(), true, true);
+        var availableAfterCancellation = sut.GetAvailability().IsAvailable;
+        sut.Complete(sut.Enter(), true, false);
+
+        // Assert
+        availableAfterCancellation.Should().BeTrue();
+        sut.GetAvailability().IsAvailable.Should().BeFalse();
+    }
+
+    private sealed class RecordingLoggerProvider : ILoggerProvider
+    {
+        public ConcurrentQueue<string> Messages { get; } = new();
+
+        public ILogger CreateLogger(string categoryName) => new RecordingLogger(Messages);
+
+        public void Dispose() { }
+
+        private sealed class RecordingLogger(ConcurrentQueue<string> messages) : ILogger
+        {
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+            public bool IsEnabled(LogLevel logLevel) => true;
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+                Func<TState, Exception?, string> formatter) => messages.Enqueue(formatter(state, exception));
+        }
     }
 }

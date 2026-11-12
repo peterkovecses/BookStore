@@ -8,7 +8,8 @@ public sealed class EmailSenderTests
     {
         var options = Options.Create(settings);
 
-        return new(options, new SmtpCircuitBreaker(options, clock), clock, NullLogger<EmailSender>.Instance, factory);
+        return new(options, new SmtpCircuitBreaker(options, clock, NullLogger<SmtpCircuitBreaker>.Instance), clock,
+            NullLogger<EmailSender>.Instance, factory);
     }
 
     [Fact]
@@ -282,12 +283,71 @@ public sealed class EmailSenderTests
     }
 
     [Fact]
+    public async Task SendAsync_WhenRetrySucceeds_ShouldLogRetryAndAcceptanceWithoutSensitiveContent()
+    {
+        // Arrange
+        const string sender = "sender@example.com";
+        const string recipient = "recipient@example.com";
+        const string secret = "secret-password-and-reset-token";
+        var message = new EmailMessage(sender, recipient, "Subject", $"https://example.test/reset?token={secret}", secret);
+        var failed = Substitute.For<ISmtpClient>();
+        var recovered = Substitute.For<ISmtpClient>();
+        failed.IsConnected.Returns(true);
+        recovered.IsConnected.Returns(true);
+        failed.SendAsync(Arg.Any<MimeMessage>(), Arg.Any<CancellationToken>(), Arg.Any<ITransferProgress>())
+            .Returns<Task<string>>(_ => throw new IOException(secret));
+        var clock = new FakeTimeProvider();
+        var clients = new Queue<ISmtpClient>([failed, recovered]);
+        var logs = new RecordingLoggerProvider();
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(logs).SetMinimumLevel(LogLevel.Trace));
+        var options = Options.Create(new SmtpSettings());
+        var breaker = new SmtpCircuitBreaker(options, clock, loggerFactory.CreateLogger<SmtpCircuitBreaker>());
+        await using var sut = new EmailSender(options, breaker, clock, loggerFactory.CreateLogger<EmailSender>(), clients.Dequeue);
+
+        // Act
+        var actual = sut.SendAsync(message, TestContext.Current.CancellationToken);
+        clock.Advance(TimeSpan.FromSeconds(3));
+        await actual;
+
+        // Assert
+        logs.Messages.Should().Contain(log => log.Contains("SMTP retry scheduled") && log.Contains(nameof(IOException)));
+        logs.Messages.Should().Contain(log => log.Contains("SMTP accepted message"));
+        logs.Messages.Should().Contain(log => log.Contains("SMTP attempt started"));
+        string.Join('\n', logs.Messages).Should().NotContain(sender).And.NotContain(recipient).And.NotContain(secret);
+    }
+
+    [Fact]
+    public async Task SendAsync_WhenRetriesExhausted_ShouldLogFailureTypeWithoutExceptionMessage()
+    {
+        // Arrange
+        const string secret = "smtp-secret-response";
+        var logs = new RecordingLoggerProvider();
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddProvider(logs).SetMinimumLevel(LogLevel.Trace));
+        var options = Options.Create(new SmtpSettings { MaxAttempts = 1 });
+        var client = Substitute.For<ISmtpClient>();
+        client.IsConnected.Returns(true);
+        client.SendAsync(Arg.Any<MimeMessage>(), Arg.Any<CancellationToken>(), Arg.Any<ITransferProgress>())
+            .Returns<Task<string>>(_ => throw new IOException(secret));
+        var clock = new FakeTimeProvider();
+        var breaker = new SmtpCircuitBreaker(options, clock, loggerFactory.CreateLogger<SmtpCircuitBreaker>());
+        await using var sut = new EmailSender(options, breaker, clock, loggerFactory.CreateLogger<EmailSender>(), () => client);
+
+        // Act
+        var act = () => sut.SendAsync(Message, TestContext.Current.CancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<IOException>();
+        logs.Messages.Should().Contain(log => log.Contains("SMTP send failed") && log.Contains(nameof(IOException)));
+        string.Join('\n', logs.Messages).Should().NotContain(secret).And.NotContain(Message.To);
+    }
+
+    [Fact]
     public async Task SendAsync_WhenCircuitOpen_ShouldNotAttemptSmtp()
     {
         // Arrange
         var options = Options.Create(new SmtpSettings { MaxAttempts = 1, CircuitFailureThreshold = 1 });
         var clock = new FakeTimeProvider();
-        var breaker = new SmtpCircuitBreaker(options, clock);
+        var breaker = new SmtpCircuitBreaker(options, clock, NullLogger<SmtpCircuitBreaker>.Instance);
         var client = Substitute.For<ISmtpClient>();
         client.IsConnected.Returns(true);
         client.SendAsync(Arg.Any<MimeMessage>(), Arg.Any<CancellationToken>(), Arg.Any<ITransferProgress>())
@@ -386,6 +446,23 @@ public sealed class EmailSenderTests
         var act = () => send;
         await act.Should().ThrowAsync<OperationCanceledException>();
         client.Received(1).Dispose();
+    }
+
+    private sealed class RecordingLoggerProvider : ILoggerProvider
+    {
+        public ConcurrentQueue<string> Messages { get; } = new();
+
+        public ILogger CreateLogger(string categoryName) => new RecordingLogger(Messages);
+
+        public void Dispose() { }
+
+        private sealed class RecordingLogger(ConcurrentQueue<string> messages) : ILogger
+        {
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+            public bool IsEnabled(LogLevel logLevel) => true;
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+                Func<TState, Exception?, string> formatter) => messages.Enqueue(formatter(state, exception));
+        }
     }
 
     [Fact]

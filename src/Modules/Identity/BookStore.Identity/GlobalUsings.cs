@@ -12,6 +12,8 @@ global using BookStore.Identity.Contracts;
 global using BookStore.Identity.Features.Authentication;
 global using BookStore.Identity.Features.Login;
 global using BookStore.Identity.Features.Logout;
+global using BookStore.Identity.Features.ForgotPassword;
+global using BookStore.Identity.Features.ResetPassword;
 global using BookStore.Identity.Features.Refresh;
 global using BookStore.Identity.Features.Registration;
 global using BookStore.Identity.Features.Verification;

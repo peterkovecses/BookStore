@@ -1,4 +1,4 @@
-namespace BookStore.EmailDispatcher;
+namespace BookStore.EmailDispatcher.Infrastructure.Smtp;
 
 internal sealed class EmailSender : IEmailSender, IAsyncDisposable
 {
@@ -37,16 +37,29 @@ internal sealed class EmailSender : IEmailSender, IAsyncDisposable
         using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _shutdown.Token);
         for (var attempt = 1; ; attempt++)
         {
+            _logger.SendAttemptStarted(attempt, _settings.MaxAttempts);
             try
             {
                 await SendAttemptAsync(mail, lifetime.Token);
+                _logger.SmtpAccepted(attempt);
 
                 return;
             }
             catch (Exception ex) when (IsTransient(ex) && attempt < _settings.MaxAttempts && !lifetime.IsCancellationRequested)
             {
                 var delay = TimeSpan.FromSeconds(_settings.RetryDelaySeconds * Math.Pow(2, attempt - 1) * (0.8 + Random.Shared.NextDouble() * 0.4));
+                _logger.RetryScheduled(attempt, _settings.MaxAttempts, ex.GetType().Name, delay, _clock.GetUtcNow() + delay);
                 await Task.Delay(delay, _clock, lifetime.Token);
+            }
+            catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.SendFailed(attempt, _settings.MaxAttempts, ex.GetType().Name);
+
+                throw;
             }
         }
     }
@@ -184,11 +197,17 @@ internal sealed class EmailSender : IEmailSender, IAsyncDisposable
     }
 }
 
-internal sealed class SmtpAuthenticationFailedException(Exception innerException)
-    : Exception("SMTP authentication failed.", innerException);
-
 internal static partial class EmailSenderLogger
 {
+    [LoggerMessage(Level = LogLevel.Information, Message = "SMTP attempt started, attempt {Attempt} of {MaxAttempts}")]
+    internal static partial void SendAttemptStarted(this ILogger<EmailSender> logger, int attempt, int maxAttempts);
+    [LoggerMessage(Level = LogLevel.Information, Message = "SMTP accepted message on attempt {Attempt}; this does not confirm final delivery")]
+    internal static partial void SmtpAccepted(this ILogger<EmailSender> logger, int attempt);
+    [LoggerMessage(Level = LogLevel.Warning, Message = "SMTP retry scheduled after attempt {Attempt} of {MaxAttempts}, error {ErrorType}, delay {Delay}, next attempt {NextAttemptAt}")]
+    internal static partial void RetryScheduled(this ILogger<EmailSender> logger, int attempt, int maxAttempts,
+        string errorType, TimeSpan delay, DateTimeOffset nextAttemptAt);
+    [LoggerMessage(Level = LogLevel.Error, Message = "SMTP send failed on attempt {Attempt} of {MaxAttempts}, error {ErrorType}")]
+    internal static partial void SendFailed(this ILogger<EmailSender> logger, int attempt, int maxAttempts, string errorType);
     [LoggerMessage(Level = LogLevel.Error, Message = "SMTP idle connection cleanup failed.")]
     internal static partial void LogIdleCleanupFailed(this ILogger<EmailSender> logger, Exception exception);
 }

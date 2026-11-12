@@ -1,7 +1,10 @@
 namespace BookStore.Common.Outbox;
 
 public sealed record OutboxClaim(Guid Id, string EventType, string Payload, string CorrelationId,
-    Guid Token, int AttemptCount);
+    Guid Token, int AttemptCount)
+{
+    public DateTimeOffset CreatedAt { get; init; }
+}
 
 public sealed record OutboxAvailability(bool Available, DateTimeOffset? RetryAfter = null);
 
@@ -11,11 +14,13 @@ public sealed class OutboxDispatchContext
 {
     public Guid EventId { get; private set; }
     public string CorrelationId { get; private set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; private set; }
 
     internal void Set(OutboxClaim claim)
     {
         EventId = claim.Id;
         CorrelationId = claim.CorrelationId;
+        CreatedAt = claim.CreatedAt;
     }
 }
 
@@ -39,6 +44,8 @@ public interface IOutboxPreflight<in TEvent> where TEvent : IEvent
 public interface IOutboxExpiry<in TEvent> where TEvent : IEvent
 {
     bool IsExpired(TEvent value, DateTimeOffset now);
+
+    bool IsExpired(TEvent value, DateTimeOffset now, DateTimeOffset createdAt) => IsExpired(value, now);
 }
 
 public sealed class OutboxOptions

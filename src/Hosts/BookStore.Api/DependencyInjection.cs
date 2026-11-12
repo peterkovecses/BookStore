@@ -7,6 +7,8 @@ public static class DependencyInjection
         services.AddOpenApi();
         services.AddScoped<IOutboxPreflight<BookStore.Identity.Contracts.VerificationEmailRequested>,
             SmtpOutboxPreflight<BookStore.Identity.Contracts.VerificationEmailRequested>>();
+        services.AddScoped<IOutboxPreflight<BookStore.Identity.Contracts.PasswordResetEmailRequested>,
+            SmtpOutboxPreflight<BookStore.Identity.Contracts.PasswordResetEmailRequested>>();
 
         services.AddCors(options =>
         {

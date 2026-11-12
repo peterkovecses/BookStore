@@ -1,4 +1,4 @@
-namespace BookStore.EmailDispatcher;
+namespace BookStore.EmailDispatcher.Features.Verification;
 
 internal static class VerificationEmailTemplate
 {

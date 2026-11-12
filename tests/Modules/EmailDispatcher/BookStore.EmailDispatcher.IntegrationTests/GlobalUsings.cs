@@ -1,4 +1,5 @@
 global using BookStore.EmailDispatcher.Contracts;
+global using BookStore.EmailDispatcher.Infrastructure.Smtp;
 global using BookStore.Identity.Contracts;
 global using DotNet.Testcontainers.Builders;
 global using FluentAssertions;

@@ -24,7 +24,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
         var callsWhileBlocked = control.Calls;
         control.Release.TrySetResult();
-        await WaitForStatusAsync(message.Id, OutboxStatus.Completed);
+        var completed = await WaitForStatusAsync(message.Id, OutboxStatus.Completed);
         await Task.WhenAll(first.StopAsync(TestContext.Current.CancellationToken), second.StopAsync(TestContext.Current.CancellationToken));
         first.Dispose();
         second.Dispose();
@@ -33,10 +33,15 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         callsWhileBlocked.Should().Be(1);
         control.Calls.Should().Be(1);
         control.Logs.Should().Contain(entry => entry.Contains(message.Id.ToString()) && entry.Contains(message.CorrelationId));
+        control.Logs.Should().Contain(entry => entry.Contains("Outbox completed", StringComparison.Ordinal));
+        control.Logs.Should().Contain(entry => entry.Contains("drained all handlers", StringComparison.Ordinal));
         control.Logs.Should().NotContain(entry => entry.Contains(message.Payload));
         control.Logger.Properties.Should().Contain(entry =>
             entry.Any(pair => pair.Key == "EventId" && Equals(pair.Value, message.Id)) &&
             entry.Any(pair => pair.Key == "CorrelationId" && Equals(pair.Value, message.CorrelationId)));
+        control.Logger.Properties.Should().Contain(entry =>
+            entry.Any(pair => pair.Key == "EventId" && Equals(pair.Value, completed.Id)) &&
+            entry.Any(pair => pair.Key == "Attempt" && Equals(pair.Value, completed.AttemptCount)));
     }
 
     [Fact]
@@ -97,7 +102,8 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         var message = Message();
         db.OutboxMessages.Add(message);
         await db.SaveChangesAsync(TestContext.Current.CancellationToken);
-        await using var services = CreateServices(db.Database.GetConnectionString()!, new WorkerControl(), registerHandler: false);
+        var control = new WorkerControl();
+        await using var services = CreateServices(db.Database.GetConnectionString()!, control, registerHandler: false);
         var sut = ActivatorUtilities.CreateInstance<OutboxWorker<IdentityOutboxStore>>(services);
 
         // Act
@@ -109,6 +115,8 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         // Assert
         actual.AttemptCount.Should().Be(1);
         actual.LastError.Should().Be(nameof(NoEventSubscribersException));
+        control.Logs.Should().Contain(entry => entry.Contains("terminal failure", StringComparison.Ordinal) &&
+            entry.Contains(nameof(NoEventSubscribersException), StringComparison.Ordinal));
     }
 
     [Fact]
@@ -148,6 +156,8 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         actual.CumulativeAttemptCount.Should().Be(0);
         actual.NextAttemptAt.Should().BeAfter(DateTimeOffset.UtcNow.AddSeconds(5));
         control.Calls.Should().Be(1);
+        control.Logger.Properties.Should().Contain(entry =>
+            entry.Any(pair => pair.Key == "NextAttemptAt" && pair.Value is DateTimeOffset));
     }
 
     [Fact]
@@ -425,6 +435,37 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         actual.ClaimToken.Should().BeNull();
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WhenShutdownDrainTimesOut_ShouldNotLogSuccessfulDrainOrReleaseClaim()
+    {
+        // Arrange
+        using var setup = factory.Services.CreateScope();
+        var db = setup.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        await db.OutboxMessages.ExecuteDeleteAsync(TestContext.Current.CancellationToken);
+        var message = Message();
+        db.OutboxMessages.Add(message);
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var control = new WorkerControl { IgnoreCancellation = true };
+        await using var services = CreateServices(db.Database.GetConnectionString()!, control, shortShutdown: true);
+        var sut = ActivatorUtilities.CreateInstance<OutboxWorker<IdentityOutboxStore>>(services);
+
+        // Act
+        await sut.StartAsync(TestContext.Current.CancellationToken);
+        await control.Started.Task.WaitAsync(TimeSpan.FromSeconds(15), TestContext.Current.CancellationToken);
+        await sut.StopAsync(TestContext.Current.CancellationToken);
+        var duringDrain = await db.OutboxMessages.AsNoTracking()
+            .SingleAsync(item => item.Id == message.Id, TestContext.Current.CancellationToken);
+        control.Release.TrySetResult();
+        await control.Finished.Task.WaitAsync(TimeSpan.FromSeconds(15), TestContext.Current.CancellationToken);
+        sut.Dispose();
+
+        // Assert
+        duringDrain.Status.Should().Be(OutboxStatus.Processing);
+        duringDrain.ClaimToken.Should().NotBeNull();
+        control.Logs.Should().Contain(entry => entry.Contains("drain timed out", StringComparison.Ordinal));
+        control.Logs.Should().NotContain(entry => entry.Contains("drained all handlers", StringComparison.Ordinal));
+    }
+
     [Theory]
     [InlineData("unknown.event.v1", "{}")]
     [InlineData("test.event.v1", "not-json")]
@@ -450,6 +491,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         // Assert
         actual.AttemptCount.Should().Be(1);
         control.Calls.Should().Be(0);
+        control.Logs.Should().Contain(entry => entry.Contains("terminal failure", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -614,6 +656,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
 
     internal static ServiceProvider CreateServices(string connectionString, WorkerControl control, bool registerHandler = true,
         bool preflight = false, bool throwAfterHandler = false, bool retry = false, bool shortTimeout = false, bool expiry = false,
+        bool shortShutdown = false,
         IEmailDispatchAvailability? smtpAvailability = null, IEmailSender? sender = null, int batchSize = 20, int concurrency = 4,
         TimeSpan? fallbackDelay = null, bool secondHandler = false, bool brokenDependency = false)
     {
@@ -641,6 +684,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
                 options.RetryMaximumDelay = TimeSpan.FromMilliseconds(100);
             }
             if (shortTimeout) options.HandlerTimeout = TimeSpan.FromMilliseconds(500);
+            if (shortShutdown) options.ShutdownTimeout = TimeSpan.FromMilliseconds(100);
         });
         services.AddSingleton(control);
         services.AddRequests(Array.Empty<Assembly>());
@@ -712,6 +756,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource SecondStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource SecondRelease { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Finished { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     public sealed class TestHandler(WorkerControl control, OutboxDispatchContext dispatchContext) : IEventHandler<TestEvent>
@@ -740,7 +785,11 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
                         : control.Release.Task.WaitAsync(cancellationToken));
                 }
             }
-            finally { Interlocked.Decrement(ref control.Active); }
+            finally
+            {
+                Interlocked.Decrement(ref control.Active);
+                control.Finished.TrySetResult();
+            }
         }
     }
 

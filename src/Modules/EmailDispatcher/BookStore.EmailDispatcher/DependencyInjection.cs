@@ -4,6 +4,7 @@ public static class DependencyInjection
 {
     public static IHostApplicationBuilder AddEmailDispatcherModuleServices(this IHostApplicationBuilder builder)
     {
+        builder.Logging.AddFilter("Microsoft.AspNetCore.DataProtection", LogLevel.Warning);
         builder.Services.AddOptions<SmtpSettings>()
             .Bind(builder.Configuration.GetSection("EmailDispatcher:Smtp"))
             .ValidateOnStart();
@@ -14,6 +15,7 @@ public static class DependencyInjection
         builder.Services.AddSingleton<EmailSender>();
         builder.Services.AddSingleton<IEmailSender>(sp => sp.GetRequiredService<EmailSender>());
         builder.Services.AddScoped<IEventHandler<VerificationEmailRequested>, VerificationEmailRequestedHandler>();
+        builder.Services.AddScoped<IEventHandler<PasswordResetEmailRequested>, PasswordResetEmailRequestedHandler>();
 
         return builder;
     }
