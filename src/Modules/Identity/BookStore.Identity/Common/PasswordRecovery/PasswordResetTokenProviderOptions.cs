@@ -1,0 +1,3 @@
+namespace BookStore.Identity.Common.PasswordRecovery;
+
+internal sealed class PasswordResetTokenProviderOptions : DataProtectionTokenProviderOptions;

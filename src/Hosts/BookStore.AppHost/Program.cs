@@ -39,6 +39,8 @@ if (builder.Environment.IsDevelopment())
 {
     bookStoreApi.WithEnvironment("Identity__Verification__LinkBaseUrl",
         ReferenceExpression.Create($"{bookStoreUi.GetEndpoint("https")}/verify-email"));
+    bookStoreApi.WithEnvironment("Identity__PasswordRecovery__LinkBaseUrl",
+        ReferenceExpression.Create($"{bookStoreUi.GetEndpoint("https")}/reset-password"));
 }
 
 builder.Build().Run();

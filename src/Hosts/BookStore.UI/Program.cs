@@ -19,6 +19,8 @@ builder.Services.AddScoped(services => new AuthenticationSession(
     services.GetRequiredService<ISessionLock>()));
 builder.Services.AddScoped(services => new RegistrationClient(
     services.GetRequiredService<IHttpClientFactory>().CreateClient("identity")));
+builder.Services.AddScoped(services => new PasswordRecoveryClient(
+    services.GetRequiredService<IHttpClientFactory>().CreateClient("identity")));
 
 builder.Services.AddHttpClient<IBookStoreApiClient, BookStoreApiClient>(client => 
 {
