@@ -6,8 +6,11 @@ public sealed class PasswordResetEmailDispatchTests
     public async Task PublishAsync_WhenHandlerIsRegistered_ShouldSendBothAlternatives()
     {
         // Arrange
-        const string link = "https://example.com/reset?token=secret";
+        const string link = "https://example.com/reset?token=secret&name=\"<script>\"";
         const string email = "reader@example.com";
+        const string name = "<Alice & Bob>";
+        var encodedLink = HtmlEncoder.Default.Encode(link);
+        var encodedName = HtmlEncoder.Default.Encode(name);
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = Environments.Development });
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
@@ -23,7 +26,7 @@ public sealed class PasswordResetEmailDispatchTests
         using var host = builder.Build();
         using var scope = host.Services.CreateScope();
         var sut = scope.ServiceProvider.GetRequiredService<IEventPublisher<PasswordResetEmailRequested>>();
-        var value = new PasswordResetEmailRequested("user", email, "<Alice>",
+        var value = new PasswordResetEmailRequested("user", email, name,
             protection.CreateProtector("BookStore.Identity.PasswordResetLink.v2")
                 .CreateProtector("user").Protect(link), DateTimeOffset.MaxValue);
 
@@ -32,9 +35,10 @@ public sealed class PasswordResetEmailDispatchTests
 
         // Assert
         await sender.Received(1).SendAsync(Arg.Is<EmailMessage>(message =>
-            message.To == email && message.TextBody.Contains(link) &&
-            message.HtmlBody != null && message.HtmlBody.Contains(link) &&
-            message.HtmlBody.Contains("&lt;Alice&gt;")), TestContext.Current.CancellationToken);
+            message.From == "sender@example.com" && message.To == email &&
+            message.TextBody.Contains(name) && message.TextBody.Contains(link) &&
+            message.HtmlBody != null && message.HtmlBody.Contains(encodedLink) &&
+            message.HtmlBody.Contains(encodedName) && !message.HtmlBody.Contains(value.ProtectedLink)), TestContext.Current.CancellationToken);
     }
 
     [Fact]
