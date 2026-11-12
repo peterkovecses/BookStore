@@ -68,26 +68,23 @@ graph TD
 
 ## 🚀 Getting Started
 
-To run and use the multi-service application locally:
+Follow these steps from the repository root. Steps 2–3 are only for a fresh API setup. If a key ring already exists, restore its matching certificate and settings instead of generating new credentials. The User Secrets import replaces matching values, so skip it when those settings already exist.
 
-1. Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0), [Docker Desktop](https://www.docker.com/products/docker-desktop/), and Aspire CLI **13.6.5** (the tested version, aligned with this AppHost's SDK; update it when the SDK is updated):
-   ```bash
-   dotnet tool install --global Aspire.Cli --version 13.6.5
-   ```
-2. Complete the [one-time local API setup](#one-time-local-api-setup) if this is a fresh development machine.
-3. From the repository root, start the application:
-   ```bash
-   aspire run
-   ```
-4. Open the Aspire Dashboard URL shown in the console, then open the `bookstore-ui` endpoint to use the application.
+### 1. Install the tools
 
-### One-time local API setup
+Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0), [Docker Desktop](https://www.docker.com/products/docker-desktop/), and Aspire CLI **13.6.5** (the tested version matching this AppHost's SDK):
+```bash
+dotnet tool install --global Aspire.Cli --version 13.6.5
+```
 
-The API requires a Data Protection certificate and Identity authentication settings. Store them in the API project's User Secrets, never in source control. The API project already has a `UserSecretsId`; these settings are loaded when Aspire starts the API. The commands below use Bash, OpenSSL, Python 3, and the .NET CLI. On Windows, run them in WSL; native PowerShell is not supported by these commands.
+The setup commands use Bash, OpenSSL, Python 3, and the .NET CLI. On Windows, use WSL; native PowerShell is not supported by these commands.
 
-For a fresh development machine, run the following one-time setup from the repository root in an interactive shell. Create a password-protected RSA certificate outside the repository. OpenSSL prompts for the private-key and PFX passwords:
+### 2. Create the Data Protection certificate
+
+This creates a password-protected RSA certificate outside the repository. The PFX contains its private key; the API uses the certificate to encrypt Data Protection keys and needs the private key to read them. The PEM files are temporary and removed after export. OpenSSL prompts to set and confirm the private-key password, asks for it again to export the PFX, then prompts for the PFX password; the certificate subject is set automatically.
 
 ```bash
+set -euo pipefail
 umask 077
 CERT_DIR="$HOME/.local/share/bookstore/data-protection"
 mkdir -p "$CERT_DIR"
@@ -104,6 +101,7 @@ for file in "$CERT_DIR/development-key.pem" "$CERT_DIR/development-cert.pem" "$C
   fi
 done
 openssl req -x509 -newkey rsa:3072 \
+  -subj "/CN=BookStore Development Data Protection" \
   -keyout "$CERT_DIR/development-key.pem" \
   -out "$CERT_DIR/development-cert.pem" -days 365
 openssl pkcs12 -export \
@@ -113,9 +111,12 @@ openssl pkcs12 -export \
 rm "$CERT_DIR/development-key.pem" "$CERT_DIR/development-cert.pem"
 ```
 
-Store the PFX path and password, plus a random signing key and the local Identity values, in the API's User Secrets. This one-time setup uses Python 3 to prompt for the PFX password without echoing or placing it in shell history or command arguments:
+### 3. Save the API's local settings
+
+This stores the PFX path and password, a newly generated random Identity signing key, and local issuer, audience, and UI-origin values in the API project's User Secrets—not in the repository. Enter the PFX password set in step 2; Python prompts without echoing it or putting it in shell history or command arguments. The API project already has a `UserSecretsId`, so Aspire loads these settings when it starts the API.
 
 ```bash
+set -euo pipefail
 API_PROJECT="src/Hosts/BookStore.Api/BookStore.Api.csproj"
 python3 - <<'PY' | dotnet user-secrets set --project "$API_PROJECT"
 import base64
@@ -143,19 +144,27 @@ print(json.dumps({
 PY
 ```
 
-Skip this setup when these values are already configured; it generates a new signing key. The development certificate is valid for one year. Before it expires, rotate to a newly created certificate: first make the new certificate available as a previous certificate on every instance, and only then switch any instance to use it as current. Keep the old certificate and every other certificate needed by existing keys configured as previous certificates on every instance. Retain all required PFX certificates and passwords until no key or backup needs them. Expiry alone does not prevent decrypting old keys with their private certificate, but do not use an expired certificate to protect newly created keys.
+The certificate is valid for one year. Before expiry, rotate to a new certificate: configure it as a previous certificate on every instance first, then make it current. Keep every older PFX and password needed by existing keys or backups configured as previous certificates on every instance until no longer needed. Expiry alone does not prevent decrypting old keys, but do not use an expired certificate to protect new ones.
 
-Back up and restore the complete `.data-protection-keys` key ring with all required PFX certificates and their passwords, and restore the same `DataProtection:ApplicationName`. Without that backup, Data Protection-protected tokens and outbox payloads may become unreadable. If restoring pending outbox messages, restore their database as well. The key-ring directory is git-ignored; a clean, recloned checkout does not contain it.
+Back up and restore the complete `.data-protection-keys` key ring with all required PFX certificates and their passwords, and keep the same `DataProtection:ApplicationName`. Without them, protected tokens and outbox payloads may become unreadable. Restore the database too if it contains pending outbox messages. The key-ring directory is git-ignored and is not included in a fresh checkout.
 
-### Registering and signing in
+### 4. Start the application
 
-Open the UI endpoint from the Aspire Dashboard, register an account, and confirm the email using the link captured by Mailpit. Then sign in. Use **Forgot password** to request a reset email if needed. Confirmation and recovery emails are queued for delivery; a `204` response means the request was accepted, not that an email was delivered.
+Aspire starts the API, UI, SQL Server, Azurite, and development Mailpit. On its first start, the API creates its encrypted key ring in `.data-protection-keys`.
 
-Registration retrieves the active password policy from the Identity API before submission and validates it locally alongside password confirmation. The Identity contracts provide shared FluentValidation rules for the UI and registration validator, while ASP.NET Identity remains authoritative and may apply additional requirements. The policy response is not cached; deployments must keep Identity password settings consistent across API instances. If the policy cannot be retrieved or understood, the UI logs a warning without displaying a policy error, checks the required fields and confirmation, and lets the API validate the password.
+```bash
+aspire run
+```
+
+### 5. Register and sign in
+
+Open the Aspire Dashboard URL shown in the console, then follow the `bookstore-ui` endpoint. Register an account and confirm it using the link captured by Mailpit; then sign in. Use **Forgot password** to request a reset email. A `204` response means the request was accepted for delivery, not that an email was delivered.
+
+The registration page fetches the active password policy and validates it locally; ASP.NET Identity on the API remains authoritative.
 
 ### Viewing development emails
 
-During local development, the AppHost starts Mailpit and configures the API to send email to it. In the Aspire Dashboard, open the `mailpit` resource and follow its web endpoint to view captured messages. Mailpit is a development sink, not a production sender.
+Open the `mailpit` resource in the Aspire Dashboard and follow its web endpoint to view captured messages. Mailpit is a development sink, not a production sender.
 
 Production deployments require a shared, durable Data Protection key ring and consistent certificate and Identity settings across API instances. Use a secret manager and a shared rate limit at the gateway; do not use local development secrets or Mailpit in production.
 
