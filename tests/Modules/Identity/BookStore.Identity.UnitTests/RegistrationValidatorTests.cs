@@ -63,4 +63,46 @@ public class RegistrationValidatorTests
         // Assert
         actual.IsValid.Should().BeTrue();
     }
+
+    [Theory]
+    [InlineData("aaaaaaaaaaaa", false)]
+    [InlineData("abcabcabcabc", true)]
+    [InlineData("abc", false)]
+    [InlineData("éééééééééééé", false)]
+    public void Validate_WhenPolicyIsConfigured_ShouldApplyLengthAndUniqueCharacters(string password, bool expected)
+    {
+        // Arrange
+        var options = new IdentityOptions();
+        options.Password.RequiredLength = 12;
+        options.Password.RequiredUniqueChars = 3;
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+        var sut = new RegistrationValidator(Options.Create(options));
+        var request = new RegisterCommand(new RegistrationRequest { Email = "jane@example.com", Password = password, FirstName = "Jane", LastName = "Doe" });
+
+        // Act
+        var actual = sut.Validate(request);
+
+        // Assert
+        actual.IsValid.Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("Äbcdef1!", false)]
+    [InlineData("Abcdef١!", false)]
+    [InlineData("Abcdef1é", true)]
+    [InlineData("Abcdef1!", true)]
+    public void Validate_WhenCharactersAreNonAscii_ShouldMatchIdentityAsciiRules(string password, bool expected)
+    {
+        // Arrange
+        var request = new RegisterCommand(new RegistrationRequest { Email = "jane@example.com", Password = password, FirstName = "Jane", LastName = "Doe" });
+
+        // Act
+        var actual = _sut.Validate(request);
+
+        // Assert
+        actual.IsValid.Should().Be(expected);
+    }
 }

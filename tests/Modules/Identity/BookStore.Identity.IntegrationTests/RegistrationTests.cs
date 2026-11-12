@@ -535,4 +535,51 @@ public class RegistrationTests(IdentityFactory factory) : IClassFixture<Identity
         actualOptions.RequiredLength.Should().Be(expectedLength);
         actualOptions.RequireDigit.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task GetPasswordPolicy_WhenOptionsAreConfigured_ShouldReturnCurrentOptionsWithoutCaching()
+    {
+        // Arrange
+        await using var configuredFactory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("Identity:Password:RequiredLength", "12");
+            builder.UseSetting("Identity:Password:RequiredUniqueChars", "3");
+            builder.UseSetting("Identity:Password:RequireDigit", "false");
+        });
+        using var sut = configuredFactory.CreateClient();
+
+        // Act
+        using var response = await sut.GetAsync("/api/identity/password-policy", TestContext.Current.CancellationToken);
+        var actual = await response.Content.ReadFromJsonAsync<PasswordPolicy>(TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Headers.CacheControl!.NoStore.Should().BeTrue();
+        actual.Should().NotBeNull();
+        actual!.SchemaVersion.Should().Be(1);
+        actual.RequiredLength.Should().Be(12);
+        actual.RequiredUniqueChars.Should().Be(3);
+        actual.RequireDigit.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetPasswordPolicy_WhenCalledFromAllowedUiOrigin_ShouldSupportCorsPreflight()
+    {
+        // Arrange
+        const string origin = "https://ui.example.test";
+        await using var configuredFactory = factory.WithWebHostBuilder(builder => builder.UseSetting("AllowedOrigins", origin));
+        using var sut = configuredFactory.CreateClient();
+        using var preflight = new HttpRequestMessage(HttpMethod.Options, "/api/identity/password-policy");
+        preflight.Headers.Add("Origin", origin);
+        preflight.Headers.Add("Access-Control-Request-Method", "GET");
+        preflight.Headers.Add("Access-Control-Request-Headers", "cache-control");
+
+        // Act
+        using var response = await sut.SendAsync(preflight, TestContext.Current.CancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        response.Headers.GetValues("Access-Control-Allow-Origin").Should().ContainSingle().Which.Should().Be(origin);
+        response.Headers.GetValues("Access-Control-Allow-Headers").Should().Contain(value => value.Contains("cache-control", StringComparison.OrdinalIgnoreCase));
+    }
 }
