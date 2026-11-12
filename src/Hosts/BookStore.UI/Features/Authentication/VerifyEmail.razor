@@ -1,0 +1,54 @@
+@page "/verify-email"
+@inject RegistrationClient Client
+@inject IJSRuntime JS
+
+<PageTitle>Confirm email - BookStore</PageTitle>
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h3 fw-bold mb-4">Confirm email</h1>
+                @if (_loading)
+                {
+                    <p role="status">Confirming your email...</p>
+                }
+                else if (_result == VerificationStatus.Success)
+                {
+                    <div class="alert alert-success" role="status">Your email is confirmed. You can now sign in.</div>
+                    <a href="login" class="btn btn-primary rounded-pill px-4">Login</a>
+                }
+                else
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @(_result == VerificationStatus.Invalid
+                            ? "This confirmation link is invalid or expired. You can request another email."
+                            : "Email confirmation is unavailable. Please request another email or try again later.")
+                    </div>
+                    <a href="verification-pending" class="btn btn-primary rounded-pill px-4">Request a confirmation email</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _loading = true;
+    private VerificationStatus _result;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var link = await JS.InvokeAsync<VerificationLink?>("bookStoreVerificationLink.take");
+            _result = await Client.ConfirmAsync(link);
+        }
+        catch (JSException)
+        {
+            _result = VerificationStatus.Unavailable;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

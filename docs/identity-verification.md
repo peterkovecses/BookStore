@@ -12,6 +12,23 @@ Identity__Verification__LinkBaseUrl=https://accounts.example.com/verify-email
 Identity__Verification__TokenLifetime=1.00:00:00
 ```
 
+The Aspire development host supplies the UI's actual HTTPS endpoint as the
+verification link base. Outside Aspire, configure the UI origin explicitly as
+above; the frontend route is `/verify-email`. The UI removes the query from
+browser history before loading application assets, consumes the parameters once
+in memory, and sends them in the confirmation POST body. It sets a no-referrer
+policy and skips the external icon stylesheet on this page. Reloading after
+the link is consumed requires requesting another email. These browser measures
+do not prevent the original navigation URL from reaching the frontend server
+or proxy: their access logs and telemetry must omit query strings on this route.
+
+The registration form checks basic field constraints locally and displays
+backend password and validation errors because password policy is configurable.
+The pending and resend pages intentionally do not assert account creation or
+email delivery. The flow adapts VocaBuddy's registration, pending/resend and
+verification pages and Identity client to BookStore's API and outbox, without
+its browser token storage or separate-service assumptions.
+
 `TokenLifetime` is a positive .NET `TimeSpan` and is used by Identity's Data
 Protection token provider as well as the verification event's expiry decision.
 The development default is one day; deployment owners should explicitly choose
