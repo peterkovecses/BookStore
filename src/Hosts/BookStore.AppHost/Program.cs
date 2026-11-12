@@ -3,12 +3,14 @@ var builder = DistributedApplication.CreateBuilder(args);
 var blobs = builder.AddAzureStorage("storage")
     .RunAsEmulator(azurite => 
     {
-        azurite.WithLifetime(ContainerLifetime.Session);
+        azurite.WithLifetime(ContainerLifetime.Session)
+            .WithDataVolume("bookstore-local-azurite-data");
     })
     .AddBlobs("book-covers");
 
 var sql = builder.AddSqlServer("sqlserver")
-    .WithLifetime(ContainerLifetime.Session);
+    .WithLifetime(ContainerLifetime.Session)
+    .WithDataVolume("bookstore-local-sqlserver-data");
 
 var bookStoreDb = sql.AddDatabase("BookStoreDb");
 
@@ -22,7 +24,8 @@ var bookStoreApi = builder.AddProject<Projects.BookStore_Api>("bookstore-api")
 
 if (builder.Environment.IsDevelopment())
 {
-    var mailpit = builder.AddMailPit("mailpit");
+    var mailpit = builder.AddMailPit("mailpit")
+        .WithDataVolume("bookstore-local-mailpit-data");
     bookStoreApi
         .WithEnvironment("EmailDispatcher__Smtp__Host", mailpit.GetEndpoint("smtp").Property(EndpointProperty.Host))
         .WithEnvironment("EmailDispatcher__Smtp__Port", mailpit.GetEndpoint("smtp").Property(EndpointProperty.Port))
