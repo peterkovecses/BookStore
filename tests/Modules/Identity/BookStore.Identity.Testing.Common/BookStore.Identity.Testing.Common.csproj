@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NSubstitute" Version="5.3.0" />
+    <PackageReference Include="Testcontainers.MsSql" Version="4.16.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\Hosts\BookStore.Api\BookStore.Api.csproj" />
+    <ProjectReference Include="..\..\..\..\src\Modules\Identity\BookStore.Identity\BookStore.Identity.csproj" />
+    <ProjectReference Include="..\..\..\Shared\BookStore.Testing.Common\BookStore.Testing.Common.csproj" />
+  </ItemGroup>
+</Project>

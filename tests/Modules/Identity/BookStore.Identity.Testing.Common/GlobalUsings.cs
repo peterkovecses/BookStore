@@ -1,0 +1,10 @@
+global using BookStore.Identity.Infrastructure;
+global using BookStore.Testing.Common.Integration;
+global using DotNet.Testcontainers.Builders;
+global using DotNet.Testcontainers.Containers;
+global using Microsoft.AspNetCore.Hosting;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using NSubstitute;
+global using Testcontainers.MsSql;

@@ -1,14 +1,14 @@
-namespace BookStore.Identity.IntegrationTests.PasswordRecovery;
+namespace BookStore.Identity.EndToEndTests.PasswordRecovery;
 
 [Collection("Outbox integration")]
-public sealed class PasswordRecoveryBrowserFlowTests(VerificationOutboxEndToEndFactory factory)
-    : IClassFixture<VerificationOutboxEndToEndFactory>
+public sealed class PasswordRecoveryBrowserFlowTests(IdentityOutboxTestApplicationFactory factory)
+    : IClassFixture<IdentityOutboxTestApplicationFactory>
 {
     private const string OldPassword = "Password1!";
     private const string NewPassword = "Different2!";
 
     [Fact]
-    public async Task ExecuteAsync_WhenUserSubmitsForgotAndResetForms_ShouldChangePasswordFromDeliveredLink()
+    public async Task PasswordRecovery_WhenUserSubmitsForgotAndResetForms_ShouldChangePasswordFromDeliveredLink()
     {
         // Arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -96,7 +96,7 @@ public sealed class PasswordRecoveryBrowserFlowTests(VerificationOutboxEndToEndF
             var outboxMessage = await WaitForOutboxMessageAsync(db, cancellationToken);
             await WaitForStatusAsync(db, outboxMessage.Id, OutboxStatus.Completed, cancellationToken);
             using var messages = await mailpit.GetFromJsonAsync<JsonDocument>("/api/v1/messages", cancellationToken);
-            var messageId = messages!.RootElement.GetProperty("messages")[0].GetProperty("ID").GetString();
+            var messageId = messages!.RootElement.GetProperty("messages").EnumerateArray().Single().GetProperty("ID").GetString();
             using var message = await mailpit.GetFromJsonAsync<JsonDocument>($"/api/v1/message/{messageId}", cancellationToken);
             var emailText = message!.RootElement.GetProperty("Text").GetString()!;
             var resetLink = Regex.Match(emailText, @"https://[^\s]+").Value;

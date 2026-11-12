@@ -1,7 +1,7 @@
 namespace BookStore.Identity.IntegrationTests.PasswordRecovery;
 
-public sealed class PasswordRecoveryOutboxTests(VerificationOutboxEndToEndFactory factory)
-    : IClassFixture<VerificationOutboxEndToEndFactory>
+public sealed class PasswordRecoveryOutboxTests(IdentityOutboxTestApplicationFactory factory)
+    : IClassFixture<IdentityOutboxTestApplicationFactory>
 {
     [Fact]
     public async Task ExecuteAsync_WhenCircuitDefersPastExpiry_ShouldExpireAndSendOnlyFreshRequest()
@@ -10,8 +10,21 @@ public sealed class PasswordRecoveryOutboxTests(VerificationOutboxEndToEndFactor
         const string forgotPath = "/api/identity/password/forgot";
         const string resetPath = "/api/identity/password/reset";
         var cancellationToken = TestContext.Current.CancellationToken;
+        long cooldownOffsetTicks = 0;
+        var cooldownClock = Substitute.For<TimeProvider>();
+        cooldownClock.GetUtcNow().Returns(_ =>
+            TimeProvider.System.GetUtcNow().AddTicks(Interlocked.Read(ref cooldownOffsetTicks)));
         await using var host = factory.WithWebHostBuilder(builder =>
-            builder.UseSetting("Identity:PasswordRecovery:TokenLifetime", "00:00:10"));
+        {
+            builder.UseSetting("Identity:PasswordRecovery:TokenLifetime", "00:00:10");
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IEmailRequestCooldownStore>();
+                services.AddScoped<IEmailRequestCooldownStore>(provider => new EmailRequestCooldownStore(
+                    provider.GetRequiredService<IIdentityDbContext>(),
+                    provider.GetRequiredService<ILookupNormalizer>(), cooldownClock));
+            });
+        });
         using var scope = host.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -30,6 +43,8 @@ public sealed class PasswordRecoveryOutboxTests(VerificationOutboxEndToEndFactor
         using var client = host.CreateClient();
         using var mailpit = new HttpClient { BaseAddress = factory.MailpitAddress };
         using var queued = await client.PostAsJsonAsync(forgotPath, new { Email = email }, cancellationToken);
+        queued.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        var cooldown = queued.Headers.RetryAfter!.Delta!.Value;
         var circuit = host.Services.GetRequiredService<IEmailDispatchAvailability>();
         circuit.GetType().GetMethod("Complete")!.Invoke(circuit, [false, true, false]);
         var worker = ActivatorUtilities.CreateInstance<OutboxWorker<IdentityOutboxStore>>(host.Services);
@@ -62,7 +77,9 @@ public sealed class PasswordRecoveryOutboxTests(VerificationOutboxEndToEndFactor
             await worker.StartAsync(cancellationToken);
             await WaitAsync(db, item => item.Id == stale.Id && item.Status == OutboxStatus.Expired, cancellationToken);
             using var empty = await mailpit.GetFromJsonAsync<JsonDocument>("/api/v1/messages", cancellationToken);
+            Interlocked.Exchange(ref cooldownOffsetTicks, cooldown.Ticks);
             using var freshRequest = await client.PostAsJsonAsync(forgotPath, new { Email = email }, cancellationToken);
+            freshRequest.StatusCode.Should().Be(HttpStatusCode.NoContent);
             var fresh = await WaitAsync(db, item => item.EventType == PasswordRecoveryRequestedHandler.EmailEventType &&
                 item.Id != stale.Id && item.Status == OutboxStatus.Completed, cancellationToken);
             using var messages = await mailpit.GetFromJsonAsync<JsonDocument>("/api/v1/messages", cancellationToken);
@@ -77,7 +94,6 @@ public sealed class PasswordRecoveryOutboxTests(VerificationOutboxEndToEndFactor
             }, cancellationToken);
 
             // Assert
-            queued.StatusCode.Should().Be(HttpStatusCode.NoContent);
             unknown.StatusCode.Should().Be(HttpStatusCode.NoContent);
             unrelated.Status.Should().Be(OutboxStatus.Completed);
             stale.AttemptCount.Should().Be(0);
@@ -85,7 +101,6 @@ public sealed class PasswordRecoveryOutboxTests(VerificationOutboxEndToEndFactor
             expiredReset.StatusCode.Should().Be(HttpStatusCode.BadRequest);
             afterExpired.Revoked.Should().BeFalse();
             passwordAfterExpired.Should().BeTrue();
-            freshRequest.StatusCode.Should().Be(HttpStatusCode.NoContent);
             messages.RootElement.GetProperty("total").GetInt32().Should().Be(1);
             fresh.Payload.Should().NotContain(link).And.NotContain(query["token"].ToString());
             message.RootElement.GetProperty("HTML").GetString().Should().Contain("reset-password");
