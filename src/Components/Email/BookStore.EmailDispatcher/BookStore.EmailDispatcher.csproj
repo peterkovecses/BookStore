@@ -12,9 +12,9 @@
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Email\BookStore.EmailTemplates\BookStore.EmailTemplates.csproj" />
+    <ProjectReference Include="..\BookStore.EmailTemplates\BookStore.EmailTemplates.csproj" />
     <ProjectReference Include="..\BookStore.EmailDispatcher.Contracts\BookStore.EmailDispatcher.Contracts.csproj" />
-    <ProjectReference Include="..\..\Identity\BookStore.Identity.Contracts\BookStore.Identity.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Identity\BookStore.Identity.Contracts\BookStore.Identity.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">

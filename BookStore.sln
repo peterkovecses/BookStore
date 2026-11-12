@@ -65,27 +65,27 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.Identity.UnitTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.Identity.IntegrationTests", "tests\Modules\Identity\BookStore.Identity.IntegrationTests\BookStore.Identity.IntegrationTests.csproj", "{B7BEC0CA-C8CB-4FFD-8600-3F8E667D5E99}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EmailDispatcher", "EmailDispatcher", "{1F80621E-8F23-89A1-B315-759D336190D3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Email", "Email", "{1F80621E-8F23-89A1-B315-759D336190D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailDispatcher.Contracts", "src\Modules\EmailDispatcher\BookStore.EmailDispatcher.Contracts\BookStore.EmailDispatcher.Contracts.csproj", "{E0AFAF0F-6D4E-4109-B7BB-C869C7966AC3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailDispatcher.Contracts", "src\Components\Email\BookStore.EmailDispatcher.Contracts\BookStore.EmailDispatcher.Contracts.csproj", "{E0AFAF0F-6D4E-4109-B7BB-C869C7966AC3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailDispatcher", "src\Modules\EmailDispatcher\BookStore.EmailDispatcher\BookStore.EmailDispatcher.csproj", "{3A565DC5-ABAF-4188-A354-FD040A90B6D0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailDispatcher", "src\Components\Email\BookStore.EmailDispatcher\BookStore.EmailDispatcher.csproj", "{3A565DC5-ABAF-4188-A354-FD040A90B6D0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EmailDispatcher", "EmailDispatcher", "{82C3A53D-0D7A-47AA-92CB-EEFDF4ABF9BD}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Email", "Email", "{82C3A53D-0D7A-47AA-92CB-EEFDF4ABF9BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailDispatcher.UnitTests", "tests\Modules\EmailDispatcher\BookStore.EmailDispatcher.UnitTests\BookStore.EmailDispatcher.UnitTests.csproj", "{B894A951-9C28-44C6-A246-5959FB41D21A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailDispatcher.UnitTests", "tests\Components\Email\BookStore.EmailDispatcher.UnitTests\BookStore.EmailDispatcher.UnitTests.csproj", "{B894A951-9C28-44C6-A246-5959FB41D21A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailDispatcher.IntegrationTests", "tests\Modules\EmailDispatcher\BookStore.EmailDispatcher.IntegrationTests\BookStore.EmailDispatcher.IntegrationTests.csproj", "{6AA9A32C-71E4-459F-8D0E-694B6709A4E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailDispatcher.IntegrationTests", "tests\Components\Email\BookStore.EmailDispatcher.IntegrationTests\BookStore.EmailDispatcher.IntegrationTests.csproj", "{6AA9A32C-71E4-459F-8D0E-694B6709A4E4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.Api.UnitTests", "tests\Hosts\BookStore.Api.UnitTests\BookStore.Api.UnitTests.csproj", "{6E70B307-66F8-4088-A9C4-B49D0DC0B5CE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Email", "Email", "{E47D4263-8589-E069-84FB-21A89CE71B21}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Components", "Components", "{E47D4263-8589-E069-84FB-21A89CE71B21}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailTemplates", "src\Email\BookStore.EmailTemplates\BookStore.EmailTemplates.csproj", "{906F496B-CADB-4B5A-A6EB-54D73B607019}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailTemplates", "src\Components\Email\BookStore.EmailTemplates\BookStore.EmailTemplates.csproj", "{906F496B-CADB-4B5A-A6EB-54D73B607019}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Email", "Email", "{7F98D45C-8B87-815C-1E0E-FD2E38296CF4}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Components", "Components", "{7F98D45C-8B87-815C-1E0E-FD2E38296CF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailTemplates.UnitTests", "tests\Email\BookStore.EmailTemplates.UnitTests\BookStore.EmailTemplates.UnitTests.csproj", "{001A2F75-5623-48B2-8509-14FBDF9F1916}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.EmailTemplates.UnitTests", "tests\Components\Email\BookStore.EmailTemplates.UnitTests\BookStore.EmailTemplates.UnitTests.csproj", "{001A2F75-5623-48B2-8509-14FBDF9F1916}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -417,16 +417,16 @@ Global
 		{ACB2D19B-6984-27D8-539C-F209B7C78BA5} = {D7DC9B74-6BC4-2470-2038-1E57C2DCB73B}
 		{7354C08A-AE53-4776-8096-EE15FCDC32D6} = {ACB2D19B-6984-27D8-539C-F209B7C78BA5}
 		{B7BEC0CA-C8CB-4FFD-8600-3F8E667D5E99} = {ACB2D19B-6984-27D8-539C-F209B7C78BA5}
-		{1F80621E-8F23-89A1-B315-759D336190D3} = {EC447DCF-ABFA-6E24-52A5-D7FD48A5C558}
+		{1F80621E-8F23-89A1-B315-759D336190D3} = {E47D4263-8589-E069-84FB-21A89CE71B21}
 		{E0AFAF0F-6D4E-4109-B7BB-C869C7966AC3} = {1F80621E-8F23-89A1-B315-759D336190D3}
 		{3A565DC5-ABAF-4188-A354-FD040A90B6D0} = {1F80621E-8F23-89A1-B315-759D336190D3}
-		{82C3A53D-0D7A-47AA-92CB-EEFDF4ABF9BD} = {D7DC9B74-6BC4-2470-2038-1E57C2DCB73B}
+		{82C3A53D-0D7A-47AA-92CB-EEFDF4ABF9BD} = {7F98D45C-8B87-815C-1E0E-FD2E38296CF4}
 		{B894A951-9C28-44C6-A246-5959FB41D21A} = {82C3A53D-0D7A-47AA-92CB-EEFDF4ABF9BD}
 		{6AA9A32C-71E4-459F-8D0E-694B6709A4E4} = {82C3A53D-0D7A-47AA-92CB-EEFDF4ABF9BD}
 		{6E70B307-66F8-4088-A9C4-B49D0DC0B5CE} = {01151216-D94E-2A6F-3010-3E89474806D3}
 		{E47D4263-8589-E069-84FB-21A89CE71B21} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
-		{906F496B-CADB-4B5A-A6EB-54D73B607019} = {E47D4263-8589-E069-84FB-21A89CE71B21}
+		{906F496B-CADB-4B5A-A6EB-54D73B607019} = {1F80621E-8F23-89A1-B315-759D336190D3}
 		{7F98D45C-8B87-815C-1E0E-FD2E38296CF4} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
-		{001A2F75-5623-48B2-8509-14FBDF9F1916} = {7F98D45C-8B87-815C-1E0E-FD2E38296CF4}
+		{001A2F75-5623-48B2-8509-14FBDF9F1916} = {82C3A53D-0D7A-47AA-92CB-EEFDF4ABF9BD}
 	EndGlobalSection
 EndGlobal
