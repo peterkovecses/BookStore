@@ -38,29 +38,20 @@
 @code {
     private readonly ResendModel _model = new();
     private const string StorageKey = "bookstore.verification-resend-until";
-    private readonly CancellationTokenSource _dispose = new();
-    private DateTimeOffset? _until;
+    private EmailRequestCooldown _cooldown = null!;
     private bool _restoring = true;
     private bool _loading;
     private bool _success;
     private string? _message;
 
-    private int RemainingSeconds => _until is { } until
-        ? Math.Max(0, (int)Math.Ceiling((until - Clock.GetUtcNow()).TotalSeconds))
-        : 0;
+    private int RemainingSeconds => _cooldown.RemainingSeconds;
 
     protected override async Task OnInitializedAsync()
     {
+        _cooldown = new EmailRequestCooldown(JS, Clock, StorageKey, () => InvokeAsync(StateHasChanged));
         try
         {
-            var stored = await JS.InvokeAsync<string?>("sessionStorage.getItem", StorageKey);
-            if (long.TryParse(stored, out var milliseconds) &&
-                milliseconds > Clock.GetUtcNow().ToUnixTimeMilliseconds() &&
-                milliseconds <= Clock.GetUtcNow().AddHours(1).ToUnixTimeMilliseconds())
-            {
-                _until = DateTimeOffset.FromUnixTimeMilliseconds(milliseconds);
-                _ = UpdateCountdownAsync();
-            }
+            await _cooldown.RestoreAsync();
         }
         catch (JSException exception)
         {
@@ -88,12 +79,11 @@
                 VerificationStatus.RateLimited => "Too many requests. Please wait before trying again.",
                 _ => "The request could not be completed. Please try again later."
             };
-            if (result.RetryAfterSeconds is { } seconds && !_dispose.IsCancellationRequested)
+            if (result.RetryAfterSeconds is { } seconds)
             {
-                _until = Clock.GetUtcNow().AddSeconds(seconds);
                 try
                 {
-                    await JS.InvokeVoidAsync("sessionStorage.setItem", StorageKey, _until.Value.ToUnixTimeMilliseconds().ToString());
+                    await _cooldown.StartAsync(seconds);
                 }
                 catch (JSException exception)
                 {
@@ -101,7 +91,6 @@
                     _message += " The wait may not be shown after refreshing this page.";
                 }
 
-                _ = UpdateCountdownAsync();
             }
         }
         finally
@@ -110,24 +99,5 @@
         }
     }
 
-    private async Task UpdateCountdownAsync()
-    {
-        try
-        {
-            while (RemainingSeconds > 0)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(1), Clock, _dispose.Token);
-                await InvokeAsync(StateHasChanged);
-            }
-        }
-        catch (OperationCanceledException) when (_dispose.IsCancellationRequested)
-        {
-        }
-    }
-
-    public void Dispose()
-    {
-        _dispose.Cancel();
-        _dispose.Dispose();
-    }
+    public void Dispose() => _cooldown.Dispose();
 }

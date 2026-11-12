@@ -1,12 +1,12 @@
 namespace BookStore.Identity.Features.Verification;
 
 internal sealed class ResendVerificationHandler(
-    IVerificationResendStore store,
+    IEmailRequestCooldownStore store,
     IDataProtectionProvider protection,
     TimeProvider clock)
-    : IRequestHandler<ResendVerificationCommand, Result<ResendVerificationOutcome>>
+    : IRequestHandler<ResendVerificationCommand, Result<EmailRequestOutcome>>
 {
-    public async Task<Result<ResendVerificationOutcome>> HandleAsync(ResendVerificationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<EmailRequestOutcome>> HandleAsync(ResendVerificationCommand request, CancellationToken cancellationToken)
     {
         var id = Guid.NewGuid();
         var value = new VerificationResendRequested(
@@ -19,7 +19,7 @@ internal sealed class ResendVerificationHandler(
             CorrelationId = id.ToString(),
             CreatedAt = clock.GetUtcNow()
         };
-        var outcome = await store.EnqueueAsync(request.Email, message, cancellationToken);
+        var outcome = await store.EnqueueAsync(EmailRequestPurpose.Verification, request.Email, message, cancellationToken);
 
         return Result.Success(outcome);
     }

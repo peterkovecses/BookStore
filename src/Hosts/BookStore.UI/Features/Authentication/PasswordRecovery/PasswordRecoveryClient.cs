@@ -2,22 +2,30 @@ namespace BookStore.UI.Features.Authentication;
 
 internal sealed class PasswordRecoveryClient(HttpClient client)
 {
-    internal async Task<PasswordRecoveryRequestStatus> RequestAsync(string email)
+    internal async Task<PasswordRecoveryRequestResult> RequestAsync(string email)
     {
         try
         {
             using var response = await client.PostAsJsonAsync("api/identity/password/forgot", new { email });
 
-            return response.IsSuccessStatusCode ? PasswordRecoveryRequestStatus.Success :
-                response.StatusCode == HttpStatusCode.BadRequest ? PasswordRecoveryRequestStatus.Invalid : PasswordRecoveryRequestStatus.Unavailable;
+            var seconds = response.Headers.RetryAfter?.Delta?.TotalSeconds;
+            var retryAfter = seconds is > 0 and <= 3600 ? (int)Math.Ceiling(seconds.Value) : (int?)null;
+
+            return response.StatusCode switch
+            {
+                HttpStatusCode.NoContent => new(PasswordRecoveryRequestStatus.Success, retryAfter ?? 60),
+                HttpStatusCode.BadRequest => new(PasswordRecoveryRequestStatus.Invalid, null),
+                HttpStatusCode.TooManyRequests => new(PasswordRecoveryRequestStatus.RateLimited, retryAfter),
+                _ => new(PasswordRecoveryRequestStatus.Unavailable, null)
+            };
         }
         catch (HttpRequestException)
         {
-            return PasswordRecoveryRequestStatus.Unavailable;
+            return new(PasswordRecoveryRequestStatus.Unavailable, null);
         }
         catch (OperationCanceledException)
         {
-            return PasswordRecoveryRequestStatus.Unavailable;
+            return new(PasswordRecoveryRequestStatus.Unavailable, null);
         }
     }
 
@@ -52,8 +60,11 @@ internal enum PasswordRecoveryRequestStatus
 {
     Success,
     Invalid,
+    RateLimited,
     Unavailable
 }
+
+internal sealed record PasswordRecoveryRequestResult(PasswordRecoveryRequestStatus Status, int? RetryAfterSeconds);
 
 internal enum PasswordResetStatus
 {

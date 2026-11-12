@@ -140,6 +140,8 @@ public sealed class PasswordRecoveryTests(IdentityFactory factory) : IClassFixtu
         // Act
         using var existing = await sut.PostAsJsonAsync(ForgotPath, new { Email = email }, TestContext.Current.CancellationToken);
         using var missing = await sut.PostAsJsonAsync(ForgotPath, new { Email = unknown }, TestContext.Current.CancellationToken);
+        using var existingRepeated = await sut.PostAsJsonAsync(ForgotPath, new { Email = email }, TestContext.Current.CancellationToken);
+        using var missingRepeated = await sut.PostAsJsonAsync(ForgotPath, new { Email = unknown }, TestContext.Current.CancellationToken);
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
         var messages = await db.OutboxMessages.Where(item => item.EventType == PasswordRecoveryRequested.EventType)
@@ -148,8 +150,95 @@ public sealed class PasswordRecoveryTests(IdentityFactory factory) : IClassFixtu
         // Assert
         existing.StatusCode.Should().Be(HttpStatusCode.NoContent);
         missing.StatusCode.Should().Be(existing.StatusCode);
+        existing.Headers.RetryAfter!.Delta.Should().Be(TimeSpan.FromSeconds(60));
+        missing.Headers.RetryAfter!.Delta.Should().Be(TimeSpan.FromSeconds(60));
+        existingRepeated.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+        missingRepeated.StatusCode.Should().Be(existingRepeated.StatusCode);
+        existingRepeated.Headers.RetryAfter!.Delta.Should().BeGreaterThan(TimeSpan.Zero);
+        missingRepeated.Headers.RetryAfter!.Delta.Should().BeGreaterThan(TimeSpan.Zero);
         messages.Should().HaveCount(2);
         messages.Should().OnlyContain(item => !item.Payload.Contains(email) && !item.Payload.Contains(unknown));
+    }
+
+    [Fact]
+    public async Task Forgot_WhenConcurrentAcrossHostsAndCooldownExpires_ShouldQueueOncePerWindow()
+    {
+        // Arrange
+        var now = new DateTimeOffset(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
+        var clock = Substitute.For<TimeProvider>();
+        clock.GetUtcNow().Returns(_ => now);
+        WebApplicationFactory<Program> CreateHost() => factory.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<TimeProvider>();
+                services.AddSingleton(clock);
+            }));
+        await using var firstHost = CreateHost();
+        await using var secondHost = CreateHost();
+        using var first = firstHost.CreateClient();
+        using var second = secondHost.CreateClient();
+        var email = $"{Guid.NewGuid():N}@example.com";
+        var cancellationToken = TestContext.Current.CancellationToken;
+        using var scope = firstHost.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var initial = await db.OutboxMessages.CountAsync(message => message.EventType == PasswordRecoveryRequested.EventType, cancellationToken);
+
+        // Act
+        var responses = await Task.WhenAll(Enumerable.Range(0, 8).Select(index =>
+            (index % 2 == 0 ? first : second).PostAsJsonAsync(ForgotPath, new { Email = email }, cancellationToken)));
+        await using var restartedHost = CreateHost();
+        using var restarted = restartedHost.CreateClient();
+        now = now.AddSeconds(59);
+        using var beforeExpiry = await restarted.PostAsJsonAsync(ForgotPath, new { Email = email.ToUpperInvariant() }, cancellationToken);
+        now = now.AddSeconds(1);
+        using var atExpiry = await restarted.PostAsJsonAsync(ForgotPath, new { Email = email }, cancellationToken);
+        using var verification = await restarted.PostAsJsonAsync("/api/identity/verification/resend", new { Email = email }, cancellationToken);
+
+        // Assert
+        responses.Count(response => response.StatusCode == HttpStatusCode.NoContent).Should().Be(1);
+        responses.Count(response => response.StatusCode == HttpStatusCode.TooManyRequests).Should().Be(7);
+        beforeExpiry.StatusCode.Should().Be(HttpStatusCode.TooManyRequests);
+        beforeExpiry.Headers.RetryAfter!.Delta.Should().Be(TimeSpan.FromSeconds(1));
+        atExpiry.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        atExpiry.Headers.RetryAfter!.Delta.Should().Be(TimeSpan.FromSeconds(60));
+        verification.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        (await db.OutboxMessages.CountAsync(message => message.EventType == PasswordRecoveryRequested.EventType, cancellationToken))
+            .Should().Be(initial + 2);
+        foreach (var response in responses) response.Dispose();
+    }
+
+    [Fact]
+    public async Task Forgot_WhenOutboxInsertFails_ShouldRollBackCooldown()
+    {
+        // Arrange
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var store = scope.ServiceProvider.GetRequiredService<IEmailRequestCooldownStore>();
+        var email = $"{Guid.NewGuid():N}@example.com";
+        var id = Guid.NewGuid();
+        var message = new OutboxMessage
+        {
+            Id = id, EventType = PasswordRecoveryRequested.EventType, Payload = "{}", CorrelationId = id.ToString(),
+            CreatedAt = TimeProvider.System.GetUtcNow()
+        };
+        db.OutboxMessages.Add(message);
+        await db.SaveChangesAsync(TestContext.Current.CancellationToken);
+        db.ChangeTracker.Clear();
+        var duplicate = new OutboxMessage
+        {
+            Id = id, EventType = message.EventType, Payload = "{}", CorrelationId = id.ToString(), CreatedAt = message.CreatedAt
+        };
+
+        // Act
+        Func<Task> act = async () => await store.EnqueueAsync(EmailRequestPurpose.PasswordRecovery, email, duplicate, TestContext.Current.CancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<DbUpdateException>();
+        using var verifyScope = factory.Services.CreateScope();
+        var verify = verifyScope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes($"password-recovery:{email.ToUpperInvariant()}")));
+        (await verify.VerificationResendCooldowns.AnyAsync(item => item.EmailHash == hash, TestContext.Current.CancellationToken))
+            .Should().BeFalse();
     }
 
     [Fact]
@@ -159,11 +248,12 @@ public sealed class PasswordRecoveryTests(IdentityFactory factory) : IClassFixtu
         await using var host = factory.WithWebHostBuilder(builder =>
             builder.UseSetting("Identity:PasswordRecovery:RateLimiting:Forgot:PermitLimit", "1"));
         using var sut = host.CreateClient();
-        var request = new { Email = "unknown@example.com" };
+        var firstRequest = new { Email = $"{Guid.NewGuid():N}@example.com" };
+        var secondRequest = new { Email = $"{Guid.NewGuid():N}@example.com" };
 
         // Act
-        using var first = await sut.PostAsJsonAsync(ForgotPath, request, TestContext.Current.CancellationToken);
-        using var second = await sut.PostAsJsonAsync(ForgotPath, request, TestContext.Current.CancellationToken);
+        using var first = await sut.PostAsJsonAsync(ForgotPath, firstRequest, TestContext.Current.CancellationToken);
+        using var second = await sut.PostAsJsonAsync(ForgotPath, secondRequest, TestContext.Current.CancellationToken);
 
         // Assert
         first.StatusCode.Should().Be(HttpStatusCode.NoContent);

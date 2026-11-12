@@ -12,6 +12,7 @@ global using BookStore.Api;
 global using BookStore.Common.Outbox;
 global using BookStore.EmailDispatcher.Contracts;
 global using BookStore.Identity.Contracts;
+global using BookStore.Identity.Common;
 global using BookStore.Identity.Features.Registration;
 global using BookStore.Identity.Features.ForgotPassword;
 global using BookStore.Identity.Features.ResetPassword;

@@ -35,7 +35,7 @@ internal static class VerificationEndpoint
 
     private static async Task<IResult> HandleResendAsync(
         ResendVerificationRequest request,
-        IRequestHandler<ResendVerificationCommand, Result<ResendVerificationOutcome>> handler,
+        IRequestHandler<ResendVerificationCommand, Result<EmailRequestOutcome>> handler,
         HttpContext context,
         CancellationToken cancellationToken)
     {
