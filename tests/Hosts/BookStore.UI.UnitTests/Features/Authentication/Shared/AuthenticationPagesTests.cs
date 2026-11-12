@@ -102,7 +102,7 @@ public class AuthenticationPagesTests
     {
         // Arrange
         var js = Substitute.For<IJSRuntime>();
-        js.InvokeAsync<IdentityLink?>("bookStorePasswordResetLink.take", Arg.Any<object?[]?>())
+        js.InvokeAsync<IdentityLink?>("bookStoreVerificationLink.takePasswordReset", Arg.Any<object?[]?>())
             .Returns(new ValueTask<IdentityLink?>((IdentityLink?)null));
         using var services = CreatePasswordRecoveryServices(js);
         await using var renderer = new HtmlRenderer(services, services.GetRequiredService<ILoggerFactory>());
@@ -121,7 +121,7 @@ public class AuthenticationPagesTests
     {
         // Arrange
         var js = Substitute.For<IJSRuntime>();
-        js.InvokeAsync<IdentityLink?>("bookStorePasswordResetLink.take", Arg.Any<object?[]?>())
+        js.InvokeAsync<IdentityLink?>("bookStoreVerificationLink.takePasswordReset", Arg.Any<object?[]?>())
             .Returns(new ValueTask<IdentityLink?>(new IdentityLink("user-1", "encoded-token")));
         using var services = CreatePasswordRecoveryServices(js);
         await using var renderer = new HtmlRenderer(services, services.GetRequiredService<ILoggerFactory>());
@@ -133,6 +133,29 @@ public class AuthenticationPagesTests
         // Assert
         actual.Should().Contain("id=\"newPassword\"").And.Contain("id=\"confirmPassword\"")
             .And.NotContain("encoded-token").And.NotContain("user-1");
+    }
+
+    [Theory]
+    [InlineData("", "encoded-token")]
+    [InlineData("user-1", "")]
+    [InlineData("user-1", "invalid%token")]
+    [InlineData("user-1", "invalid token")]
+    public async Task ResetPassword_WhenLinkIsMalformed_ShouldOfferNewLinkWithoutPasswordForm(string userId, string token)
+    {
+        // Arrange
+        var js = Substitute.For<IJSRuntime>();
+        js.InvokeAsync<IdentityLink?>("bookStoreVerificationLink.takePasswordReset", Arg.Any<object?[]?>())
+            .Returns(new ValueTask<IdentityLink?>(new IdentityLink(userId, token)));
+        using var services = CreatePasswordRecoveryServices(js);
+        await using var renderer = new HtmlRenderer(services, services.GetRequiredService<ILoggerFactory>());
+
+        // Act
+        var actual = await renderer.Dispatcher.InvokeAsync(async () =>
+            (await renderer.RenderComponentAsync<ResetPassword>()).ToHtmlString());
+
+        // Assert
+        actual.Should().Contain("invalid, expired or already used").And.Contain("href=\"forgot-password\"")
+            .And.NotContain("id=\"newPassword\"");
     }
 
     private sealed class Handler(HttpStatusCode status) : HttpMessageHandler
