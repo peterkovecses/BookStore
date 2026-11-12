@@ -151,6 +151,8 @@ Back up and restore the complete `.data-protection-keys` key ring with all requi
 
 Open the UI endpoint from the Aspire Dashboard, register an account, and confirm the email using the link captured by Mailpit. Then sign in. Use **Forgot password** to request a reset email if needed. Confirmation and recovery emails are queued for delivery; a `204` response means the request was accepted, not that an email was delivered.
 
+Registration retrieves the active password policy from the Identity API before submission and validates it locally alongside password confirmation. The Identity contracts provide shared FluentValidation rules for the UI and registration validator, while ASP.NET Identity remains authoritative and may apply additional requirements. The policy response is not cached; deployments must keep Identity password settings consistent across API instances. If the policy cannot be retrieved or understood, the UI logs a warning without displaying a policy error, checks the required fields and confirmation, and lets the API validate the password.
+
 ### Viewing development emails
 
 During local development, the AppHost starts Mailpit and configures the API to send email to it. In the Aspire Dashboard, open the `mailpit` resource and follow its web endpoint to view captured messages. Mailpit is a development sink, not a production sender.

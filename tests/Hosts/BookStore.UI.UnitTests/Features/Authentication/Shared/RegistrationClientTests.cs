@@ -8,7 +8,7 @@ public class RegistrationClientTests
         // Arrange
         var handler = new Handler(_ => new HttpResponseMessage(HttpStatusCode.NoContent));
         var sut = CreateClient(handler);
-        var model = new RegistrationModel { Email = "jane@example.com", FirstName = "Jane", LastName = "Doe", Password = "Password1!" };
+        var model = new RegistrationModel { Email = "jane@example.com", FirstName = "Jane", LastName = "Doe", Password = "Password1!", ConfirmPassword = "confirmation-not-sent" };
 
         // Act
         var actual = await sut.RegisterAsync(model);
@@ -18,6 +18,7 @@ public class RegistrationClientTests
         handler.Path.Should().Be("/api/identity/registration");
         handler.Body.Should().Contain("\"email\":\"jane@example.com\"").And.Contain("\"firstName\":\"Jane\"")
             .And.Contain("\"lastName\":\"Doe\"").And.Contain("\"password\":\"Password1!\"");
+        handler.Body.Should().NotContain("confirmPassword").And.NotContain("confirmation-not-sent");
     }
 
     [Fact]

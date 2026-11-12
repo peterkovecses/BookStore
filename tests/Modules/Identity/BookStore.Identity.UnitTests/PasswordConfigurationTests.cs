@@ -2,6 +2,32 @@ namespace BookStore.Identity.UnitTests;
 
 public class PasswordConfigurationTests
 {
+    [Theory]
+    [InlineData("Password1!")]
+    [InlineData("Äbcdef1!")]
+    [InlineData("Abcdef١!")]
+    [InlineData("Abcdef1é")]
+    [InlineData("      ")]
+    [InlineData("aaaaaa")]
+    [InlineData("abCD!1")]
+    public async Task Validate_WhenPasswordIsChecked_ShouldAgreeWithIdentity(string password)
+    {
+        // Arrange
+        using var host = CreateBuilder(new Dictionary<string, string?>()).Build();
+        using var scope = host.Services.CreateScope();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var sut = new RegistrationValidator(Options.Create(users.Options));
+        var request = new RegisterCommand(new RegistrationRequest { Email = "jane@example.com", Password = password, FirstName = "Jane", LastName = "Doe" });
+        var identityValidator = new PasswordValidator<ApplicationUser>();
+
+        // Act
+        var actual = sut.Validate(request);
+        var identityResult = await identityValidator.ValidateAsync(users, new ApplicationUser { FirstName = "Jane", LastName = "Doe" }, password);
+
+        // Assert
+        actual.IsValid.Should().Be(identityResult.Succeeded);
+    }
+
     [Fact]
     public void AddIdentityModuleServices_WhenContextInterfaceIsResolved_ShouldUseTheScopedIdentityContext()
     {
