@@ -1,5 +1,8 @@
 namespace BookStore.Identity.Features.ForgotPassword;
 
+/// <summary>
+/// Processes recovery events, generating a reset token for an existing user and enqueueing a password reset email event.
+/// </summary>
 internal sealed class PasswordRecoveryRequestedHandler(
     UserManager<ApplicationUser> users,
     IIdentityDbContext context,
