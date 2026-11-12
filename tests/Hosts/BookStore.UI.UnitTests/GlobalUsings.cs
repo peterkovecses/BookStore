@@ -21,3 +21,7 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Time.Testing;
 global using Kovecses.Result;
 global using NSubstitute;
+global using BookStore.UI.Features.Authentication;
+global using Microsoft.AspNetCore.Components.WebAssembly.Http;
+global using Microsoft.JSInterop;
+global using System.ComponentModel.DataAnnotations;

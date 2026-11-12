@@ -32,6 +32,23 @@ succeed, but the other revokes the successor, requiring a new login. The UI
 must coordinate refresh using single-flight across tabs as well as within a
 tab. Replay handling does not revoke already-issued access tokens.
 
+The UI serializes login, refresh and logout within each tab and uses the
+browser Web Locks API to serialize cookie-changing operations across tabs of
+the same UI origin. Browsers without Web Locks cannot sign in or restore a
+session; public catalog browsing remains available. A lock request times out
+after 15 seconds rather than proceeding without coordination. Different UI
+origins do not share Web Locks and must not share the same refresh cookie.
+An unsuccessful logout clears the tab's in-memory state but may not have
+revoked the server session or cleared the cookie; the UI offers a retry.
+
+The shared `AuthenticationSession` is the UI boundary for session state and
+authenticated API requests. It accepts a factory for relative `api/` requests,
+adds the in-memory bearer token, and refreshes once after a 401. Only GET and
+HEAD are retried automatically; callers must decide how to handle failed
+mutating requests. Public catalog requests do not require authentication.
+Future registration and recovery flows should use the existing API conventions
+without copying or persisting session tokens.
+
 Failed logins for a known account use ASP.NET Identity's SQL-backed lockout,
 serialized per normalized email across API instances. Lockout expires
 automatically; the response does not distinguish a locked account from invalid
