@@ -32,7 +32,7 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
                     [AttemptCount] = [AttemptCount] + 1, [CumulativeAttemptCount] = [CumulativeAttemptCount] + 1,
                     [LastAttemptAt] = SYSDATETIMEOFFSET(), [NextAttemptAt] = NULL
                 OUTPUT inserted.[Id], inserted.[EventType], inserted.[Payload], inserted.[CorrelationId],
-                       inserted.[ClaimToken], inserted.[AttemptCount];
+                       inserted.[ClaimToken], inserted.[AttemptCount], inserted.[CreatedAt];
                 """;
             AddParameter(command, "@count", count);
             AddParameter(command, "@pending", (int)OutboxStatus.Pending);
@@ -43,7 +43,10 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
             while (await reader.ReadAsync(cancellationToken))
             {
                 claims.Add(new(reader.GetGuid(0), reader.GetString(1), reader.GetString(2),
-                    reader.GetString(3), reader.GetGuid(4), reader.GetInt32(5)));
+                    reader.GetString(3), reader.GetGuid(4), reader.GetInt32(5))
+                {
+                    CreatedAt = reader.GetFieldValue<DateTimeOffset>(6)
+                });
             }
         }
         finally

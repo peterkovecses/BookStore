@@ -5,6 +5,7 @@ internal sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> opti
 {
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PasswordRecoveryRequestReceipt> PasswordRecoveryRequestReceipts => Set<PasswordRecoveryRequestReceipt>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -39,6 +40,14 @@ internal sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> opti
             entity.Property(token => token.UserId).HasMaxLength(450).IsRequired();
             entity.HasIndex(token => token.FamilyId);
             entity.HasOne<ApplicationUser>().WithMany().HasForeignKey(token => token.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<PasswordRecoveryRequestReceipt>(entity =>
+        {
+            entity.ToTable("PasswordRecoveryRequestReceipts");
+            entity.HasKey(receipt => receipt.RequestEventId);
+            entity.HasOne<OutboxMessage>().WithOne()
+                .HasForeignKey<PasswordRecoveryRequestReceipt>(receipt => receipt.RequestEventId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

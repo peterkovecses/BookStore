@@ -25,7 +25,8 @@ public sealed class OutboxRegistry<TStore> where TStore : class, IOutboxStore
             var value = JsonSerializer.Deserialize<TEvent>(payload)
                 ?? throw new JsonException("Outbox event deserialized to null.");
             var expiry = services.GetService<IOutboxExpiry<TEvent>>();
-            if (expiry?.IsExpired(value, now) is true)
+            var dispatchContext = services.GetRequiredService<OutboxDispatchContext>();
+            if (expiry?.IsExpired(value, now, dispatchContext.CreatedAt) is true)
             {
                 return new(OutboxDispatchStatus.Expired);
             }

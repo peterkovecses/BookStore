@@ -4,6 +4,7 @@ public static class DependencyInjection
 {
     public static IHostApplicationBuilder AddEmailDispatcherModuleServices(this IHostApplicationBuilder builder)
     {
+        builder.Logging.AddFilter("Microsoft.AspNetCore.DataProtection", LogLevel.Warning);
         builder.Services.AddOptions<SmtpSettings>()
             .Bind(builder.Configuration.GetSection("EmailDispatcher:Smtp"))
             .ValidateOnStart();

@@ -78,6 +78,7 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IUserIdGenerator, UserIdGenerator>();
         builder.Services.AddScoped<IVerificationRequestFactory, VerificationRequestFactory>();
         builder.Services.AddSingleton<IOutboxExpiry<VerificationEmailRequested>, VerificationRequestExpiry>();
+        builder.Services.AddSingleton<IOutboxExpiry<PasswordRecoveryRequested>, PasswordRecoveryRequestedExpiry>();
         builder.Services.AddSingleton<IOutboxExpiry<PasswordResetEmailRequested>, PasswordResetRequestExpiry>();
         builder.Services.AddSingleton(new OutboxRegistry<IdentityOutboxStore>()
             .Register<VerificationResendRequested>(VerificationResendRequested.EventType)

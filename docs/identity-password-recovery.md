@@ -55,24 +55,43 @@ gateway limit where appropriate; these limits are not shared across instances.
 ## Delivery and recovery
 
 The worker publishes events through the Identity-owned transactional outbox
-and local Requests publisher, not RabbitMQ. SMTP happens asynchronously. The
-reset event's encrypted link is bound to the user ID and recipient address.
-Retries may produce duplicate email; SMTP acceptance is not final delivery.
+and local Requests publisher, not RabbitMQ. SMTP happens asynchronously. New
+reset events protect the link with a Data Protection purpose bound to the
+user ID, without including the recipient address in that purpose. The email
+dispatcher retains compatibility with previously queued links that used the
+legacy user-ID-and-address purpose; Data Protection informational logs are
+filtered to avoid exposing legacy purpose values.
+The intermediate recovery request and its generated email event are saved in
+one SQL transaction. A durable receipt keyed by the intermediate event ID
+prevents a retry or replay of that event from generating a second token or
+email event. The receipt is retained for as long as its parent outbox row can
+be replayed, and is deleted with that row after completed-event retention.
+Requests for unknown accounts are also recorded as processed; if an account is
+created later, a new forgot request is required.
+
+SMTP retries may produce duplicate delivery of the same email and reset link;
+SMTP acceptance is not final delivery. A child email retry reuses its
+persisted protected link. Replaying a completed parent does not mint a new
+token; the user must submit a new forgot request for a fresh token.
 See [Identity outbox operations](identity-outbox.md) for monitoring, bounded
 retries, failure recovery and retention. Failed and expired records require
 operator attention under that policy; completed records are cleaned up under
 the configured retention. Never replay an expired event or mint a new token
 during replay.
 
-Before delivery, an event expires at the earlier of its recorded expiration
-and its issue time plus the currently configured lifetime. Shortening the
-lifetime therefore expires pending messages earlier; extending it does not
-extend existing messages. Expired events enter the terminal `expired` state
-and are not sent. The user must submit a new forgot request to create a fresh
-event. A token can expire after SMTP acceptance; the frontend must safely
-handle that error and offer a fresh request. Synchronize clocks across
-instances and workers. A circuit-open SMTP preflight defers reset-email events
-without consuming attempts or blocking unrelated event types.
+Before token creation, the intermediate request expires at the earlier of its
+recorded expiration and its outbox creation time plus the currently configured
+token lifetime. Existing payloads without an expiration remain readable and
+use their outbox `CreatedAt` with the current lifetime; stale legacy requests
+expire before generating a token. Shortening the lifetime expires pending
+messages earlier, while extending it does not extend an existing recorded
+expiration. The reset-email event independently expires at the earlier of its
+recorded expiration and issue time plus the current lifetime. Expired events
+enter the terminal `expired` state and are not sent. A token can expire after
+SMTP acceptance; the frontend must safely handle that error and offer a fresh
+request. Synchronize clocks across instances and workers. A circuit-open SMTP
+preflight defers reset-email events without consuming attempts or blocking
+unrelated event types.
 
 The Identity token and email template concepts adapt VocaBuddy's recovery
 flow. BookStore uses its own protected outbox and awaited local publisher,

@@ -1,6 +1,7 @@
 namespace BookStore.EmailDispatcher.Infrastructure.Smtp;
 
-internal sealed class SmtpCircuitBreaker(IOptions<SmtpSettings> options, TimeProvider timeProvider) : IEmailDispatchAvailability
+internal sealed class SmtpCircuitBreaker(IOptions<SmtpSettings> options, TimeProvider timeProvider,
+    ILogger<SmtpCircuitBreaker> logger) : IEmailDispatchAvailability
 {
     private readonly SmtpSettings _settings = options.Value;
     private readonly Lock _sync = new();
@@ -32,6 +33,9 @@ internal sealed class SmtpCircuitBreaker(IOptions<SmtpSettings> options, TimePro
 
     public void Complete(bool probe, bool transientFailure, bool cancelled)
     {
+        string? transition = null;
+        DateTimeOffset? retryAfter = null;
+        int failures;
         lock (_sync)
         {
             if (!_settings.CircuitEnabled) return;
@@ -42,23 +46,41 @@ internal sealed class SmtpCircuitBreaker(IOptions<SmtpSettings> options, TimePro
                 if (transientFailure)
                 {
                     _until = timeProvider.GetUtcNow().AddSeconds(_settings.CircuitBreakSeconds);
+                    transition = "reopened";
+                    retryAfter = _until;
+                    failures = _failures;
+                }
+                else
+                {
+                    _until = null;
+                    _failures = 0;
+                    transition = "recovered";
+                    failures = 0;
+                }
+            }
+            else
+            {
+                if (cancelled || _until is not null) return;
+                if (!transientFailure)
+                {
+                    _failures = 0;
 
                     return;
                 }
-                _until = null;
-                _failures = 0;
-
-                return;
-            }
-            if (cancelled || _until is not null) return;
-            if (!transientFailure)
-            {
-                _failures = 0;
-
-                return;
-            }
-            if (++_failures >= _settings.CircuitFailureThreshold)
+                failures = ++_failures;
+                if (failures < _settings.CircuitFailureThreshold) return;
                 _until = timeProvider.GetUtcNow().AddSeconds(_settings.CircuitBreakSeconds);
+                transition = "opened";
+                retryAfter = _until;
+            }
         }
+
+        if (transition is not null) logger.Transition(transition, failures, retryAfter);
     }
+}
+
+internal static partial class SmtpCircuitBreakerLogging
+{
+    [LoggerMessage(Level = LogLevel.Warning, Message = "SMTP circuit {Transition} after {Failures} consecutive transient failures until {RetryAfter}")]
+    internal static partial void Transition(this ILogger<SmtpCircuitBreaker> logger, string transition, int failures, DateTimeOffset? retryAfter);
 }

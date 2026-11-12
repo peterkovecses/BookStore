@@ -37,10 +37,18 @@ including earlier successful handlers. SMTP acceptance is not final delivery.
 Consumers must provide idempotency where duplicate effects matter; ordering
 between events is not guaranteed. Handlers should observe cancellation.
 Scoped handlers can inject `OutboxDispatchContext` to obtain the stable
-`EventId` and `CorrelationId`; those values are set before resolving the
-publisher and are preserved across attempts and replays. A context resolved
-outside an outbox dispatch has an empty event ID and must not be used as an
-idempotency key.
+`EventId`, `CorrelationId` and SQL-persisted `CreatedAt`; these values are set
+before resolving the publisher and are preserved across attempts and replays.
+A context resolved outside an outbox dispatch has an empty event ID and must
+not be used as an idempotency key.
+
+Password recovery is an idempotent consumer exception to the general replay
+behavior: the Identity handler atomically saves a request receipt and its child
+email event. A retry or replay of the same intermediate event observes that
+receipt and does not create another token. The receipt is tied to the parent
+row and removed with it during completed-event cleanup. Older recovery payloads
+without explicit expiry remain readable and expire using the parent row's
+`CreatedAt` plus the current configured lifetime.
 
 ## Processing and configuration
 
@@ -68,24 +76,32 @@ current token and an unexpired lease. A stopped process cannot strand an item
 permanently: another worker recovers it after lease expiry, unless its attempts
 are exhausted, in which case it becomes failed.
 
-Cancellation is cooperative. On timeout or shutdown, the worker cancels and
+Cancellation is cooperative. The worker logs startup, shutdown, handler
+completion, timeout and drain outcome. On timeout or shutdown, it cancels and
 tracks work for the configured shutdown period, never records interrupted work
-as complete, and does not release a claim while a handler is still running.
-Once a timed-out handler has stopped, the current owner records a bounded
-failure and delayed retry; shutdown leaves the claim for lease recovery.
-Lease expiry can nevertheless permit overlapping execution. Fencing prevents
-stale database updates, not already-started external effects.
+as complete, and does not release a claim while a handler is still running. A
+drain timeout is logged as a timeout, not as successful shutdown; claims remain
+leased for normal lease recovery. Once a timed-out handler has stopped, the
+current owner records a bounded failure and delayed retry. Lease expiry can
+nevertheless permit overlapping execution. Fencing prevents stale database
+updates, not already-started external effects.
 
 ## Monitoring, replay and privacy
 
 The monitor logs bounded aggregate pending, processing, failed and expired
 counts and oldest pending age. Alert on failed or expired counts, growing queue
 age, recurring worker/cleanup errors, and sustained preflight deferrals.
-Attempt and replay logs contain event and correlation IDs; choose opaque,
-non-secret IDs and actor names. Persisted `LastError` and worker errors contain
-only an exception type, never exception messages, payloads, tokens or SMTP
-credentials. Handler logging must independently observe the same precautions.
-Do not enable EF sensitive-data logging in production.
+Worker logs record safe event and correlation IDs, attempt counters, completion
+or expiry, terminal failure, and the next retry or deferral time. SMTP logs
+record attempt start, bounded retry delay, SMTP acceptance (not final
+delivery), and circuit transitions/recovery. Choose opaque, non-secret IDs and
+actor names. Persisted `LastError` and worker/SMTP logs contain only an
+exception type, never exception messages, addresses, payloads, tokens, links,
+passwords or SMTP credentials. Handler logging must independently observe the
+same precautions. New password-reset link protection purposes contain only
+the user ID; the EmailDispatcher retains decryption support for already-queued
+legacy links while filtering Data Protection informational logs. Do not enable
+EF sensitive-data logging in production.
 
 After correcting a technical failure, an authenticated and authorized
 operational caller may invoke `IIdentityOutboxOperations.ReplayAsync` with an

@@ -47,8 +47,8 @@ public sealed class PasswordRecoveryOutboxTests(VerificationOutboxEndToEndFactor
             worker.Dispose();
             var value = JsonSerializer.Deserialize<PasswordResetEmailRequested>(stale.Payload)!;
             var staleLink = host.Services.GetRequiredService<IDataProtectionProvider>()
-                .CreateProtector("BookStore.Identity.PasswordResetLink.v1")
-                .CreateProtector(value.UserId).CreateProtector(value.Email).Unprotect(value.ProtectedLink);
+                .CreateProtector("BookStore.Identity.PasswordResetLink.v2")
+                .CreateProtector(value.UserId).Unprotect(value.ProtectedLink);
             var staleQuery = QueryHelpers.ParseQuery(new Uri(staleLink).Query);
             var remaining = value.ExpiresAt.AddSeconds(1) - DateTimeOffset.UtcNow;
             if (remaining > TimeSpan.Zero) await Task.Delay(remaining, cancellationToken);

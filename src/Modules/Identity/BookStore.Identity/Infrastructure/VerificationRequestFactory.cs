@@ -40,13 +40,13 @@ internal sealed class VerificationRequestFactory(
             ["userId"] = user.Id,
             ["token"] = encodedToken
         });
+        var id = Guid.NewGuid();
         var value = new VerificationEmailRequested(user.Id, user.Email!, user.FirstName,
             protection.CreateProtector(ProtectionPurpose).CreateProtector(user.Id).CreateProtector(user.Email!).Protect(link),
             now + options.Value.TokenLifetime)
         {
             IssuedAt = now
         };
-        var id = Guid.NewGuid();
 
         return new OutboxMessage
         {

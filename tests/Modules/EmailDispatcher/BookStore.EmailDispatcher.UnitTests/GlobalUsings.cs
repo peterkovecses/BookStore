@@ -1,4 +1,5 @@
 global using System.Net.Sockets;
+global using System.Collections.Concurrent;
 global using System.Security.Cryptography;
 global using BookStore.EmailDispatcher.Contracts;
 global using BookStore.EmailDispatcher.Features.Verification;
@@ -10,6 +11,7 @@ global using MailKit.Net.Smtp;
 global using MailKit.Security;
 global using Microsoft.AspNetCore.DataProtection;
 global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.Logging.Abstractions;
 global using Microsoft.Extensions.Options;
 global using Microsoft.Extensions.Time.Testing;

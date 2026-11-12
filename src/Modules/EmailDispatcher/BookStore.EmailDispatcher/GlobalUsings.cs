@@ -1,4 +1,5 @@
 global using System.Net.Sockets;
+global using System.Security.Cryptography;
 global using System.Text.Encodings.Web;
 global using BookStore.EmailDispatcher.Contracts;
 global using BookStore.EmailDispatcher.Features.PasswordReset;

@@ -173,6 +173,22 @@ namespace BookStore.Identity.Infrastructure.Migrations
                     b.ToTable("OutboxMessages", "identity");
                 });
 
+            modelBuilder.Entity("BookStore.Identity.Infrastructure.PasswordRecoveryRequestReceipt", b =>
+                {
+                    b.Property<Guid>("RequestEventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("EmailEventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("ProcessedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("RequestEventId");
+
+                    b.ToTable("PasswordRecoveryRequestReceipts", "identity");
+                });
+
             modelBuilder.Entity("BookStore.Identity.Infrastructure.RefreshToken", b =>
                 {
                     b.Property<string>("Hash")
@@ -337,6 +353,15 @@ namespace BookStore.Identity.Infrastructure.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", "identity");
+                });
+
+            modelBuilder.Entity("BookStore.Identity.Infrastructure.PasswordRecoveryRequestReceipt", b =>
+                {
+                    b.HasOne("BookStore.Identity.Infrastructure.OutboxMessage", null)
+                        .WithOne()
+                        .HasForeignKey("BookStore.Identity.Infrastructure.PasswordRecoveryRequestReceipt", "RequestEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("BookStore.Identity.Infrastructure.RefreshToken", b =>
