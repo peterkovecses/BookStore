@@ -10,6 +10,18 @@ internal sealed record EmailRequestOutcome(bool Accepted, int RetryAfterSeconds)
 
 internal interface IEmailRequestCooldownStore
 {
+    /// <summary>
+    /// Enqueues an email request unless the address is still within the cooldown for the given purpose.
+    /// </summary>
+    /// <param name="purpose">The request purpose, with a separate cooldown for each purpose.</param>
+    /// <param name="email">The address used to identify the cooldown; it is normalized before lookup.</param>
+    /// <param name="message">The outbox message to add when the request is accepted.</param>
+    /// <param name="cancellationToken">A token used to cancel the operation.</param>
+    /// <returns>
+    /// An outcome indicating whether the message was enqueued and the cooldown or remaining wait in seconds.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="purpose"/> is not supported.</exception>
+    /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
     Task<EmailRequestOutcome> EnqueueAsync(
         EmailRequestPurpose purpose, string email, OutboxMessage message, CancellationToken cancellationToken);
 }
@@ -21,6 +33,7 @@ internal sealed class EmailRequestCooldownStore(
 {
     private const int CooldownSeconds = 60;
 
+    /// <inheritdoc />
     public async Task<EmailRequestOutcome> EnqueueAsync(
         EmailRequestPurpose purpose, string email, OutboxMessage message, CancellationToken cancellationToken)
     {
