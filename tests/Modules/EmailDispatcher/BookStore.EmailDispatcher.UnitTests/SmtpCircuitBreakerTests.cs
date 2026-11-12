@@ -86,6 +86,27 @@ public sealed class SmtpCircuitBreakerTests
         sut.Enter().Should().BeTrue();
     }
 
+    [Fact]
+    public void Complete_WhenSuccessfulOrCancelledAttemptsInterruptFailures_ShouldPreserveFailureCounting()
+    {
+        // Arrange
+        var clock = new FakeTimeProvider();
+        var sut = new SmtpCircuitBreaker(Options.Create(new SmtpSettings { CircuitFailureThreshold = 2, CircuitBreakSeconds = 30 }), clock,
+            NullLogger<SmtpCircuitBreaker>.Instance);
+        sut.Complete(sut.Enter(), true, false);
+        sut.Complete(sut.Enter(), false, false);
+        sut.Complete(sut.Enter(), true, false);
+
+        // Act
+        sut.Complete(sut.Enter(), true, true);
+        var availableAfterCancellation = sut.GetAvailability().IsAvailable;
+        sut.Complete(sut.Enter(), true, false);
+
+        // Assert
+        availableAfterCancellation.Should().BeTrue();
+        sut.GetAvailability().IsAvailable.Should().BeFalse();
+    }
+
     private sealed class RecordingLoggerProvider : ILoggerProvider
     {
         public ConcurrentQueue<string> Messages { get; } = new();

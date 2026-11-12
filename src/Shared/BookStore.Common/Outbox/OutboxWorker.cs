@@ -59,32 +59,37 @@ public sealed class OutboxWorker<TStore>(
         }
         finally
         {
-            logger.WorkerStopping(active.Count);
-            var draining = Task.WhenAll(active);
-            if (await Task.WhenAny(draining, Task.Delay(_options.ShutdownTimeout, clock)) == draining)
+            await DrainAsync(active);
+        }
+    }
+
+    private async Task DrainAsync(HashSet<Task> active)
+    {
+        logger.WorkerStopping(active.Count);
+        var draining = Task.WhenAll(active);
+        if (await Task.WhenAny(draining, Task.Delay(_options.ShutdownTimeout, clock)) != draining)
+        {
+            logger.DrainTimedOut(active.Count);
+            _ = draining.ContinueWith(task =>
             {
-                try
+                if (task.IsFaulted)
                 {
-                    await draining;
-                    logger.DrainCompleted();
+                    logger.BackgroundTaskFailed(task.Exception!.GetBaseException().GetType().Name);
                 }
-                catch (Exception exception)
-                {
-                    logger.BackgroundTaskFailed(exception.GetType().Name);
-                }
-            }
-            else
-            {
-                logger.DrainTimedOut(active.Count);
-                _ = draining.ContinueWith(task =>
-                {
-                    if (task.IsFaulted)
-                    {
-                        logger.BackgroundTaskFailed(task.Exception!.GetBaseException().GetType().Name);
-                    }
-                }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-                    TaskScheduler.Default);
-            }
+            }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+
+            return;
+        }
+
+        try
+        {
+            await draining;
+            logger.DrainCompleted();
+        }
+        catch (Exception exception)
+        {
+            logger.BackgroundTaskFailed(exception.GetType().Name);
         }
     }
 
@@ -124,14 +129,7 @@ public sealed class OutboxWorker<TStore>(
         }
         catch (OperationCanceledException) when (timeout.IsCancellationRequested)
         {
-            if (deadline.IsCancellationRequested && !stoppingToken.IsCancellationRequested)
-            {
-                logger.HandlerTimedOut(claim.Id, claim.CorrelationId, claim.AttemptCount);
-            }
-            else
-            {
-                logger.Interrupted(claim.Id, claim.CorrelationId, claim.AttemptCount);
-            }
+            LogCancellation(claim, deadline.IsCancellationRequested && !stoppingToken.IsCancellationRequested);
             if (deadline.IsCancellationRequested && !stoppingToken.IsCancellationRequested)
             {
                 using var persistenceDeadline = new CancellationTokenSource(_options.ShutdownTimeout, clock);
@@ -151,6 +149,18 @@ public sealed class OutboxWorker<TStore>(
             await renewalStop.CancelAsync();
             await renewal;
         }
+    }
+
+    private void LogCancellation(OutboxClaim claim, bool timedOut)
+    {
+        if (timedOut)
+        {
+            logger.HandlerTimedOut(claim.Id, claim.CorrelationId, claim.AttemptCount);
+
+            return;
+        }
+
+        logger.Interrupted(claim.Id, claim.CorrelationId, claim.AttemptCount);
     }
 
     private async Task<bool> UpdateStatusAsync(TStore store, OutboxClaim claim, OutboxDispatchResult dispatch,
@@ -195,15 +205,18 @@ public sealed class OutboxWorker<TStore>(
             if (!await store.FailAsync(claim, error, delay, _options.MaxAttempts, cancellationToken))
             {
                 logger.StaleClaim(claim.Id, claim.CorrelationId);
+
+                return;
             }
-            else if (claim.AttemptCount >= _options.MaxAttempts)
+
+            if (claim.AttemptCount >= _options.MaxAttempts)
             {
                 logger.TerminalFailure(claim.Id, claim.CorrelationId, claim.AttemptCount, error);
+
+                return;
             }
-            else
-            {
-                logger.RetryScheduled(claim.Id, claim.CorrelationId, claim.AttemptCount, error, clock.GetUtcNow() + delay);
-            }
+
+            logger.RetryScheduled(claim.Id, claim.CorrelationId, claim.AttemptCount, error, clock.GetUtcNow() + delay);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
         catch (Exception exception)

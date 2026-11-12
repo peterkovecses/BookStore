@@ -33,49 +33,49 @@ internal sealed class SmtpCircuitBreaker(IOptions<SmtpSettings> options, TimePro
 
     public void Complete(bool probe, bool transientFailure, bool cancelled)
     {
-        string? transition = null;
-        DateTimeOffset? retryAfter = null;
-        int failures;
+        (string Transition, int Failures, DateTimeOffset? RetryAfter)? transition;
         lock (_sync)
         {
-            if (!_settings.CircuitEnabled) return;
-            if (probe)
-            {
-                _probe = false;
-                if (cancelled) return;
-                if (transientFailure)
-                {
-                    _until = timeProvider.GetUtcNow().AddSeconds(_settings.CircuitBreakSeconds);
-                    transition = "reopened";
-                    retryAfter = _until;
-                    failures = _failures;
-                }
-                else
-                {
-                    _until = null;
-                    _failures = 0;
-                    transition = "recovered";
-                    failures = 0;
-                }
-            }
-            else
-            {
-                if (cancelled || _until is not null) return;
-                if (!transientFailure)
-                {
-                    _failures = 0;
-
-                    return;
-                }
-                failures = ++_failures;
-                if (failures < _settings.CircuitFailureThreshold) return;
-                _until = timeProvider.GetUtcNow().AddSeconds(_settings.CircuitBreakSeconds);
-                transition = "opened";
-                retryAfter = _until;
-            }
+            transition = UpdateState(probe, transientFailure, cancelled);
         }
 
-        if (transition is not null) logger.Transition(transition, failures, retryAfter);
+        if (transition is { } result) logger.Transition(result.Transition, result.Failures, result.RetryAfter);
+    }
+
+    private (string Transition, int Failures, DateTimeOffset? RetryAfter)? UpdateState(
+        bool probe, bool transientFailure, bool cancelled)
+    {
+        if (!_settings.CircuitEnabled) return null;
+        if (probe)
+        {
+            _probe = false;
+            if (cancelled) return null;
+            if (transientFailure)
+            {
+                _until = timeProvider.GetUtcNow().AddSeconds(_settings.CircuitBreakSeconds);
+
+                return ("reopened", _failures, _until);
+            }
+
+            _until = null;
+            _failures = 0;
+
+            return ("recovered", 0, null);
+        }
+
+        if (cancelled || _until is not null) return null;
+        if (!transientFailure)
+        {
+            _failures = 0;
+
+            return null;
+        }
+
+        var failures = ++_failures;
+        if (failures < _settings.CircuitFailureThreshold) return null;
+        _until = timeProvider.GetUtcNow().AddSeconds(_settings.CircuitBreakSeconds);
+
+        return ("opened", failures, _until);
     }
 }
 
