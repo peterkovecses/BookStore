@@ -1,4 +1,4 @@
-namespace BookStore.Identity.Features.Authentication;
+namespace BookStore.Identity.Common.Extensions;
 
 internal static class AuthenticationEndpoints
 {

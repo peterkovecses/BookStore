@@ -1,4 +1,4 @@
-namespace BookStore.Identity.Common;
+namespace BookStore.Identity.Common.PasswordRecovery;
 
 internal static class PasswordRecoveryRateLimiting
 {

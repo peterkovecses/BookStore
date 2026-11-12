@@ -1,4 +1,4 @@
-namespace BookStore.Identity.Common;
+namespace BookStore.Identity.Common.Transactions;
 
 internal static class IdentityTransactionLock
 {

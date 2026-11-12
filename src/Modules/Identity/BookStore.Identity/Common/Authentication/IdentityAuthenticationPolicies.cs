@@ -1,4 +1,4 @@
-namespace BookStore.Identity.Common;
+namespace BookStore.Identity.Common.Authentication;
 
 internal static class IdentityAuthenticationPolicies
 {
