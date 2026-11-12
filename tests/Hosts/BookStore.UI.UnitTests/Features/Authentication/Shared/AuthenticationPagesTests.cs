@@ -1,4 +1,4 @@
-namespace BookStore.UI.UnitTests.Features.Authentication;
+namespace BookStore.UI.UnitTests.Features.Authentication.Shared;
 
 public class AuthenticationPagesTests
 {

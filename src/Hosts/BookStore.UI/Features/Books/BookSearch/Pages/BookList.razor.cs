@@ -1,4 +1,4 @@
-namespace BookStore.UI.Features.Books.Pages;
+namespace BookStore.UI.Features.Books.BookSearch.Pages;
 
 public partial class BookList
 {

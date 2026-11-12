@@ -1,10 +1,10 @@
 using System.Text.RegularExpressions;
-using BookStore.UI.Features.Books.Components;
+using BookStore.UI.Features.Books.BookDetails.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace BookStore.UI.UnitTests.Features.Books.Components;
+namespace BookStore.UI.UnitTests.Features.Books.BookDetails.Components;
 
 public class BookCardTests
 {

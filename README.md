@@ -42,9 +42,9 @@ graph TD
         EmailDispatcher -->|Consumes email events| IdentityContracts
         
         subgraph Catalog Module Internal Slices
-            GetDetails[GetBookDetails Feature]
-            Search[SearchBooks Feature]
-            Filters[GetSearchFilters Feature]
+            GetDetails[Get Details]
+            Search[Find Books]
+            Filters[Get Filters]
         end
     end
 ```

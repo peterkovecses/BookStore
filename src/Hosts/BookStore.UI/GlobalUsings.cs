@@ -19,7 +19,7 @@ global using BookStore.Common;
 global using BookStore.Common.Pagination;
 global using BookStore.Common.Sorting;
 global using BookStore.Catalog.Contracts.Dtos;
-global using BookStore.UI.Features.Books.Models;
+global using BookStore.UI.Features.Books.BookSearch.Models;
 global using BookStore.UI.Common.Clients;
 global using BookStore.UI.Common.Models;
 global using BookStore.UI.Common.Constants;

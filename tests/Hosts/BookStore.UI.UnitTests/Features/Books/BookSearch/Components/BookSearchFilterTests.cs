@@ -1,4 +1,4 @@
-namespace BookStore.UI.UnitTests.Features.Books.Components;
+namespace BookStore.UI.UnitTests.Features.Books.BookSearch.Components;
 
 public class BookSearchFilterTests
 {

@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const path = require("node:path");
 
-const source = fs.readFileSync(path.join(__dirname, "../../../../../src/Hosts/BookStore.UI/wwwroot/js/session-lock.js"), "utf8");
+const source = fs.readFileSync(path.join(__dirname, "../../../../../../src/Hosts/BookStore.UI/wwwroot/js/session-lock.js"), "utf8");
 
 function createTab(locks) {
     const context = { window: {}, navigator: { locks }, AbortController, setTimeout, clearTimeout };

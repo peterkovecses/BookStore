@@ -1,4 +1,4 @@
-namespace BookStore.UI.Features.Books.Models;
+namespace BookStore.UI.Features.Books.BookSearch.Models;
 
 public class BookSearchParameters
 {

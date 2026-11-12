@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const path = require("node:path");
 
-const source = fs.readFileSync(path.join(__dirname, "../../../../../src/Hosts/BookStore.UI/wwwroot/js/verification-link.js"), "utf8");
+const source = fs.readFileSync(path.join(__dirname, "../../../../../../src/Hosts/BookStore.UI/wwwroot/js/verification-link.js"), "utf8");
 
 function open(pathname, search) {
     let replaced;

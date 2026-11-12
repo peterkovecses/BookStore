@@ -1,4 +1,4 @@
-namespace BookStore.UI.Features.Books.Pages;
+namespace BookStore.UI.Features.Books.BookDetails.Pages;
 
 public partial class BookDetails : IAsyncDisposable
 {
@@ -16,7 +16,7 @@ public partial class BookDetails : IAsyncDisposable
 
     private async Task ScrollToReviews()
     {
-        _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Features/Books/Pages/BookDetails.razor.js");
+        _jsModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Features/Books/BookDetails/Pages/BookDetails.razor.js");
         await _jsModule.InvokeVoidAsync("scrollToElement", "reviews");
     }
 

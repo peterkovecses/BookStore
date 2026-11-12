@@ -1,4 +1,4 @@
-namespace BookStore.UI.UnitTests.Features.Authentication;
+namespace BookStore.UI.UnitTests.Features.Authentication.Login;
 
 public class LoginModelTests
 {
