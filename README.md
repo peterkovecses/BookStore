@@ -168,6 +168,18 @@ Open the `mailpit` resource in the Aspire Dashboard and follow its web endpoint 
 
 Production deployments require a shared, durable Data Protection key ring and consistent certificate and Identity settings across API instances. Use a secret manager and a shared rate limit at the gateway; do not use local development secrets or Mailpit in production.
 
+### Password reset browser test
+
+The password reset integration test runs the real Blazor UI in Playwright Chromium and uses Docker containers for SQL Server and Mailpit. Install PowerShell and Docker, then build the test project and install its matching browser before running the test:
+
+```bash
+dotnet build tests/Modules/Identity/BookStore.Identity.IntegrationTests/BookStore.Identity.IntegrationTests.csproj
+pwsh tests/Modules/Identity/BookStore.Identity.IntegrationTests/bin/Debug/net10.0/playwright.ps1 install chromium
+dotnet test tests/Modules/Identity/BookStore.Identity.IntegrationTests/BookStore.Identity.IntegrationTests.csproj -- --filter-method '*PasswordRecoveryBrowserFlowTests*'
+```
+
+On Linux, Playwright may also require system dependencies; see its [installation documentation](https://playwright.dev/dotnet/docs/intro).
+
 ## 🤝 Let's Connect
 
 Feel free to reach out to discuss modern .NET architecture, software engineering, or potential opportunities.
