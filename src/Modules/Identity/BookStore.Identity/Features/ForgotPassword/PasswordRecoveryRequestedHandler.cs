@@ -2,7 +2,7 @@ namespace BookStore.Identity.Features.ForgotPassword;
 
 internal sealed class PasswordRecoveryRequestedHandler(
     UserManager<ApplicationUser> users,
-    IdentityDbContext context,
+    IIdentityDbContext context,
     IDataProtectionProvider protection,
     OutboxDispatchContext dispatchContext,
     IOptions<PasswordRecoveryOptions> options,
@@ -11,16 +11,21 @@ internal sealed class PasswordRecoveryRequestedHandler(
     internal const string EmailEventType = "identity.password-reset-email-requested.v1";
 
     public async Task HandleAsync(PasswordRecoveryRequested value, CancellationToken cancellationToken) =>
-        await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        await context.ExecuteInTransactionAsync(async (transaction, token) =>
         {
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-            await AcquireRequestLockAsync(dispatchContext.EventId, cancellationToken);
-            if (await context.PasswordRecoveryRequestReceipts.AnyAsync(
-                receipt => receipt.RequestEventId == dispatchContext.EventId, cancellationToken))
+            var resource = $"identity.password-recovery:{dispatchContext.EventId:N}";
+            var lockResult = await transaction.TryAcquireLockAsync(resource, 10_000, token);
+            if (lockResult is not int result || result < 0)
             {
-                await transaction.CommitAsync(cancellationToken);
+                throw new TimeoutException("Unable to acquire the password recovery request lock.");
+            }
 
-                return;
+            if (await context.PasswordRecoveryRequestReceipts.AnyAsync(
+                receipt => receipt.RequestEventId == dispatchContext.EventId, token))
+            {
+                await transaction.CommitAsync(token);
+
+                return true;
             }
 
             var email = protection.CreateProtector(PasswordRecoveryRequested.ProtectionPurpose).Unprotect(value.ProtectedEmail);
@@ -32,18 +37,18 @@ internal sealed class PasswordRecoveryRequestedHandler(
                     RequestEventId = dispatchContext.EventId,
                     ProcessedAt = clock.GetUtcNow()
                 });
-                await context.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
+                await context.SaveChangesAsync(token);
+                await transaction.CommitAsync(token);
 
-                return;
+                return true;
             }
 
             var now = clock.GetUtcNow();
-            var token = await users.GeneratePasswordResetTokenAsync(user);
+            var resetToken = await users.GeneratePasswordResetTokenAsync(user);
             var link = QueryHelpers.AddQueryString(options.Value.LinkBaseUrl, new Dictionary<string, string?>
             {
                 ["userId"] = user.Id,
-                ["token"] = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token))
+                ["token"] = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(resetToken))
             });
             var id = Guid.NewGuid();
             var message = new PasswordResetEmailRequested(user.Id, user.Email!, user.FirstName,
@@ -66,29 +71,8 @@ internal sealed class PasswordRecoveryRequestedHandler(
                 CorrelationId = dispatchContext.CorrelationId,
                 CreatedAt = now
             });
-            await context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        });
-
-    private async Task AcquireRequestLockAsync(Guid eventId, CancellationToken cancellationToken)
-    {
-        var resource = $"identity.password-recovery:{eventId:N}";
-        await using var command = context.Database.GetDbConnection().CreateCommand();
-        command.Transaction = context.Database.CurrentTransaction!.GetDbTransaction();
-        command.CommandText = """
-            DECLARE @result int;
-            EXEC @result = sys.sp_getapplock @Resource = @resource, @LockMode = 'Exclusive',
-                @LockOwner = 'Transaction', @LockTimeout = 10000;
-            SELECT @result;
-            """;
-        var parameter = command.CreateParameter();
-        parameter.ParameterName = "@resource";
-        parameter.Value = resource;
-        command.Parameters.Add(parameter);
-        var result = await command.ExecuteScalarAsync(cancellationToken);
-        if (result is not int lockResult || lockResult < 0)
-        {
-            throw new TimeoutException("Unable to acquire the password recovery request lock.");
-        }
-    }
+            await context.SaveChangesAsync(token);
+            await transaction.CommitAsync(token);
+            return true;
+        }, cancellationToken);
 }

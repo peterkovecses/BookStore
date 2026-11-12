@@ -663,6 +663,7 @@ public class OutboxWorkerTests(IdentityFactory factory) : IClassFixture<Identity
         var services = new ServiceCollection();
         services.AddLogging(logging => logging.AddProvider(control.Logger));
         services.AddDbContext<IdentityDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddScoped<IIdentityDbContext>(provider => provider.GetRequiredService<IdentityDbContext>());
         services.AddOutbox<IdentityOutboxStore>(new ConfigurationBuilder().Build());
         services.AddScoped<FaultingStore>();
         services.Configure<OutboxOptions>(options =>

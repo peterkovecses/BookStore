@@ -1,10 +1,10 @@
 namespace BookStore.Identity.Infrastructure;
 
-internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<IdentityOutboxStore> logger) : IOutboxStore, IIdentityOutboxOperations
+internal sealed class IdentityOutboxStore(IIdentityDbContext db, ILogger<IdentityOutboxStore> logger) : IOutboxStore, IIdentityOutboxOperations
 {
     public async Task<IReadOnlyList<OutboxClaim>> ClaimAsync(int count, OutboxOptions options, CancellationToken cancellationToken)
     {
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
+        await db.ExecuteSqlInterpolatedAsync($"""
             UPDATE TOP ({count}) [identity].[OutboxMessages]
             SET [Status] = {(int)OutboxStatus.Failed}, [LastError] = {"AttemptLimitExceeded"},
                 [ClaimToken] = NULL, [LeaseExpiresAt] = NULL
@@ -13,11 +13,10 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
                 AND [AttemptCount] >= {options.MaxAttempts}
             """, cancellationToken);
 
-        var claims = new List<OutboxClaim>();
-        await db.Database.OpenConnectionAsync(cancellationToken);
-        try
+        return await db.UseConnectionAsync(async (connection, token) =>
         {
-            await using var command = db.Database.GetDbConnection().CreateCommand();
+            var claims = new List<OutboxClaim>();
+            await using var command = connection.CreateCommand();
             command.CommandText = """
                 ;WITH candidates AS (
                     SELECT TOP (@count) * FROM [identity].[OutboxMessages] WITH (UPDLOCK, READPAST, READCOMMITTEDLOCK)
@@ -39,8 +38,8 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
             AddParameter(command, "@processing", (int)OutboxStatus.Processing);
             AddParameter(command, "@maxAttempts", options.MaxAttempts);
             AddParameter(command, "@leaseMilliseconds", checked((int)options.LeaseDuration.TotalMilliseconds));
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
+            await using var reader = await command.ExecuteReaderAsync(token);
+            while (await reader.ReadAsync(token))
             {
                 claims.Add(new(reader.GetGuid(0), reader.GetString(1), reader.GetString(2),
                     reader.GetString(3), reader.GetGuid(4), reader.GetInt32(5))
@@ -48,17 +47,12 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
                     CreatedAt = reader.GetFieldValue<DateTimeOffset>(6)
                 });
             }
-        }
-        finally
-        {
-            await db.Database.CloseConnectionAsync();
-        }
-
-        return claims;
+            return claims;
+        }, cancellationToken);
     }
 
     public async Task<bool> RenewAsync(OutboxClaim claim, OutboxOptions options, CancellationToken cancellationToken) =>
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
+        await db.ExecuteSqlInterpolatedAsync($"""
             UPDATE [identity].[OutboxMessages]
             SET [LeaseExpiresAt] = DATEADD(millisecond, {checked((int)options.LeaseDuration.TotalMilliseconds)}, SYSDATETIMEOFFSET())
             WHERE [Id] = {claim.Id} AND [Status] = {(int)OutboxStatus.Processing}
@@ -66,7 +60,7 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
             """, cancellationToken) == 1;
 
     public async Task<bool> CompleteAsync(OutboxClaim claim, CancellationToken cancellationToken) =>
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
+        await db.ExecuteSqlInterpolatedAsync($"""
             UPDATE [identity].[OutboxMessages]
             SET [Status] = {(int)OutboxStatus.Completed}, [CompletedAt] = SYSDATETIMEOFFSET(),
                 [ClaimToken] = NULL, [LeaseExpiresAt] = NULL, [LastError] = NULL
@@ -75,7 +69,7 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
             """, cancellationToken) == 1;
 
     public async Task<bool> FailAsync(OutboxClaim claim, string error, TimeSpan delay, int maxAttempts, CancellationToken cancellationToken) =>
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
+        await db.ExecuteSqlInterpolatedAsync($"""
             UPDATE [identity].[OutboxMessages]
             SET [Status] = CASE WHEN [AttemptCount] >= {maxAttempts} THEN {(int)OutboxStatus.Failed} ELSE {(int)OutboxStatus.Pending} END,
                 [LastError] = {error}, [NextAttemptAt] = DATEADD(millisecond, {checked((int)delay.TotalMilliseconds)}, SYSDATETIMEOFFSET()),
@@ -85,7 +79,7 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
             """, cancellationToken) == 1;
 
     public async Task<bool> DeferAsync(OutboxClaim claim, DateTimeOffset nextAttempt, CancellationToken cancellationToken) =>
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
+        await db.ExecuteSqlInterpolatedAsync($"""
             UPDATE [identity].[OutboxMessages]
             SET [Status] = {(int)OutboxStatus.Pending}, [NextAttemptAt] = {nextAttempt}, [AttemptCount] = [AttemptCount] - 1,
                 [CumulativeAttemptCount] = [CumulativeAttemptCount] - 1, [ClaimToken] = NULL, [LeaseExpiresAt] = NULL
@@ -94,7 +88,7 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
             """, cancellationToken) == 1;
 
     public async Task<bool> ExpireAsync(OutboxClaim claim, CancellationToken cancellationToken) =>
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
+        await db.ExecuteSqlInterpolatedAsync($"""
             UPDATE [identity].[OutboxMessages]
             SET [Status] = {(int)OutboxStatus.Expired}, [ClaimToken] = NULL, [LeaseExpiresAt] = NULL
             WHERE [Id] = {claim.Id} AND [Status] = {(int)OutboxStatus.Processing}
@@ -102,7 +96,7 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
             """, cancellationToken) == 1;
 
     public Task<int> CleanupAsync(DateTimeOffset cutoff, int batchSize, CancellationToken cancellationToken) =>
-        db.Database.ExecuteSqlInterpolatedAsync($"""
+        db.ExecuteSqlInterpolatedAsync($"""
             DELETE TOP ({batchSize}) FROM [identity].[OutboxMessages]
             WHERE [Status] = {(int)OutboxStatus.Completed} AND [CompletedAt] < {cutoff}
             """, cancellationToken);
@@ -125,11 +119,9 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(actor);
         if (actor.Length > 256) throw new ArgumentOutOfRangeException(nameof(actor));
-        await db.Database.OpenConnectionAsync(cancellationToken);
-        string? correlationId;
-        try
+        var correlationId = await db.UseConnectionAsync(async (connection, token) =>
         {
-            await using var command = db.Database.GetDbConnection().CreateCommand();
+            await using var command = connection.CreateCommand();
             command.CommandText = """
             UPDATE [identity].[OutboxMessages]
             SET [Status] = @pending, [AttemptCount] = 0, [NextAttemptAt] = NULL,
@@ -144,12 +136,8 @@ internal sealed class IdentityOutboxStore(IdentityDbContext db, ILogger<Identity
             AddParameter(command, "@completed", (int)OutboxStatus.Completed);
             AddParameter(command, "@actor", actor);
             AddParameter(command, "@id", id);
-            correlationId = (string?)await command.ExecuteScalarAsync(cancellationToken);
-        }
-        finally
-        {
-            await db.Database.CloseConnectionAsync();
-        }
+            return (string?)await command.ExecuteScalarAsync(token);
+        }, cancellationToken);
 
         if (correlationId is not null)
         {

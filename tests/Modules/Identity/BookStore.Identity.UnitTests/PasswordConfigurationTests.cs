@@ -3,6 +3,27 @@ namespace BookStore.Identity.UnitTests;
 public class PasswordConfigurationTests
 {
     [Fact]
+    public void AddIdentityModuleServices_WhenContextInterfaceIsResolved_ShouldUseTheScopedIdentityContext()
+    {
+        // Arrange
+        using var sut = CreateBuilder(new Dictionary<string, string?>()).Build();
+        using var scope = sut.Services.CreateScope();
+        using var otherScope = sut.Services.CreateScope();
+
+        // Act
+        var actual = scope.ServiceProvider.GetRequiredService<IIdentityDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var userStore = scope.ServiceProvider.GetRequiredService<IUserStore<ApplicationUser>>();
+        var storeContext = userStore.GetType().GetProperty("Context")?.GetValue(userStore);
+
+        // Assert
+        actual.Should().BeSameAs(context);
+        storeContext.Should().BeSameAs(context);
+        scope.ServiceProvider.GetRequiredService<IIdentityDbContext>().Should().BeSameAs(actual);
+        otherScope.ServiceProvider.GetRequiredService<IIdentityDbContext>().Should().NotBeSameAs(actual);
+    }
+
+    [Fact]
     public async Task AddIdentityModuleServices_WhenPasswordPolicyIsConfigured_ShouldApplyItToIdentity()
     {
         // Arrange

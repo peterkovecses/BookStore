@@ -1,7 +1,7 @@
 namespace BookStore.Identity.Features.Verification;
 
 internal sealed class ResendVerificationHandler(
-    IdentityDbContext context,
+    IIdentityDbContext context,
     IDataProtectionProvider protection,
     TimeProvider clock)
     : IRequestHandler<ResendVerificationCommand, Result>

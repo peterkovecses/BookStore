@@ -1,6 +1,6 @@
 namespace BookStore.Identity.Features.ResetPassword;
 
-internal sealed class ResetPasswordHandler(IdentityDbContext context, UserManager<ApplicationUser> users)
+internal sealed class ResetPasswordHandler(IIdentityDbContext context, UserManager<ApplicationUser> users)
     : IRequestHandler<ResetPasswordCommand, Result>
 {
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
@@ -21,20 +21,24 @@ internal sealed class ResetPasswordHandler(IdentityDbContext context, UserManage
             return Invalid();
         }
 
-        return await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        var resetToken = token;
+
+        return await context.ExecuteInTransactionAsync(async (transaction, cancellationToken) =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-            await IdentityTransactionLock.AcquireAsync(context, IdentityTransactionLock.User(request.UserId), cancellationToken);
+            await IdentityTransactionLock.AcquireAsync(transaction, IdentityTransactionLock.User(request.UserId), cancellationToken);
             var user = await users.FindByIdAsync(request.UserId);
             if (user is null)
             {
+                await transaction.RollbackAsync(cancellationToken);
+
                 return Invalid();
             }
 
-            var result = await users.ResetPasswordAsync(user, token, request.NewPassword);
+            var result = await users.ResetPasswordAsync(user, resetToken, request.NewPassword);
             if (!result.Succeeded)
             {
+                await transaction.RollbackAsync(cancellationToken);
+
                 return Invalid();
             }
 
@@ -53,7 +57,7 @@ internal sealed class ResetPasswordHandler(IdentityDbContext context, UserManage
             await transaction.CommitAsync(cancellationToken);
 
             return Result.Success();
-        });
+        }, cancellationToken);
     }
 
     private static Result Invalid() =>
