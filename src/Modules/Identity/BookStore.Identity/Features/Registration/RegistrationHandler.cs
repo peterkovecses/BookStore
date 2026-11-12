@@ -15,6 +15,7 @@ internal sealed class RegistrationHandler(
         {
             var attempt = await context.ExecuteInTransactionAsync(
                 (transaction, token) => RegisterAsync(request, userId, transaction, token), cancellationToken);
+                
             if (attempt.Result is null)
             {
                 return Result.Success();

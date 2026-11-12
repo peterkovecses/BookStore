@@ -29,45 +29,53 @@ internal sealed class PasswordRecoveryRequestedHandler(
             var user = await users.FindByEmailAsync(email);
             if (user is null)
             {
-                context.PasswordRecoveryRequestReceipts.Add(new()
-                {
-                    RequestEventId = dispatchContext.EventId,
-                    ProcessedAt = clock.GetUtcNow()
-                });
+                RecordRequestWithoutUser();
                 await context.SaveChangesAsync(token);
                 await transaction.CommitAsync(token);
 
                 return true;
             }
 
-            var now = clock.GetUtcNow();
-            var link = await CreateResetLinkAsync(user);
-            var id = Guid.NewGuid();
-            var message = new PasswordResetEmailRequested(user.Id, user.Email!, user.FirstName,
-                protection.CreateProtector("BookStore.Identity.PasswordResetLink.v2")
-                    .CreateProtector(user.Id).Protect(link), now + options.Value.TokenLifetime)
-            {
-                IssuedAt = now
-            };
-            context.PasswordRecoveryRequestReceipts.Add(new()
-            {
-                RequestEventId = dispatchContext.EventId,
-                EmailEventId = id,
-                ProcessedAt = now
-            });
-            context.OutboxMessages.Add(new OutboxMessage
-            {
-                Id = id,
-                EventType = EmailEventType,
-                Payload = JsonSerializer.Serialize(message),
-                CorrelationId = dispatchContext.CorrelationId,
-                CreatedAt = now
-            });
+            await QueueResetEmailAsync(user);
             await context.SaveChangesAsync(token);
             await transaction.CommitAsync(token);
 
             return true;
         }, cancellationToken);
+
+    private void RecordRequestWithoutUser() =>
+        context.PasswordRecoveryRequestReceipts.Add(new()
+        {
+            RequestEventId = dispatchContext.EventId,
+            ProcessedAt = clock.GetUtcNow()
+        });
+
+    private async Task QueueResetEmailAsync(ApplicationUser user)
+    {
+        var now = clock.GetUtcNow();
+        var link = await CreateResetLinkAsync(user);
+        var id = Guid.NewGuid();
+        var message = new PasswordResetEmailRequested(user.Id, user.Email!, user.FirstName,
+            protection.CreateProtector("BookStore.Identity.PasswordResetLink.v2")
+                .CreateProtector(user.Id).Protect(link), now + options.Value.TokenLifetime)
+        {
+            IssuedAt = now
+        };
+        context.PasswordRecoveryRequestReceipts.Add(new()
+        {
+            RequestEventId = dispatchContext.EventId,
+            EmailEventId = id,
+            ProcessedAt = now
+        });
+        context.OutboxMessages.Add(new OutboxMessage
+        {
+            Id = id,
+            EventType = EmailEventType,
+            Payload = JsonSerializer.Serialize(message),
+            CorrelationId = dispatchContext.CorrelationId,
+            CreatedAt = now
+        });
+    }
 
     private async Task AcquireRequestLockAsync(IIdentityDbTransaction transaction, CancellationToken cancellationToken)
     {
