@@ -35,5 +35,10 @@ var bookStoreUi = builder.AddProject<Projects.BookStore_UI>("bookstore-ui")
     .WaitFor(bookStoreApi);
 
 bookStoreApi.WithEnvironment("AllowedOrigins", bookStoreUi.GetEndpoint("https"));
+if (builder.Environment.IsDevelopment())
+{
+    bookStoreApi.WithEnvironment("Identity__Verification__LinkBaseUrl",
+        ReferenceExpression.Create($"{bookStoreUi.GetEndpoint("https")}/verify-email"));
+}
 
 builder.Build().Run();

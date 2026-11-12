@@ -6,6 +6,7 @@ global using System.ComponentModel.DataAnnotations;
 global using System.Net.Http.Headers;
 global using System.Security.Claims;
 global using Microsoft.AspNetCore.Components;
+global using Microsoft.AspNetCore.Components.Forms;
 global using Microsoft.AspNetCore.Components.Authorization;
 global using Microsoft.AspNetCore.Components.WebAssembly.Http;
 global using Microsoft.AspNetCore.Components.Web;

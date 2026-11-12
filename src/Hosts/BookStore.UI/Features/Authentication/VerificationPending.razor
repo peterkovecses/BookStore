@@ -1,0 +1,56 @@
+@page "/verification-pending"
+@inject RegistrationClient Client
+
+<PageTitle>Email confirmation - BookStore</PageTitle>
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h3 fw-bold mb-4">Request a confirmation email</h1>
+                <p>If the address is eligible, a confirmation email may be sent. Delivery is not guaranteed. Confirm your email before signing in.</p>
+                @if (_message is not null)
+                {
+                    <div class="@(_success ? "alert alert-success" : "alert alert-danger")" role="status">@_message</div>
+                }
+                <EditForm Model="_model" OnValidSubmit="ResendAsync">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3">
+                        <label for="resendEmail" class="form-label">Email</label>
+                        <InputText id="resendEmail" type="email" class="form-control" autocomplete="email" @bind-Value="_model.Email" />
+                        <ValidationMessage For="@(() => _model.Email)" />
+                    </div>
+                    <button class="btn btn-primary rounded-pill px-4" type="submit" disabled="@_loading">Request email</button>
+                    <a href="login" class="btn btn-link">Login</a>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly ResendModel _model = new();
+    private bool _loading;
+    private bool _success;
+    private string? _message;
+
+    private async Task ResendAsync()
+    {
+        if (_loading) return;
+        _loading = true;
+        try
+        {
+            var result = await Client.ResendAsync(_model.Email);
+            _success = result == VerificationStatus.Success;
+            _message = result switch
+            {
+                VerificationStatus.Success => "If the address is eligible, a confirmation email may be sent. Please check your inbox.",
+                VerificationStatus.Invalid => "Please enter a valid email address.",
+                _ => "The request could not be completed. Please try again later."
+            };
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+}

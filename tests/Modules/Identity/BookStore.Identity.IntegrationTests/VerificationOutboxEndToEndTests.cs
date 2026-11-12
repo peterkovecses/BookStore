@@ -58,6 +58,7 @@ public sealed class VerificationOutboxEndToEndFactory : BaseWebApplicationFactor
     }
 }
 
+[Collection("Outbox integration")]
 public sealed class VerificationOutboxEndToEndTests(VerificationOutboxEndToEndFactory factory)
     : IClassFixture<VerificationOutboxEndToEndFactory>
 {
@@ -141,6 +142,7 @@ public sealed class VerificationOutboxEndToEndTests(VerificationOutboxEndToEndFa
 
             // Assert
             messages.RootElement.GetProperty("total").GetInt32().Should().Be(1);
+            new Uri(link).GetLeftPart(UriPartial.Path).Should().Be("https://localhost/verify-email");
             query["userId"].ToString().Should().Be(user.Id);
             query["token"].ToString().Should().NotBeNullOrEmpty();
             fresh.Id.Should().NotBe(original.Id);
