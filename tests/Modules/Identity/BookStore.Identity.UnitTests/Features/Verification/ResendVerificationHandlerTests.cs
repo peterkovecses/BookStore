@@ -9,10 +9,10 @@ public sealed class ResendVerificationHandlerTests
         const string email = "user@example.com";
         var now = new DateTimeOffset(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
         var protection = new EphemeralDataProtectionProvider();
-        var store = Substitute.For<IVerificationResendStore>();
+        var store = Substitute.For<IEmailRequestCooldownStore>();
         OutboxMessage? actualMessage = null;
-        store.EnqueueAsync(email, Arg.Do<OutboxMessage>(message => actualMessage = message), Arg.Any<CancellationToken>())
-            .Returns(new ResendVerificationOutcome(true, 60));
+        store.EnqueueAsync(EmailRequestPurpose.Verification, email, Arg.Do<OutboxMessage>(message => actualMessage = message), Arg.Any<CancellationToken>())
+            .Returns(new EmailRequestOutcome(true, 60));
         var clock = Substitute.For<TimeProvider>();
         clock.GetUtcNow().Returns(now);
         var sut = new ResendVerificationHandler(store, protection, clock);
@@ -31,7 +31,7 @@ public sealed class ResendVerificationHandlerTests
         request.Should().NotBeNull();
         protection.CreateProtector(VerificationResendRequested.ProtectionPurpose)
             .Unprotect(request!.ProtectedEmail).Should().Be(email);
-        await store.Received(1).EnqueueAsync(email, Arg.Any<OutboxMessage>(), TestContext.Current.CancellationToken);
+        await store.Received(1).EnqueueAsync(EmailRequestPurpose.Verification, email, Arg.Any<OutboxMessage>(), TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -39,9 +39,9 @@ public sealed class ResendVerificationHandlerTests
     {
         // Arrange
         const string email = "user@example.com";
-        var expected = new ResendVerificationOutcome(false, 23);
-        var store = Substitute.For<IVerificationResendStore>();
-        store.EnqueueAsync(email, Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>()).Returns(expected);
+        var expected = new EmailRequestOutcome(false, 23);
+        var store = Substitute.For<IEmailRequestCooldownStore>();
+        store.EnqueueAsync(EmailRequestPurpose.Verification, email, Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>()).Returns(expected);
         var sut = new ResendVerificationHandler(store, new EphemeralDataProtectionProvider(), TimeProvider.System);
 
         // Act

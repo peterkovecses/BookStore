@@ -1,11 +1,9 @@
 namespace BookStore.Identity.Features.Verification;
 
-internal sealed class ResendVerificationCommand(ResendVerificationRequest request) : IRequest<Result<ResendVerificationOutcome>>
+internal sealed class ResendVerificationCommand(ResendVerificationRequest request) : IRequest<Result<EmailRequestOutcome>>
 {
     public string Email { get; } = request.Email;
 }
-
-internal sealed record ResendVerificationOutcome(bool Accepted, int RetryAfterSeconds);
 
 public sealed class ResendVerificationRequest
 {

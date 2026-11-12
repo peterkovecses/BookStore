@@ -1,20 +1,38 @@
-namespace BookStore.Identity.Features.Verification;
+namespace BookStore.Identity.Common;
 
-internal interface IVerificationResendStore
+internal enum EmailRequestPurpose
 {
-    Task<ResendVerificationOutcome> EnqueueAsync(string email, OutboxMessage message, CancellationToken cancellationToken);
+    Verification,
+    PasswordRecovery
 }
 
-internal sealed class VerificationResendStore(
+internal sealed record EmailRequestOutcome(bool Accepted, int RetryAfterSeconds);
+
+internal interface IEmailRequestCooldownStore
+{
+    Task<EmailRequestOutcome> EnqueueAsync(
+        EmailRequestPurpose purpose, string email, OutboxMessage message, CancellationToken cancellationToken);
+}
+
+internal sealed class EmailRequestCooldownStore(
     IIdentityDbContext context,
     ILookupNormalizer normalizer,
-    TimeProvider clock) : IVerificationResendStore
+    TimeProvider clock) : IEmailRequestCooldownStore
 {
     private const int CooldownSeconds = 60;
 
-    public async Task<ResendVerificationOutcome> EnqueueAsync(string email, OutboxMessage message, CancellationToken cancellationToken)
+    public async Task<EmailRequestOutcome> EnqueueAsync(
+        EmailRequestPurpose purpose, string email, OutboxMessage message, CancellationToken cancellationToken)
     {
-        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalizer.NormalizeEmail(email))));
+        var normalizedEmail = normalizer.NormalizeEmail(email);
+        // Keep existing verification hashes unchanged while separating recovery cooldowns.
+        var key = purpose switch
+        {
+            EmailRequestPurpose.Verification => normalizedEmail,
+            EmailRequestPurpose.PasswordRecovery => $"password-recovery:{normalizedEmail}",
+            _ => throw new ArgumentOutOfRangeException(nameof(purpose))
+        };
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(key)));
         var cleanupTime = clock.GetUtcNow();
         await context.VerificationResendCooldowns.Where(cooldown => cooldown.ExpiresAt <= cleanupTime)
             .ExecuteDeleteAsync(cancellationToken);
@@ -30,7 +48,7 @@ internal sealed class VerificationResendStore(
                 var remaining = (int)Math.Ceiling((existing.ExpiresAt - now).TotalSeconds);
                 await transaction.CommitAsync(token);
 
-                return new ResendVerificationOutcome(false, remaining);
+                return new EmailRequestOutcome(false, remaining);
             }
 
             if (existing is null)
@@ -44,7 +62,7 @@ internal sealed class VerificationResendStore(
             await context.SaveChangesAsync(token);
             await transaction.CommitAsync(token);
 
-            return new ResendVerificationOutcome(true, CooldownSeconds);
+            return new EmailRequestOutcome(true, CooldownSeconds);
         }, cancellationToken);
     }
 }

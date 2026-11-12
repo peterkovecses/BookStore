@@ -180,6 +180,7 @@ public class AuthenticationPagesTests
         new ServiceCollection()
             .AddLogging()
             .AddSingleton(js ?? Substitute.For<IJSRuntime>())
+            .AddSingleton(TimeProvider.System)
             .AddSingleton(new PasswordRecoveryClient(new HttpClient(new Handler(HttpStatusCode.NoContent)) { BaseAddress = new Uri("https://api.example.com") }))
             .AddSingleton(new AuthenticationSession(new HttpClient(new Handler(HttpStatusCode.NoContent)) { BaseAddress = new Uri("https://api.example.com") }, new TestSessionLock()))
             .BuildServiceProvider();

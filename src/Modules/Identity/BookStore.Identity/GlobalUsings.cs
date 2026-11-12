@@ -7,6 +7,7 @@ global using System.Text;
 global using System.Text.Json;
 global using System.Threading.RateLimiting;
 global using BookStore.Common.Outbox;
+global using BookStore.Identity.Common;
 global using BookStore.Identity.Common.Authentication;
 global using BookStore.Identity.Common.Extensions;
 global using BookStore.Identity.Common.Interfaces;

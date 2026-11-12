@@ -1,6 +1,7 @@
 global using System.Text;
 global using System.Text.Json;
 global using BookStore.Identity.Contracts;
+global using BookStore.Identity.Common;
 global using BookStore.Identity.Common.Authentication;
 global using BookStore.Identity.Common.PasswordRecovery;
 global using BookStore.Identity.Common.Interfaces;

@@ -14,14 +14,15 @@ public class PasswordRecoveryClientTests
         var actual = await sut.RequestAsync(email);
 
         // Assert
-        actual.Should().Be(PasswordRecoveryRequestStatus.Success);
+        actual.Status.Should().Be(PasswordRecoveryRequestStatus.Success);
+        actual.RetryAfterSeconds.Should().Be(60);
         handler.Path.Should().Be("/api/identity/password/forgot");
         handler.Body.Should().Contain(email);
     }
 
     [Theory]
     [InlineData(HttpStatusCode.BadRequest, "Invalid")]
-    [InlineData(HttpStatusCode.TooManyRequests, "Unavailable")]
+    [InlineData(HttpStatusCode.TooManyRequests, "RateLimited")]
     [InlineData(HttpStatusCode.InternalServerError, "Unavailable")]
     public async Task RequestAsync_WhenServerRejectsRequest_ShouldReturnSafeStatus(HttpStatusCode response, string expected)
     {
@@ -33,7 +34,7 @@ public class PasswordRecoveryClientTests
         var actual = await sut.RequestAsync("jane@example.com");
 
         // Assert
-        actual.ToString().Should().Be(expected);
+        actual.Status.ToString().Should().Be(expected);
     }
 
     [Fact]
@@ -47,7 +48,28 @@ public class PasswordRecoveryClientTests
         var actual = await sut.RequestAsync("jane@example.com");
 
         // Assert
-        actual.Should().Be(PasswordRecoveryRequestStatus.Unavailable);
+        actual.Status.Should().Be(PasswordRecoveryRequestStatus.Unavailable);
+    }
+
+    [Fact]
+    public async Task RequestAsync_WhenThrottledWithRetryAfter_ShouldReturnRemainingWait()
+    {
+        // Arrange
+        var handler = new Handler(_ =>
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
+            response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.FromSeconds(7));
+
+            return response;
+        });
+        var sut = CreateClient(handler);
+
+        // Act
+        var actual = await sut.RequestAsync("jane@example.com");
+
+        // Assert
+        actual.Status.Should().Be(PasswordRecoveryRequestStatus.RateLimited);
+        actual.RetryAfterSeconds.Should().Be(7);
     }
 
     [Fact]

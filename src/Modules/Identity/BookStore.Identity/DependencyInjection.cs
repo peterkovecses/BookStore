@@ -75,7 +75,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<RefreshHandler>();
         builder.Services.AddScoped<LogoutHandler>();
         builder.Services.AddVerificationRateLimiting(builder.Configuration);
-        builder.Services.AddScoped<IVerificationResendStore, VerificationResendStore>();
+        builder.Services.AddScoped<IEmailRequestCooldownStore, EmailRequestCooldownStore>();
         builder.Services.AddPasswordRecoveryRateLimiting(builder.Configuration);
         builder.Services.AddSingleton<IUserIdGenerator, UserIdGenerator>();
         builder.Services.AddScoped<IVerificationRequestFactory, VerificationRequestFactory>();

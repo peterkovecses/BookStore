@@ -10,16 +10,14 @@ public sealed class ForgotPasswordHandlerTests
         var now = new DateTimeOffset(2026, 11, 12, 12, 0, 0, TimeSpan.Zero);
         var lifetime = TimeSpan.FromMinutes(30);
         var protection = new EphemeralDataProtectionProvider();
-        var context = Substitute.For<IIdentityDbContext>();
-        var outboxMessages = Substitute.For<DbSet<OutboxMessage>>();
+        var store = Substitute.For<IEmailRequestCooldownStore>();
         OutboxMessage? actualMessage = null;
-        context.OutboxMessages.Returns(outboxMessages);
-        context.SaveChangesAsync(Arg.Any<CancellationToken>()).Returns(1);
-        outboxMessages.Add(Arg.Do<OutboxMessage>(message => actualMessage = message));
+        store.EnqueueAsync(EmailRequestPurpose.PasswordRecovery, email, Arg.Do<OutboxMessage>(message => actualMessage = message), Arg.Any<CancellationToken>())
+            .Returns(new EmailRequestOutcome(true, 60));
         var clock = Substitute.For<TimeProvider>();
         clock.GetUtcNow().Returns(now);
         var sut = new ForgotPasswordHandler(
-            context,
+            store,
             protection,
             Options.Create(new PasswordRecoveryOptions { TokenLifetime = lifetime }),
             clock);
@@ -38,6 +36,24 @@ public sealed class ForgotPasswordHandlerTests
         protection.CreateProtector(PasswordRecoveryRequested.ProtectionPurpose)
             .Unprotect(request!.ProtectedEmail).Should().Be(email);
         request.ExpiresAt.Should().Be(now + lifetime);
-        await context.Received(1).SaveChangesAsync(TestContext.Current.CancellationToken);
+        await store.Received(1).EnqueueAsync(EmailRequestPurpose.PasswordRecovery, email, Arg.Any<OutboxMessage>(), TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task HandleAsync_WhenCooldownIsActive_ShouldReturnStoreOutcome()
+    {
+        // Arrange
+        const string email = "user@example.com";
+        var expected = new EmailRequestOutcome(false, 23);
+        var store = Substitute.For<IEmailRequestCooldownStore>();
+        store.EnqueueAsync(EmailRequestPurpose.PasswordRecovery, email, Arg.Any<OutboxMessage>(), Arg.Any<CancellationToken>()).Returns(expected);
+        var sut = new ForgotPasswordHandler(store, new EphemeralDataProtectionProvider(),
+            Options.Create(new PasswordRecoveryOptions()), TimeProvider.System);
+
+        // Act
+        var actual = await sut.HandleAsync(new ForgotPasswordCommand(email), TestContext.Current.CancellationToken);
+
+        // Assert
+        actual.Should().HaveData(value => value.Should().Be(expected));
     }
 }

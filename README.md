@@ -158,7 +158,7 @@ aspire run
 
 ### 5. Register and sign in
 
-Open the Aspire Dashboard URL shown in the console, then follow the `bookstore-ui` endpoint. Register an account and confirm it using the link captured by Mailpit; then sign in. Use **Forgot password** to request a reset email. A `204` response means the request was accepted for delivery, not that an email was delivered.
+Open the Aspire Dashboard URL shown in the console, then follow the `bookstore-ui` endpoint. Register an account and confirm it using the link captured by Mailpit; then sign in. Use **Forgot password** to request a reset email. A `204` response means the request was accepted for processing, not that an email was delivered. Verification resend and password recovery each enforce a separate 60-second per-address cooldown; the UI displays the remaining wait.
 
 The registration page fetches the active password policy and validates it locally; ASP.NET Identity on the API remains authoritative.
 

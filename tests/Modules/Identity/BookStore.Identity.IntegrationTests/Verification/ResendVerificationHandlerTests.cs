@@ -8,7 +8,7 @@ public class ResendVerificationHandlerTests(IdentityFactory factory) : IClassFix
         // Arrange
         using var scope = factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
-        var store = scope.ServiceProvider.GetRequiredService<IVerificationResendStore>();
+        var store = scope.ServiceProvider.GetRequiredService<IEmailRequestCooldownStore>();
         var id = Guid.NewGuid();
         var email = $"{Guid.NewGuid():N}@example.com";
         var existing = new OutboxMessage
@@ -31,7 +31,7 @@ public class ResendVerificationHandlerTests(IdentityFactory factory) : IClassFix
             CorrelationId = id.ToString(),
             CreatedAt = existing.CreatedAt
         };
-        Func<Task> act = async () => await store.EnqueueAsync(email, duplicate, TestContext.Current.CancellationToken);
+        Func<Task> act = async () => await store.EnqueueAsync(EmailRequestPurpose.Verification, email, duplicate, TestContext.Current.CancellationToken);
 
         // Act
         await act.Should().ThrowAsync<DbUpdateException>();
@@ -59,12 +59,12 @@ public class ResendVerificationHandlerTests(IdentityFactory factory) : IClassFix
         (await users.CreateAsync(confirmed, "Password1!")).Succeeded.Should().BeTrue();
         (await users.CreateAsync(unconfirmed, "Password1!")).Succeeded.Should().BeTrue();
         var emails = new[] { unknownEmail, confirmed.Email!, unconfirmed.Email! };
-        var store = scope.ServiceProvider.GetRequiredService<IVerificationResendStore>();
+        var store = scope.ServiceProvider.GetRequiredService<IEmailRequestCooldownStore>();
         var sut = new ResendVerificationHandler(store, protection, clock);
         var initialIds = await context.OutboxMessages.Select(item => item.Id).ToListAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var results = new List<Kovecses.Result.Result<ResendVerificationOutcome>>();
+        var results = new List<Kovecses.Result.Result<EmailRequestOutcome>>();
         foreach (var email in emails)
         {
             results.Add(await sut.HandleAsync(new ResendVerificationCommand(new ResendVerificationRequest { Email = email }),
