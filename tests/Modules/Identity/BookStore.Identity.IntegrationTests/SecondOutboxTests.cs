@@ -1,6 +1,5 @@
 namespace BookStore.Identity.IntegrationTests;
 
-[Collection("Outbox integration")]
 public class SecondOutboxTests(IdentityFactory factory) : IClassFixture<IdentityFactory>
 {
     [Fact]

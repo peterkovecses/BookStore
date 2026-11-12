@@ -15,3 +15,5 @@ global using NSubstitute;
 global using Xunit;
 global using System.Text.Encodings.Web;
 global using System.Text.Json;
+
+[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly)]
