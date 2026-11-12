@@ -26,13 +26,20 @@ graph TD
     
     subgraph Aspire Orchestration
         Host[BookStore.AppHost] -.->|Orchestrates| Api
+        Host -.->|Orchestrates| UI
         Host -.->|Orchestrates| Db[(MS SQL Server)]
         Host -.->|Orchestrates| Storage[(Azure Blob Storage)]
+        Host -.->|Starts in development| Mailpit[Mailpit]
     end
 
     subgraph Modular Boundaries
         Api -->|Endpoints| Catalog[Catalog Module]
         Catalog -->|Boundary Capsule| CatalogContracts[Catalog.Contracts]
+        Api -->|Endpoints| Identity[Identity Module]
+        Identity -->|Boundary Capsule| IdentityContracts[Identity.Contracts]
+        Api -->|Registers email handlers| EmailDispatcher[EmailDispatcher Module]
+        EmailDispatcher -->|Boundary Capsule| EmailContracts[EmailDispatcher.Contracts]
+        EmailDispatcher -->|Consumes email events| IdentityContracts
         
         subgraph Catalog Module Internal Slices
             GetDetails[GetBookDetails Feature]
@@ -73,6 +80,10 @@ To run the multi-service application locally:
    aspire run
    ```
 4. Open the Aspire Dashboard URL shown in the console.
+
+### Viewing development emails
+
+During local development, the AppHost starts a Mailpit service that captures outgoing emails. In the Aspire Dashboard, open the `mailpit` resource and follow its web endpoint to view messages.
 
 ## 🤝 Let's Connect
 

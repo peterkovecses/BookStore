@@ -37,11 +37,9 @@ internal sealed class RegistrationClient(HttpClient client)
         }
     }
 
-    internal async Task<VerificationStatus> ConfirmAsync(VerificationLink? link)
+    internal async Task<VerificationStatus> ConfirmAsync(IdentityLink? link)
     {
-        if (link is null || string.IsNullOrWhiteSpace(link.UserId) || link.UserId.Length > 256 ||
-            string.IsNullOrWhiteSpace(link.Token) || link.Token.Length > 2048 ||
-            !link.Token.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_'))
+        if (!IdentityLinkValidator.IsValid(link))
         {
             return VerificationStatus.Invalid;
         }
@@ -75,7 +73,5 @@ internal sealed class RegistrationClient(HttpClient client)
 internal sealed record RegistrationResult(RegistrationStatus Status, IDictionary<string, string[]>? Errors = null);
 
 internal enum RegistrationStatus { Success, Invalid, Unavailable }
-
-internal sealed record VerificationLink(string UserId, string Token);
 
 internal enum VerificationStatus { Success, Invalid, Unavailable }

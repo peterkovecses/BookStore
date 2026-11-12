@@ -258,6 +258,22 @@ public class AuthenticationSessionTests
     }
 
     [Fact]
+    public async Task ClearLocalSessionAsync_WhenCalled_ShouldClearStateWithoutAnotherRequest()
+    {
+        // Arrange
+        var handler = new Handler(_ => Token("first"));
+        var sut = CreateSession(handler);
+        await sut.LoginAsync("customer@example.com", "password");
+
+        // Act
+        await sut.ClearLocalSessionAsync();
+
+        // Assert
+        (await sut.GetAuthenticationStateAsync()).User.Identity!.IsAuthenticated.Should().BeFalse();
+        handler.Requests.Should().ContainSingle().Which.Path.Should().Be("/api/identity/login");
+    }
+
+    [Fact]
     public async Task LoginAsync_WhenLockIsUnavailable_ShouldFailClosed()
     {
         // Arrange

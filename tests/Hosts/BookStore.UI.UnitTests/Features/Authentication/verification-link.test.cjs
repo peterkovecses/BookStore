@@ -33,8 +33,24 @@ test("rejects duplicated and missing link parameters", () => {
     }
 });
 
+test("strips and consumes password reset tokens from the URL", () => {
+    const page = open("/reset-password", "?userId=user%2D1&token=abc%5Fdef%2D123");
+    const value = page.link.takePasswordReset();
+    assert.equal(page.replaced, "/reset-password");
+    assert.equal(value.userId, "user-1");
+    assert.equal(value.token, "abc_def-123");
+    assert.equal(page.link.takePasswordReset(), null);
+});
+
+test("rejects duplicated reset link parameters", () => {
+    const page = open("/reset-password", "?userId=one&token=a&token=b");
+    assert.equal(page.replaced, "/reset-password");
+    assert.equal(page.link.takePasswordReset(), null);
+});
+
 test("leaves catalog navigation unchanged", () => {
     const page = open("/books", "?searchTerm=book");
     assert.equal(page.link.isVerificationPage, false);
+    assert.equal(page.link.isSensitiveLinkPage, false);
     assert.equal(page.replaced, undefined);
 });

@@ -39,7 +39,7 @@
     {
         try
         {
-            var link = await JS.InvokeAsync<VerificationLink?>("bookStoreVerificationLink.take");
+            var link = await JS.InvokeAsync<IdentityLink?>("bookStoreVerificationLink.take");
             _result = await Client.ConfirmAsync(link);
         }
         catch (JSException)

@@ -48,7 +48,7 @@ public class RegistrationClientTests
         // Arrange
         var handler = new Handler(_ => new HttpResponseMessage(response));
         var sut = CreateClient(handler);
-        var link = new VerificationLink("user-1", "abc_DEF-123");
+        var link = new IdentityLink("user-1", "abc_DEF-123");
 
         // Act
         var actual = await sut.ConfirmAsync(link);
@@ -71,7 +71,7 @@ public class RegistrationClientTests
         var sut = CreateClient(handler);
 
         // Act
-        var actual = await sut.ConfirmAsync(new VerificationLink(userId, token));
+        var actual = await sut.ConfirmAsync(new IdentityLink(userId, token));
 
         // Assert
         actual.Should().Be(VerificationStatus.Invalid);
@@ -106,7 +106,7 @@ public class RegistrationClientTests
         var sut = CreateClient(handler);
 
         // Act
-        var actual = await sut.ConfirmAsync(new VerificationLink("user", "token"));
+        var actual = await sut.ConfirmAsync(new IdentityLink("user", "token"));
 
         // Assert
         actual.Should().Be(VerificationStatus.Unavailable);

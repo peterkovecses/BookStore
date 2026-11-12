@@ -105,6 +105,20 @@ internal sealed class AuthenticationSession(HttpClient client, ISessionLock sess
         }
     }
 
+    internal async Task ClearLocalSessionAsync()
+    {
+        await _gate.WaitAsync();
+        try
+        {
+            _restored = true;
+            Clear();
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
     // The factory must create a new relative API request on each invocation.
     internal async Task<HttpResponseMessage> SendAuthenticatedAsync(Func<HttpRequestMessage> requestFactory, CancellationToken cancellationToken = default)
     {
