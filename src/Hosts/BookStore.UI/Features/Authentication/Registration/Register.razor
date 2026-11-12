@@ -1,5 +1,6 @@
 @page "/register"
 @inject RegistrationClient Client
+@inject PasswordPolicyClient PolicyClient
 
 <PageTitle>Register - BookStore</PageTitle>
 
@@ -21,31 +22,41 @@
                     {
                         <div class="alert alert-danger" role="alert">@_error</div>
                     }
-                    <EditForm EditContext="_context" OnValidSubmit="RegisterAsync">
+                    <EditForm EditContext="_context" OnSubmit="RegisterAsync">
                         <DataAnnotationsValidator />
                         <ValidationSummary />
-                        <div class="mb-3">
-                            <label for="firstName" class="form-label">First name</label>
-                            <InputText id="firstName" class="form-control" autocomplete="given-name" @bind-Value="_model.FirstName" />
-                            <ValidationMessage For="@(() => _model.FirstName)" />
-                        </div>
-                        <div class="mb-3">
-                            <label for="lastName" class="form-label">Last name</label>
-                            <InputText id="lastName" class="form-control" autocomplete="family-name" @bind-Value="_model.LastName" />
-                            <ValidationMessage For="@(() => _model.LastName)" />
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <InputText id="email" type="email" class="form-control" autocomplete="email" @bind-Value="_model.Email" />
-                            <ValidationMessage For="@(() => _model.Email)" />
-                        </div>
-                        <div class="mb-4">
-                            <label for="password" class="form-label">Password</label>
-                            <InputText id="password" type="password" class="form-control" autocomplete="new-password" @bind-Value="_model.Password" />
-                            <ValidationMessage For="@(() => _model.Password)" />
-                            <div class="form-text">Password requirements are checked by the server.</div>
-                        </div>
-                        <button class="btn btn-primary rounded-pill px-4" type="submit" disabled="@_loading">Register</button>
+                        <fieldset disabled="@_loading">
+                            <div class="mb-3">
+                                <label for="firstName" class="form-label">First name</label>
+                                <InputText id="firstName" class="form-control" autocomplete="given-name" @bind-Value="_model.FirstName" />
+                                <ValidationMessage For="@(() => _model.FirstName)" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="lastName" class="form-label">Last name</label>
+                                <InputText id="lastName" class="form-control" autocomplete="family-name" @bind-Value="_model.LastName" />
+                                <ValidationMessage For="@(() => _model.LastName)" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <InputText id="email" type="email" class="form-control" autocomplete="email" @bind-Value="_model.Email" />
+                                <ValidationMessage For="@(() => _model.Email)" />
+                            </div>
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Password</label>
+                                <InputText id="password" type="password" class="form-control" autocomplete="new-password" aria-describedby="password-errors" @bind-Value="_model.Password" />
+                                <div id="password-errors">
+                                    <ValidationMessage For="@(() => _model.Password)" />
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="confirmPassword" class="form-label">Confirm password</label>
+                                <InputText id="confirmPassword" type="password" class="form-control" autocomplete="new-password" aria-describedby="confirm-password-errors" @bind-Value="_model.ConfirmPassword" />
+                                <div id="confirm-password-errors">
+                                    <ValidationMessage For="@(() => _model.ConfirmPassword)" />
+                                </div>
+                            </div>
+                            <button class="btn btn-primary rounded-pill px-4" type="submit" disabled="@_loading">Register</button>
+                        </fieldset>
                     </EditForm>
                 }
             </div>
@@ -57,6 +68,8 @@
     private readonly RegistrationModel _model = new();
     private EditContext _context = default!;
     private ValidationMessageStore _messages = default!;
+    private ValidationMessageStore _policyMessages = default!;
+    private RegistrationPasswordValidator? _passwordValidator;
     private bool _loading;
     private bool _pending;
     private string? _error;
@@ -65,11 +78,35 @@
     {
         _context = new EditContext(_model);
         _messages = new ValidationMessageStore(_context);
-        _context.OnFieldChanged += (_, args) => { _messages.Clear(args.FieldIdentifier); _context.NotifyValidationStateChanged(); };
-        _context.OnValidationRequested += (_, _) => _messages.Clear();
+        _policyMessages = new ValidationMessageStore(_context);
+        _context.OnFieldChanged += (_, args) =>
+        {
+            _messages.Clear(args.FieldIdentifier);
+            if (args.FieldIdentifier.FieldName == nameof(RegistrationModel.Password))
+            {
+                _context.NotifyFieldChanged(new FieldIdentifier(_model, nameof(RegistrationModel.ConfirmPassword)));
+                ValidatePassword();
+            }
+            _context.NotifyValidationStateChanged();
+        };
+        _context.OnValidationRequested += (_, _) =>
+        {
+            _messages.Clear();
+            ValidatePassword();
+        };
     }
 
-    private async Task RegisterAsync()
+    private void ValidatePassword()
+    {
+        _policyMessages.Clear();
+        if (_passwordValidator is not null)
+        {
+            var field = new FieldIdentifier(_model, nameof(RegistrationModel.Password));
+            _policyMessages.Add(field, _passwordValidator.Validate(_model).Errors.Select(error => error.ErrorMessage));
+        }
+    }
+
+    private async Task RegisterAsync(EditContext context)
     {
         if (_loading) return;
         _loading = true;
@@ -77,6 +114,13 @@
         _messages.Clear();
         try
         {
+            var policy = await PolicyClient.GetAsync();
+            _passwordValidator = policy is null ? null : new RegistrationPasswordValidator(policy);
+            if (!context.Validate())
+            {
+                return;
+            }
+
             var result = await Client.RegisterAsync(_model);
             if (result.Status == RegistrationStatus.Success)
             {
@@ -104,6 +148,8 @@
         finally
         {
             _model.Password = string.Empty;
+            _model.ConfirmPassword = string.Empty;
+            _passwordValidator = null;
             _loading = false;
         }
     }

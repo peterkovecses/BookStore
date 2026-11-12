@@ -109,6 +109,7 @@ public static class DependencyInjection
     {
         var group = app.MapGroup("api/identity").WithTags("Identity");
         RegistrationEndpoint.MapEndpoint(group);
+        PasswordPolicyEndpoint.MapEndpoint(group);
         VerificationEndpoint.MapVerificationEndpoints(group);
         ForgotPasswordEndpoint.MapEndpoint(group);
         ResetPasswordEndpoint.MapEndpoint(group);

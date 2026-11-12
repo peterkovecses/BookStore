@@ -30,3 +30,7 @@ global using BookStore.UI.Features.Authentication;
 global using Microsoft.AspNetCore.Components.WebAssembly.Http;
 global using Microsoft.JSInterop;
 global using System.ComponentModel.DataAnnotations;
+global using Bunit;
+global using BunitTestContext = Bunit.TestContext;
+global using TestContext = Xunit.TestContext;
+global using BookStore.Identity.Contracts;

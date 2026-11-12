@@ -15,7 +15,7 @@ public class AuthenticationPagesTests
 
         // Assert
         actual.Should().Contain("id=\"firstName\"").And.Contain("id=\"lastName\"")
-            .And.Contain("id=\"email\"").And.Contain("id=\"password\"");
+            .And.Contain("id=\"email\"").And.Contain("id=\"password\"").And.Contain("id=\"confirmPassword\"");
     }
 
     [Fact]
@@ -169,6 +169,9 @@ public class AuthenticationPagesTests
             .AddLogging()
             .AddSingleton<NavigationManager>(new TestNavigationManager())
             .AddSingleton(new RegistrationClient(new HttpClient(new Handler(HttpStatusCode.NoContent)) { BaseAddress = new Uri("https://api.example.com") }))
+            .AddSingleton(provider => new PasswordPolicyClient(
+                new HttpClient(new Handler(HttpStatusCode.NoContent)) { BaseAddress = new Uri("https://api.example.com") },
+                provider.GetRequiredService<ILogger<PasswordPolicyClient>>()))
             .BuildServiceProvider();
 
     private static ServiceProvider CreatePasswordRecoveryServices(IJSRuntime? js = null) =>

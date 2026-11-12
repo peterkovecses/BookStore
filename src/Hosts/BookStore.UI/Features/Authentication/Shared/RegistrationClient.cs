@@ -6,7 +6,14 @@ internal sealed class RegistrationClient(HttpClient client)
     {
         try
         {
-            using var response = await client.PostAsJsonAsync("api/identity/registration", model);
+            var request = new RegistrationRequest
+            {
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Email = model.Email,
+                Password = model.Password
+            };
+            using var response = await client.PostAsJsonAsync("api/identity/registration", request);
             if (response.IsSuccessStatusCode)
             {
                 return new(RegistrationStatus.Success);
