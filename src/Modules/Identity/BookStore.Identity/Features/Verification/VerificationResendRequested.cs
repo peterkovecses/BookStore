@@ -9,7 +9,7 @@ internal sealed record VerificationResendRequested(string ProtectedEmail) : IEve
 internal sealed class VerificationResendRequestedHandler(
     UserManager<ApplicationUser> users,
     IVerificationRequestFactory verificationRequestFactory,
-    IdentityDbContext context,
+    IIdentityDbContext context,
     IDataProtectionProvider protection) : IEventHandler<VerificationResendRequested>
 {
     public async Task HandleAsync(VerificationResendRequested value, CancellationToken cancellationToken)

@@ -1,7 +1,7 @@
 namespace BookStore.Identity.Infrastructure;
 
 internal sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options)
-    : IdentityUserDbContext(options)
+    : IdentityUserDbContext(options), IIdentityDbContext
 {
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();

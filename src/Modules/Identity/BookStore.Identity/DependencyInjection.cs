@@ -10,6 +10,7 @@ public static class DependencyInjection
         builder.Services.AddDbContext<IdentityDbContext>(options => options.UseSqlServer(connectionString,
             sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", "identity")));
         builder.EnrichSqlServerDbContext<IdentityDbContext>();
+        builder.Services.AddScoped<IIdentityDbContext>(services => services.GetRequiredService<IdentityDbContext>());
         builder.Services.AddIdentityCore<ApplicationUser>(options =>
         {
             options.User.RequireUniqueEmail = true;
