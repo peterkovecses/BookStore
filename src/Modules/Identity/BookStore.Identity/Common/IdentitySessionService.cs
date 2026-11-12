@@ -1,7 +1,7 @@
 namespace BookStore.Identity.Common;
 
 internal sealed class IdentitySessionService(
-    IdentityDbContext context,
+    IIdentityDbContext context,
     UserManager<ApplicationUser> users,
     IOptions<AuthenticationOptions> options,
     TimeProvider timeProvider)
@@ -13,22 +13,24 @@ internal sealed class IdentitySessionService(
         var normalizedEmail = users.NormalizeEmail(email);
         var lockKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalizedEmail)));
 
-        return await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        return await context.ExecuteInTransactionAsync(async (transaction, token) =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-            await IdentityTransactionLock.AcquireAsync(context, "login:" + lockKey, cancellationToken);
+            await IdentityTransactionLock.AcquireAsync(transaction, "login:" + lockKey, token);
             var userId = await context.Users.AsNoTracking().Where(item => item.NormalizedEmail == normalizedEmail)
-                .Select(item => item.Id).SingleOrDefaultAsync(cancellationToken);
+                .Select(item => item.Id).SingleOrDefaultAsync(token);
             if (userId is null)
             {
+                await transaction.RollbackAsync(token);
+
                 return AuthenticationResult.Invalid;
             }
 
-            await IdentityTransactionLock.AcquireAsync(context, IdentityTransactionLock.User(userId), cancellationToken);
+            await IdentityTransactionLock.AcquireAsync(transaction, IdentityTransactionLock.User(userId), token);
             var user = await users.FindByEmailAsync(email);
             if (user is null || await users.IsLockedOutAsync(user))
             {
+                await transaction.RollbackAsync(token);
+
                 return AuthenticationResult.Invalid;
             }
 
@@ -40,7 +42,7 @@ internal sealed class IdentitySessionService(
                     throw new InvalidOperationException("Failed to update account lockout.");
                 }
 
-                await transaction.CommitAsync(cancellationToken);
+                await transaction.CommitAsync(token);
 
                 return AuthenticationResult.Invalid;
             }
@@ -53,83 +55,89 @@ internal sealed class IdentitySessionService(
 
             if (!user.EmailConfirmed)
             {
-                await transaction.CommitAsync(cancellationToken);
+                await transaction.CommitAsync(token);
 
                 return AuthenticationResult.Unconfirmed;
             }
 
             var result = await IssueAsync(user, Guid.NewGuid(), cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await transaction.CommitAsync(token);
 
             return result;
-        });
+        }, cancellationToken);
     }
 
     internal async Task<AuthenticationResult> RefreshAsync(string rawToken, CancellationToken cancellationToken)
     {
         var hash = Hash(rawToken);
 
-        return await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        return await context.ExecuteInTransactionAsync(async (transaction, token) =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-            var session = await context.RefreshTokens.AsNoTracking().Where(token => token.Hash == hash)
-                .Select(token => new { token.FamilyId, token.UserId }).SingleOrDefaultAsync(cancellationToken);
+            var session = await context.RefreshTokens.AsNoTracking().Where(item => item.Hash == hash)
+                .Select(item => new { item.FamilyId, item.UserId }).SingleOrDefaultAsync(token);
             if (session is null)
             {
+                await transaction.RollbackAsync(token);
+
                 return AuthenticationResult.Invalid;
             }
 
-            await IdentityTransactionLock.AcquireAsync(context, IdentityTransactionLock.User(session.UserId), cancellationToken);
-            await IdentityTransactionLock.AcquireAsync(context, "refresh:" + session.FamilyId.ToString("N"), cancellationToken);
-            var token = await context.RefreshTokens.SingleAsync(item => item.Hash == hash, cancellationToken);
-            if (token.Rotated)
+            await IdentityTransactionLock.AcquireAsync(transaction, IdentityTransactionLock.User(session.UserId), token);
+            await IdentityTransactionLock.AcquireAsync(transaction, "refresh:" + session.FamilyId.ToString("N"), token);
+            var refreshToken = await context.RefreshTokens.SingleAsync(item => item.Hash == hash, token);
+            if (refreshToken.Rotated)
             {
                 await context.RefreshTokens.Where(item => item.FamilyId == session.FamilyId && !item.Revoked)
-                    .ExecuteUpdateAsync(setters => setters.SetProperty(item => item.Revoked, true), cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(item => item.Revoked, true), token);
+                await transaction.CommitAsync(token);
 
                 return AuthenticationResult.Invalid;
             }
 
-            if (token.Revoked || token.ExpiresAt <= timeProvider.GetUtcNow())
+            if (refreshToken.Revoked || refreshToken.ExpiresAt <= timeProvider.GetUtcNow())
             {
+                await transaction.RollbackAsync(token);
+
                 return AuthenticationResult.Invalid;
             }
 
-            var user = await users.FindByIdAsync(token.UserId);
+            var user = await users.FindByIdAsync(refreshToken.UserId);
             if (user is null || !user.EmailConfirmed)
             {
+                await transaction.RollbackAsync(token);
+
                 return AuthenticationResult.Invalid;
             }
 
-            token.Rotated = true;
+            refreshToken.Rotated = true;
             var result = await IssueAsync(user, session.FamilyId, cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await transaction.CommitAsync(token);
 
             return result;
-        });
+        }, cancellationToken);
     }
 
     internal async Task LogoutAsync(string rawToken, CancellationToken cancellationToken)
     {
         var hash = Hash(rawToken);
-        await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        await context.ExecuteInTransactionAsync(async (transaction, token) =>
         {
-            context.ChangeTracker.Clear();
-            await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-            var family = await context.RefreshTokens.AsNoTracking().Where(token => token.Hash == hash)
-                .Select(token => (Guid?)token.FamilyId).SingleOrDefaultAsync(cancellationToken);
+            var family = await context.RefreshTokens.AsNoTracking().Where(item => item.Hash == hash)
+                .Select(item => (Guid?)item.FamilyId).SingleOrDefaultAsync(token);
             if (family is null)
             {
-                return;
+                await transaction.RollbackAsync(token);
+
+                return false;
             }
 
-            await IdentityTransactionLock.AcquireAsync(context, "refresh:" + family.Value.ToString("N"), cancellationToken);
+            await IdentityTransactionLock.AcquireAsync(transaction, "refresh:" + family.Value.ToString("N"), token);
             await context.RefreshTokens.Where(token => token.FamilyId == family.Value && !token.Revoked)
-                .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.Revoked, true), cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        });
+                .ExecuteUpdateAsync(setters => setters.SetProperty(token => token.Revoked, true), token);
+            await transaction.CommitAsync(token);
+
+            return true;
+        }, cancellationToken);
     }
 
     private async Task<AuthenticationResult> IssueAsync(ApplicationUser user, Guid family, CancellationToken cancellationToken)

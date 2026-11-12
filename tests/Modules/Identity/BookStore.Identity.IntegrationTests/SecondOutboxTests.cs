@@ -22,6 +22,7 @@ public class SecondOutboxTests(IdentityFactory factory) : IClassFixture<Identity
         services.AddLogging();
         services.AddDbContext<SecondContext>(options => options.UseSqlServer(connectionString));
         services.AddDbContext<IdentityDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddScoped<IIdentityDbContext>(serviceProvider => serviceProvider.GetRequiredService<IdentityDbContext>());
         services.AddOutbox<SecondStore>(new ConfigurationBuilder().Build());
         services.AddOutbox<IdentityOutboxStore>(new ConfigurationBuilder().Build());
         services.AddRequests(Array.Empty<Assembly>());

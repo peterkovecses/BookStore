@@ -14,6 +14,7 @@ public class RegistrationTransactionTests(IdentityFactory factory) : IClassFixtu
         var userId = Guid.NewGuid().ToString();
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var identityContext = scope.ServiceProvider.GetRequiredService<IIdentityDbContext>();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var ids = Substitute.For<IUserIdGenerator>();
         ids.Create().Returns(userId);
@@ -31,7 +32,7 @@ public class RegistrationTransactionTests(IdentityFactory factory) : IClassFixtu
 
                 return CreateOutboxMessage(user);
             });
-        var sut = new RegistrationHandler(users, db, ids, verificationRequests);
+        var sut = new RegistrationHandler(users, identityContext, ids, verificationRequests);
 
         // Act
         var actual = await sut.HandleAsync(Command(email), TestContext.Current.CancellationToken);
@@ -65,6 +66,7 @@ public class RegistrationTransactionTests(IdentityFactory factory) : IClassFixtu
         await using var configuredFactory = CreateFactoryWithRetryEnabled();
         using var scope = configuredFactory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var identityContext = scope.ServiceProvider.GetRequiredService<IIdentityDbContext>();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var actualVerificationRequests = scope.ServiceProvider.GetRequiredService<IVerificationRequestFactory>();
         var protection = scope.ServiceProvider.GetRequiredService<IDataProtectionProvider>();
@@ -88,7 +90,7 @@ public class RegistrationTransactionTests(IdentityFactory factory) : IClassFixtu
 
                 return message;
             });
-        var sut = new RegistrationHandler(users, db, ids, verificationRequests);
+        var sut = new RegistrationHandler(users, identityContext, ids, verificationRequests);
 
         // Act
         var actual = await sut.HandleAsync(Command(email), TestContext.Current.CancellationToken);
@@ -130,6 +132,7 @@ public class RegistrationTransactionTests(IdentityFactory factory) : IClassFixtu
         var userId = Guid.NewGuid().ToString();
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var identityContext = scope.ServiceProvider.GetRequiredService<IIdentityDbContext>();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var ids = Substitute.For<IUserIdGenerator>();
         ids.Create().Returns(userId);
@@ -147,7 +150,7 @@ public class RegistrationTransactionTests(IdentityFactory factory) : IClassFixtu
 
                 return await Task.FromException<OutboxMessage>(new InvalidOperationException(failureMessage));
             });
-        var sut = new RegistrationHandler(users, db, ids, verificationRequests);
+        var sut = new RegistrationHandler(users, identityContext, ids, verificationRequests);
 
         // Act
         var act = () => sut.HandleAsync(Command(email), TestContext.Current.CancellationToken);
@@ -175,6 +178,7 @@ public class RegistrationTransactionTests(IdentityFactory factory) : IClassFixtu
         await using var configuredFactory = CreateFactoryWithUserValidation(validator);
         using var scope = configuredFactory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+        var identityContext = scope.ServiceProvider.GetRequiredService<IIdentityDbContext>();
         var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var observedTransaction = false;
         var userVisibleInTransaction = false;
@@ -193,7 +197,7 @@ public class RegistrationTransactionTests(IdentityFactory factory) : IClassFixtu
         var ids = Substitute.For<IUserIdGenerator>();
         ids.Create().Returns(userId);
         var verificationRequests = Substitute.For<IVerificationRequestFactory>();
-        var sut = new RegistrationHandler(users, db, ids, verificationRequests);
+        var sut = new RegistrationHandler(users, identityContext, ids, verificationRequests);
 
         // Act
         var actual = await sut.HandleAsync(Command(email), TestContext.Current.CancellationToken);

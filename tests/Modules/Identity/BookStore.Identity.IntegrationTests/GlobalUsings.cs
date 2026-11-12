@@ -17,6 +17,7 @@ global using BookStore.Identity.Features.ForgotPassword;
 global using BookStore.Identity.Features.ResetPassword;
 global using BookStore.Identity.Features.Verification;
 global using BookStore.Identity.Common;
+global using BookStore.Identity.Common.Interfaces;
 global using BookStore.Identity.Infrastructure;
 global using BookStore.Testing.Common.Integration;
 global using DotNet.Testcontainers.Builders;

@@ -2,7 +2,7 @@ namespace BookStore.Identity.Features.Registration;
 
 internal sealed class RegistrationHandler(
     UserManager<ApplicationUser> users,
-    IdentityDbContext context,
+    IIdentityDbContext context,
     IUserIdGenerator idGenerator,
     IVerificationRequestFactory verificationRequests)
     : IRequestHandler<RegisterCommand, Result>
@@ -13,9 +13,8 @@ internal sealed class RegistrationHandler(
 
         try
         {
-            return await context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+            var attempt = await context.ExecuteInTransactionAsync(async (transaction, token) =>
             {
-                context.ChangeTracker.Clear();
                 var user = new ApplicationUser
                 {
                     Id = userId,
@@ -24,38 +23,43 @@ internal sealed class RegistrationHandler(
                     FirstName = request.FirstName,
                     LastName = request.LastName
                 };
-                await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
                 var result = await users.CreateAsync(user, request.Password);
                 if (result.Succeeded)
                 {
-                    var message = await verificationRequests.CreateAsync(user, cancellationToken);
+                    var message = await verificationRequests.CreateAsync(user, token);
                     context.OutboxMessages.Add(message);
-                    await context.SaveChangesAsync(cancellationToken);
-                    await transaction.CommitAsync(cancellationToken);
+                    await context.SaveChangesAsync(token);
+                    await transaction.CommitAsync(token);
 
+                    return new RegistrationAttempt(null);
+                }
+
+                await transaction.RollbackAsync(token);
+
+                return new RegistrationAttempt(result);
+            }, cancellationToken);
+            if (attempt.Result is null)
+            {
+                return Result.Success();
+            }
+
+            var errors = attempt.Result.Errors.ToList();
+            var validationErrors = errors.Where(error => !IsDuplicateError(error)).ToList();
+            if (errors.Count > 0 && validationErrors.Count == 0)
+            {
+                if (await EmailExistsAsync(users.NormalizeEmail(request.Email), cancellationToken))
+                {
                     return Result.Success();
                 }
 
-                await transaction.RollbackAsync(cancellationToken);
-                await transaction.DisposeAsync();
-                var errors = result.Errors.ToList();
-                var validationErrors = errors.Where(error => !IsDuplicateError(error)).ToList();
-                if (errors.Count > 0 && validationErrors.Count == 0)
-                {
-                    if (await EmailExistsAsync(users.NormalizeEmail(request.Email), cancellationToken))
-                    {
-                        return Result.Success();
-                    }
+                throw new InvalidOperationException("Registration could not be completed due to a conflicting account.");
+            }
 
-                    throw new InvalidOperationException("Registration could not be completed due to a conflicting account.");
-                }
-
-                return ToValidationResult(validationErrors);
-            });
+            return ToValidationResult(validationErrors);
         }
         catch (DbUpdateException exception) when (exception.InnerException is SqlException { Number: 2601 or 2627 })
         {
-            context.ChangeTracker.Clear();
+            context.ClearChangeTracker();
             var normalizedEmail = users.NormalizeEmail(request.Email);
             var normalizedUserName = users.NormalizeName(request.Email);
             var matchingUser = await context.Users.AsNoTracking()
@@ -91,4 +95,6 @@ internal sealed class RegistrationHandler(
 
     private Task<bool> EmailExistsAsync(string normalizedEmail, CancellationToken cancellationToken) =>
         context.Users.AsNoTracking().AnyAsync(existing => existing.NormalizedEmail == normalizedEmail, cancellationToken);
+
+    private sealed record RegistrationAttempt(IdentityResult? Result);
 }

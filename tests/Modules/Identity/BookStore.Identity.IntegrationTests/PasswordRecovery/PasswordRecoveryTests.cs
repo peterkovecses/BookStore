@@ -107,7 +107,7 @@ public sealed class PasswordRecoveryTests(IdentityFactory factory) : IClassFixtu
         try
         {
             var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var sut = new ResetPasswordHandler(db, users);
+            var sut = new ResetPasswordHandler(scope.ServiceProvider.GetRequiredService<IIdentityDbContext>(), users);
             var command = new ResetPasswordCommand(userId, token, NewPassword);
 
             // Act
